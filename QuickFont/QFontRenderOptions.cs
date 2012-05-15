@@ -137,7 +137,10 @@ namespace QuickFont
         /// </summary>
         public bool UseDefaultBlendFunction = true;
 
-
+        /// <summary>
+        /// Wrap word to next line if max width hit
+        /// </summary>
+        public bool WordWrap = true;
 
 
         #region Justify Options

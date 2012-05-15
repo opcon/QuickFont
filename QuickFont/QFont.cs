@@ -1110,17 +1110,18 @@ namespace QuickFont
                             maxMeasuredWidth = Math.Max(length, maxMeasuredWidth);
 
                         }
-                        else
+                        else if (Options.WordWrap)
                         {
                             newLine = true;
                             if (node.Previous != null)
                                 node = node.Previous;
                         }
+                        else
+                            break;
                     }
 
                     if (newLine)
                     {
-
                         yOffset += LineSpacing;
                         xOffset = xPos;
                         length = 0f;
