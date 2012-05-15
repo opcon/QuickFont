@@ -42,5 +42,20 @@ namespace QuickFont
             GL.Disable(cap);
         }
 
+        /// <summary>
+        /// Ensures that multiple states are disabled
+        /// </summary>
+        /// <param name="cap"></param>
+        /// <param name="code"></param>
+        public static void SafeGLEnable(EnableCap[] caps, Action code)
+        {
+            foreach(var cap in caps)
+                GL.Enable(cap);
+
+            code();
+
+            foreach (var cap in caps)
+                GL.Disable(cap);
+        }
     }
 }
