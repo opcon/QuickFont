@@ -76,6 +76,8 @@ namespace QuickFont
         /// </summary>
         public TextGenerationRenderHint TextGenerationRenderHint = TextGenerationRenderHint.SizeDependent;
 
+        public bool UseVertexBuffer = false;
+
 
         public QFontBuilderConfiguration() { }
         public QFontBuilderConfiguration(bool addDropShadow) : this(addDropShadow, false) { }

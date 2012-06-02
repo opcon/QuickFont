@@ -57,5 +57,16 @@ namespace QuickFont
             foreach (var cap in caps)
                 GL.Disable(cap);
         }
+
+        public static void SafeGLEnableClientStates(ArrayCap[] caps, Action code)
+        {
+            foreach (var cap in caps)
+                GL.EnableClientState(cap);
+
+            code();
+
+            foreach (var cap in caps)
+                GL.DisableClientState(cap);
+        }
     }
 }

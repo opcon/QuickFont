@@ -16,3 +16,5 @@
 30/12/2011 - QFont.FromQFontFile now takes a QFontLoaderConfiguration. This contains a QFontShadowConfiguration.
 30/12/2011 - Added alphaEmptyPixelTolerance config value
 31/12/2011 - Fixed limitation on downscaling texture fonts (previously glyphs could overlap, throwing an exception)
+
+02/06/2012 - Added vertex buffer support
