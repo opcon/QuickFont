@@ -89,7 +89,7 @@ namespace QuickFont
                     GL.ColorPointer(4, ColorPointerType.UnsignedByte, BlittableValueType.StrideOf(Vertices), new IntPtr(32)); 
 
                     // triangles because quads are depreciated in new opengl versions
-                    GL.DrawElements(BeginMode.Triangles, VertexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                    GL.DrawArrays(BeginMode.Triangles, 0, VertexCount);
                 });
             });
         }
