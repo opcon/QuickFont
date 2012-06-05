@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using OpenTK.Graphics.OpenGL;
+using System.Drawing;
 
 namespace QuickFont
 {
@@ -67,6 +68,11 @@ namespace QuickFont
 
             foreach (var cap in caps)
                 GL.DisableClientState(cap);
+        }
+
+        public static int ToRgba(Color color)
+        {
+            return color.A << 24 | color.B << 16 | color.G << 8 | color.R;
         }
     }
 }

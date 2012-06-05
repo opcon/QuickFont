@@ -17,7 +17,7 @@ namespace QuickFont
         /// <summary>
         /// The font colour
         /// </summary>
-        public Color4 Colour = Color.FromArgb(255,255,255,255);
+        public Color Colour = Color.White;
 
         /// <summary>
         /// Spacing between characters in units of average glyph width

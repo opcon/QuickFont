@@ -296,15 +296,15 @@ namespace QuickFont
             var v3 = PrintOffset + new Vector3(x + glyph.rect.Width, y + glyph.yOffset + glyph.rect.Height, 0);
             var v4 = PrintOffset + new Vector3(x + glyph.rect.Width, y + glyph.yOffset, 0);
 
-            Color4 color = Options.Colour;
+            Color color = Options.Colour;
             if(isDropShadow)
-                color = new Color4(1.0f, 1.0f, 1.0f, Options.DropShadowOpacity);
+                color = Color.FromArgb((int)(Options.DropShadowOpacity * 255f), Color.White);
 
             if (UsingVertexBuffers)
             {
                 var normal = new Vector3(0, 0, -1);
 
-                int argb = Options.Colour.ToArgb();
+                int argb = Helper.ToRgba(color);
 
                 var vbo = VertexBuffers[glyph.page];
 
@@ -476,14 +476,14 @@ namespace QuickFont
 
         public void PrintToVBO(string text, Vector3 position, Color color, QFontAlignment alignment = QFontAlignment.Left)
         {
-            Options.Colour = new Color4(color.R, color.G, color.B, color.A);
+            Options.Colour = color;
             PrintOffset = position;
             PrintOrMeasure(text, alignment, false);
         }
 
         public void PrintToVBO(string text, float maxWidth, QFontAlignment alignment, Vector3 position, Color color)
         {
-            Options.Colour = new Color4(color.R, color.G, color.B, color.A);
+            Options.Colour = color;
             PrintOffset = position;
             Print(text, maxWidth, alignment);
         }
@@ -1063,7 +1063,7 @@ namespace QuickFont
             // determine what capacities we need
             var caps = new EnableCap[] { };
 
-            if (!measureOnly)
+            if (!measureOnly && !UsingVertexBuffers)
             {
                 GL.Color4(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -1072,7 +1072,7 @@ namespace QuickFont
 
             Helper.SafeGLEnable(caps, () =>
             {
-                if(!measureOnly && Options.UseDefaultBlendFunction)
+                if (!measureOnly && !UsingVertexBuffers && Options.UseDefaultBlendFunction)
                     GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
                 float maxWidth = processedText.maxWidth;
