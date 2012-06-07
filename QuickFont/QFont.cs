@@ -1016,7 +1016,7 @@ namespace QuickFont
             //we "crumble" words that are two long so that that can be split up
             var nodesToCrumble = new List<TextNode>();
             foreach (TextNode node in nodeList)
-                if (node.Length >= maxWidth && node.Type == TextNodeType.Word)
+                if ((!Options.WordWrap || node.Length >= maxWidth) && node.Type == TextNodeType.Word)
                     nodesToCrumble.Add(node);
 
             foreach (var node in nodesToCrumble)
@@ -1107,13 +1107,14 @@ namespace QuickFont
                     else
                     {
 
-                        if (SkipTrailingSpace(node, length, maxWidth) && atLeastOneNodeCosumedOnLine)
+                        if (Options.WordWrap && SkipTrailingSpace(node, length, maxWidth) && atLeastOneNodeCosumedOnLine)
                         {
                             newLine = true;
                         }
                         else if (length + node.ModifiedLength <= maxWidth || !atLeastOneNodeCosumedOnLine)
                         {
                             atLeastOneNodeCosumedOnLine = true;
+
                             if (!measureOnly)
                                 RenderWord(xOffset + length, yOffset, node);
                             length += node.ModifiedLength;
