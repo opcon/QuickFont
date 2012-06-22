@@ -447,14 +447,14 @@ namespace QuickFont
             GL.PopMatrix();
         }
 
-        public void Print(string text, float maxWidth, QFontAlignment alignment, Vector2 position)
+        public void Print(string text, SizeF maxSize, QFontAlignment alignment, Vector2 position)
         {
             position = TransformPositionToViewport(position);
             position = LockToPixel(position);
             
             GL.PushMatrix();
             GL.Translate(position.X, position.Y, 0f);
-            Print(text, maxWidth, alignment);
+            Print(text, maxSize, alignment);
             GL.PopMatrix();
         }
 
@@ -481,11 +481,11 @@ namespace QuickFont
             PrintOrMeasure(text, alignment, false);
         }
 
-        public void PrintToVBO(string text, float maxWidth, QFontAlignment alignment, Vector3 position, Color color)
+        public void PrintToVBO(string text, QFontAlignment alignment, Vector3 position, Color color, SizeF maxSize)
         {
             Options.Colour = color;
             PrintOffset = position;
-            Print(text, maxWidth, alignment);
+            Print(text, maxSize, alignment);
         }
 
         public SizeF Measure(string text, QFontAlignment alignment = QFontAlignment.Left)
@@ -500,9 +500,9 @@ namespace QuickFont
         /// <param name="bounds"></param>
         /// <param name="alignment"></param>
         /// <returns></returns>
-        public SizeF Measure(string text, float maxWidth, QFontAlignment alignment)
+        public SizeF Measure(string text, SizeF maxSize, QFontAlignment alignment)
         {
-            var processedText = ProcessText(text, maxWidth, alignment);
+            var processedText = ProcessText(text, maxSize, alignment);
             return Measure(processedText);
         }
 
@@ -988,9 +988,9 @@ namespace QuickFont
         /// <param name="text"></param>
         /// <param name="bounds"></param>
         /// <param name="alignment"></param>
-        public void Print(string text, float maxWidth, QFontAlignment alignment)
+        public void Print(string text, SizeF maxSize, QFontAlignment alignment)
         {
-            var processedText = ProcessText(text, maxWidth, alignment);
+            var processedText = ProcessText(text, maxSize, alignment);
             Print(processedText);
         }
 
@@ -1004,11 +1004,11 @@ namespace QuickFont
         /// <param name="text"></param>
         /// <param name="bounds"></param>
         /// <returns></returns>
-        public ProcessedText ProcessText(string text, float maxWidth, QFontAlignment alignment)
+        public ProcessedText ProcessText(string text, SizeF maxSize, QFontAlignment alignment)
         {
             //TODO: bring justify and alignment calculations in here
 
-            maxWidth = TransformWidthToViewport(maxWidth);
+            maxSize.Width = TransformWidthToViewport(maxSize.Width);
 
             var nodeList = new TextNodeList(text);
             nodeList.MeasureNodes(fontData, Options);
@@ -1016,7 +1016,7 @@ namespace QuickFont
             //we "crumble" words that are two long so that that can be split up
             var nodesToCrumble = new List<TextNode>();
             foreach (TextNode node in nodeList)
-                if ((!Options.WordWrap || node.Length >= maxWidth) && node.Type == TextNodeType.Word)
+                if ((!Options.WordWrap || node.Length >= maxSize.Width) && node.Type == TextNodeType.Word)
                     nodesToCrumble.Add(node);
 
             foreach (var node in nodesToCrumble)
@@ -1028,7 +1028,7 @@ namespace QuickFont
 
             var processedText = new ProcessedText();
             processedText.textNodeList = nodeList;
-            processedText.maxWidth = maxWidth;
+            processedText.maxSize = maxSize;
             processedText.alignment = alignment;
 
 
@@ -1075,7 +1075,7 @@ namespace QuickFont
                 if (!measureOnly && !UsingVertexBuffers && Options.UseDefaultBlendFunction)
                     GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
-                float maxWidth = processedText.maxWidth;
+                float maxWidth = processedText.maxSize.Width;
                 var alignment = processedText.alignment;
 
 
@@ -1129,11 +1129,14 @@ namespace QuickFont
                                 node = node.Previous;
                         }
                         else
-                            break;
+                            continue; // continue so we still read line breaks even if reached max width
                     }
 
                     if (newLine)
                     {
+                        if (yOffset + LineSpacing - yPos >= processedText.maxSize.Height)
+                            break;
+
                         yOffset += LineSpacing;
                         xOffset = xPos;
                         length = 0f;

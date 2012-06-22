@@ -40,7 +40,7 @@ namespace QuickFont
     public class ProcessedText
     {
         internal TextNodeList textNodeList;
-        internal float maxWidth;
+        internal SizeF maxSize;
         internal QFontAlignment alignment;
     }
 
