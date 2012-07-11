@@ -20,6 +20,15 @@ namespace QuickFont
         bool UsingVertexBuffers;
         public QVertexBuffer[] VertexBuffers = new QVertexBuffer[0];
         Vector3 PrintOffset;
+
+        private ProjectionStack m_projectionStack = ProjectionStack.DefaultStack;
+
+        public ProjectionStack ProjectionStack
+        {
+            get { return m_projectionStack; }
+            set { m_projectionStack = value; }
+        }
+
         
         
         public QFontRenderOptions Options
@@ -135,10 +144,8 @@ namespace QuickFont
             
         }
 
-        public static QFont FromQFontFile(string filePath) { return FromQFontFile(filePath, 1.0f, null); }
-        public static QFont FromQFontFile(string filePath, QFontLoaderConfiguration loaderConfig) { return FromQFontFile(filePath, 1.0f, loaderConfig); }
-        public static QFont FromQFontFile(string filePath, float downSampleFactor) { return FromQFontFile(filePath, downSampleFactor,null); }
-        public static QFont FromQFontFile(string filePath, float downSampleFactor, QFontLoaderConfiguration loaderConfig)
+        public static QFont FromQFontFile(string filePath, QFontLoaderConfiguration loaderConfig = null, ProjectionStack proj = null) { return FromQFontFile(filePath, 1.0f, loaderConfig, proj); }
+        public static QFont FromQFontFile(string filePath, float downSampleFactor, QFontLoaderConfiguration loaderConfig = null, ProjectionStack proj = null)
         {
 
 
@@ -146,12 +153,15 @@ namespace QuickFont
             if (loaderConfig == null)
                 loaderConfig = new QFontLoaderConfiguration();
 
+            QFont qfont = new QFont();
+            if (proj != null)
+                qfont.ProjectionStack = proj;
+
             TransformViewport? transToVp = null;
             float fontScale = 1f;
             if (loaderConfig.TransformToCurrentOrthogProjection)
-                transToVp = OrthogonalTransform(out fontScale);
-          
-            QFont qfont = new QFont();
+                transToVp = qfont.OrthogonalTransform(out fontScale);
+                      
             qfont.fontData = Builder.LoadQFontDataFromFile(filePath, downSampleFactor * fontScale, loaderConfig);
 
             if (loaderConfig.ShadowConfig != null)
@@ -181,7 +191,7 @@ namespace QuickFont
         /// </summary>
         /// <param name="fontScale"></param>
         /// <param name="viewportTransform"></param>
-        private static TransformViewport OrthogonalTransform(out float fontScale)
+        private TransformViewport OrthogonalTransform(out float fontScale)
         {
             bool isOrthog;
             float left,right,bottom,top;
@@ -472,6 +482,20 @@ namespace QuickFont
         public void Print(string text, QFontAlignment alignment = QFontAlignment.Left)
         {
             PrintOrMeasure(text, alignment, false);
+        }
+
+
+        public void Print(string text, Vector3 position, Color color, QFontAlignment alignment = QFontAlignment.Left)
+        {
+            var position2 = new Vector2(position.X, position.Y);
+            position2 = TransformPositionToViewport(position2);
+            position2 = LockToPixel(position2);
+
+            Options.Colour = color;
+            GL.PushMatrix();
+            GL.Translate(position.X, position.Y, 0f);
+            PrintOrMeasure(text, alignment, false);
+            GL.PopMatrix();
         }
 
         public void PrintToVBO(string text, Vector3 position, Color color, QFontAlignment alignment = QFontAlignment.Left)
@@ -1170,15 +1194,14 @@ namespace QuickFont
             ProjectionStack.End();
         }*/
 
-
         public static void Begin()
         {
-            ProjectionStack.Begin();
+            ProjectionStack.DefaultStack.Begin();
         }
 
         public static void End()
         {
-            ProjectionStack.End();
+            ProjectionStack.DefaultStack.End();
         }
 
         /// <summary>
@@ -1189,8 +1212,9 @@ namespace QuickFont
         /// </summary>
         public static void RefreshViewport()
         {
-            ProjectionStack.InvalidateViewport();
+            ProjectionStack.DefaultStack.InvalidateViewport();
         }
+
 
         private void InitVBOs()
         {
@@ -1221,5 +1245,58 @@ namespace QuickFont
             foreach (var buffer in VertexBuffers)
                 buffer.Draw();
         }
+
+
+
+        #region IDisposable impl
+
+        // Track whether Dispose has been called.
+        private bool disposed = false;
+
+        // Implement IDisposable.
+        // Do not make this method virtual.
+        // A derived class should not be able to override this method.
+        public void Dispose()
+        {
+            Dispose(true);
+            // This object will be cleaned up by the Dispose method.
+            // Therefore, you should call GC.SupressFinalize to
+            // take this object off the finalization queue
+            // and prevent finalization code for this object
+            // from executing a second time.
+            GC.SuppressFinalize(this);
+        }
+
+        // Dispose(bool disposing) executes in two distinct scenarios.
+        // If disposing equals true, the method has been called directly
+        // or indirectly by a user's code. Managed and unmanaged resources
+        // can be disposed.
+        // If disposing equals false, the method has been called by the
+        // runtime from inside the finalizer and you should not reference
+        // other objects. Only unmanaged resources can be disposed.
+        protected virtual void Dispose(bool disposing)
+        {
+            // Check to see if Dispose has already been called.
+            if (!this.disposed)
+            {
+
+                // If disposing equals true, dispose all managed
+                // and unmanaged resources.
+                if (disposing)
+                {
+                    fontData.Dispose();
+                    foreach (var buffer in VertexBuffers)
+                        buffer.Dispose();
+
+                }
+
+                // Note disposing has been done.
+                disposed = true;
+
+            }
+        }
+        #endregion
+
+
     }
 }
