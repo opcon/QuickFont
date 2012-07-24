@@ -19,7 +19,22 @@ namespace QuickFont
         
         bool UsingVertexBuffers;
         public QVertexBuffer[] VertexBuffers = new QVertexBuffer[0];
-        Vector3 PrintOffset;
+
+        Vector3 m_printOffset;
+
+        public Vector3 PrintOffset
+        {
+            get { 
+                return m_printOffset; 
+            }
+            set { 
+                m_printOffset = value;
+                if (fontData.dropShadow != null)
+                    fontData.dropShadow.PrintOffset = value;
+            }
+        }
+
+        private readonly ProjectionStack m_projectionStack = new ProjectionStack();
         
         
         public QFontRenderOptions Options
@@ -148,10 +163,10 @@ namespace QuickFont
 
             TransformViewport? transToVp = null;
             float fontScale = 1f;
-            if (loaderConfig.TransformToCurrentOrthogProjection)
-                transToVp = OrthogonalTransform(out fontScale);
-          
             QFont qfont = new QFont();
+            if (loaderConfig.TransformToCurrentOrthogProjection)
+                transToVp = qfont.OrthogonalTransform(out fontScale);
+          
             qfont.fontData = Builder.LoadQFontDataFromFile(filePath, downSampleFactor * fontScale, loaderConfig);
 
             if (loaderConfig.ShadowConfig != null)
@@ -181,17 +196,17 @@ namespace QuickFont
         /// </summary>
         /// <param name="fontScale"></param>
         /// <param name="viewportTransform"></param>
-        private static TransformViewport OrthogonalTransform(out float fontScale)
+        private TransformViewport OrthogonalTransform(out float fontScale)
         {
             bool isOrthog;
             float left,right,bottom,top;
-            ProjectionStack.GetCurrentOrthogProjection(out isOrthog,out left,out right,out bottom,out top);
+            m_projectionStack.GetCurrentOrthogProjection(out isOrthog,out left,out right,out bottom,out top);
 
             if (!isOrthog)
                 throw new ArgumentOutOfRangeException("Current projection matrix was not Orthogonal. Please ensure that you have set an orthogonal projection before attempting to create a font with the TransformToOrthogProjection flag set to true.");
             
             var viewportTransform = new TransformViewport(left, top, right - left, bottom - top);
-            fontScale = Math.Abs((float)ProjectionStack.CurrentViewport.Value.Height / viewportTransform.Height);
+            fontScale = Math.Abs((float)m_projectionStack.CurrentViewport.Value.Height / viewportTransform.Height);
             return viewportTransform;
         }
 
@@ -254,30 +269,26 @@ namespace QuickFont
             //note can cast drop shadow offset to int, but then you can't move the shadow smoothly...
             if (fontData.dropShadow != null && Options.DropShadowActive)
             {
-                //make sure fontdata font's options are synced with the actual options
-                if (fontData.dropShadow.Options != Options)
-                    fontData.dropShadow.Options = Options;
-
                 fontData.dropShadow.RenderGlyph(
                     x + (fontData.meanGlyphWidth * Options.DropShadowOffset.X + nonShadowGlyph.rect.Width * 0.5f),
-                    y + (fontData.meanGlyphWidth * Options.DropShadowOffset.Y + nonShadowGlyph.rect.Height * 0.5f + nonShadowGlyph.yOffset), c, true);
+                    y + (fontData.meanGlyphWidth * Options.DropShadowOffset.Y + nonShadowGlyph.rect.Height * 0.5f + nonShadowGlyph.yOffset), c);
             }
         }
 
-        public void RenderGlyph(float x, float y, char c, bool isDropShadow)
+        public void RenderGlyph(float x, float y, char c)
         {
+
             var glyph = fontData.CharSetMapping[c];
 
             //note: it's not immediately obvious, but this combined with the paramteters to 
             //RenderGlyph for the shadow mean that we render the shadow centrally (despite it being a different size)
             //under the glyph
-            if (isDropShadow) 
+            if (fontData.isDropShadow) 
             {
                 x -= (int)(glyph.rect.Width * 0.5f);
                 y -= (int)(glyph.rect.Height * 0.5f + glyph.yOffset);
-            }
-            
-            RenderDropShadow(x, y, c, glyph);
+            } else
+                RenderDropShadow(x, y, c, glyph);
 
             TexturePage sheet = fontData.Pages[glyph.page];
 
@@ -296,9 +307,12 @@ namespace QuickFont
             var v3 = PrintOffset + new Vector3(x + glyph.rect.Width, y + glyph.yOffset + glyph.rect.Height, 0);
             var v4 = PrintOffset + new Vector3(x + glyph.rect.Width, y + glyph.yOffset, 0);
 
-            Color color = Options.Colour;
-            if(isDropShadow)
-                color = Color.FromArgb((int)(Options.DropShadowOpacity * 255f), Color.White);
+            Color color;
+            if (fontData.isDropShadow) 
+                color = Options.DropShadowColour;
+            else
+                color = Options.Colour;
+
 
             if (UsingVertexBuffers)
             {
@@ -383,7 +397,7 @@ namespace QuickFont
             {
                 return input;
             }
-            var v1 = ProjectionStack.CurrentViewport;
+            var v1 = m_projectionStack.CurrentViewport;
 
             float X, Y;
 
@@ -401,7 +415,7 @@ namespace QuickFont
             {
                 return input;
             }
-            var v1 = ProjectionStack.CurrentViewport;
+            var v1 = m_projectionStack.CurrentViewport;
 
             return input * ((float)v1.Value.Width / v2.Value.Width);
         }
@@ -414,7 +428,7 @@ namespace QuickFont
             {
                 return input;
             }
-            var v1 = ProjectionStack.CurrentViewport;
+            var v1 = m_projectionStack.CurrentViewport;
 
             float X, Y;
 
@@ -474,6 +488,26 @@ namespace QuickFont
             PrintOrMeasure(text, alignment, false);
         }
 
+
+        public void PrintToVBO(string text, SizeF maxSize, QFontAlignment alignment, Vector2 position)
+        {
+            PrintOffset = new Vector3(position.X, position.Y, 0f);
+            Print(text, maxSize, alignment);
+        }
+
+        public void PrintToVBO(string text, Vector2 position, QFontAlignment alignment = QFontAlignment.Left)
+        {
+            PrintOffset = new Vector3(position.X, position.Y, 0f);
+            PrintOrMeasure(text, alignment, false);
+        }
+
+        public void PrintToVBO(string text, Vector2 position, Color color, QFontAlignment alignment = QFontAlignment.Left)
+        {
+            Options.Colour = color;
+            PrintOffset = new Vector3(position.X, position.Y, 0f);
+            PrintOrMeasure(text, alignment, false);
+        }
+
         public void PrintToVBO(string text, Vector3 position, Color color, QFontAlignment alignment = QFontAlignment.Left)
         {
             Options.Colour = color;
@@ -527,6 +561,12 @@ namespace QuickFont
             if(!UsingVertexBuffers)
                 caps = new EnableCap[] { EnableCap.Texture2D, EnableCap.Blend };
 
+            //make sure fontdata font's options are synced with the actual options
+            if (fontData.dropShadow != null && fontData.dropShadow.Options != Options)
+            {
+                fontData.dropShadow.Options = Options;
+            }
+
             Helper.SafeGLEnable(caps, () =>
             {
                 float maxXpos = float.MinValue;
@@ -574,7 +614,7 @@ namespace QuickFont
                         {
                             QFontGlyph glyph = fontData.CharSetMapping[c];
                             if (!measureOnly)
-                                RenderGlyph(xOffset, yOffset, c, false);
+                                RenderGlyph(xOffset, yOffset, c);
                         }
 
 
@@ -635,7 +675,7 @@ namespace QuickFont
                 if(fontData.CharSetMapping.ContainsKey(c)){
                     var glyph = fontData.CharSetMapping[c];
 
-                    RenderGlyph(x,y,c, false);
+                    RenderGlyph(x,y,c);
 
 
                     if (IsMonospacingActive)
@@ -1070,6 +1110,12 @@ namespace QuickFont
                 caps = new EnableCap[] { EnableCap.Texture2D, EnableCap.Blend };
             }
 
+            //make sure fontdata font's options are synced with the actual options
+            if (fontData.dropShadow != null && fontData.dropShadow.Options != Options)
+            {
+                fontData.dropShadow.Options = Options;
+            }
+
             Helper.SafeGLEnable(caps, () =>
             {
                 if (!measureOnly && !UsingVertexBuffers && Options.UseDefaultBlendFunction)
@@ -1171,14 +1217,14 @@ namespace QuickFont
         }*/
 
 
-        public static void Begin()
+        public void Begin()
         {
-            ProjectionStack.Begin();
+            m_projectionStack.Begin();
         }
 
-        public static void End()
+        public void End()
         {
-            ProjectionStack.End();
+            m_projectionStack.End();
         }
 
         /// <summary>
@@ -1187,9 +1233,9 @@ namespace QuickFont
         /// if the viewport and text is to be rendered to the new 
         /// viewport.
         /// </summary>
-        public static void RefreshViewport()
+        public void RefreshViewport()
         {
-            ProjectionStack.InvalidateViewport();
+            m_projectionStack.InvalidateViewport();
         }
 
         private void InitVBOs()
@@ -1202,22 +1248,34 @@ namespace QuickFont
                 int textureID = fontData.Pages[i].GLTexID;
                 VertexBuffers[i] = new QVertexBuffer(textureID);
             }
+
+            if (fontData.dropShadow != null)
+                fontData.dropShadow.InitVBOs();
         }
 
         public void ResetVBOs()
         {
             foreach (var buffer in VertexBuffers)
                 buffer.Reset();
+
+            if (fontData.dropShadow != null)
+                fontData.dropShadow.ResetVBOs();
         }
 
         public void LoadVBOs()
         {
             foreach (var buffer in VertexBuffers)
                 buffer.Load();
+
+            if (fontData.dropShadow != null)
+                fontData.dropShadow.LoadVBOs();
         }
 
         public void DrawVBOs()
         {
+            if (fontData.dropShadow != null)
+                fontData.dropShadow.DrawVBOs();
+
             foreach (var buffer in VertexBuffers)
                 buffer.Draw();
         }

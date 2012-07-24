@@ -468,7 +468,67 @@ namespace QuickFont
 
         }*/
 
+        public void ExpandAlpha(int radius, int passes)
+        {
+            QBitmap tmp = new QBitmap(new Bitmap(this.bitmap.Width, this.bitmap.Height, bitmap.PixelFormat));
 
+            byte a = 0;
+            byte max;
+            int xpos, ypos, x, y, kx, ky;
+            int width = bitmap.Width;
+            int height = bitmap.Height;
+
+            for (int pass = 0; pass < passes; pass++)
+            {
+
+                //horizontal pass
+                for (y = 0; y < height; y++)
+                {
+                    for (x = 0; x < width; x++)
+                    {
+                        max = 0;
+                        for (kx = -radius; kx <= radius; kx++)
+                        {
+                            xpos = x + kx;
+                            if (xpos >= 0 && xpos < width)
+                            {
+                                GetAlpha32(xpos, y, ref a);
+                                if (a > max)
+                                    max = a;
+                            }
+                        }
+
+                        tmp.PutAlpha32(x, y, max);
+                    }
+                }
+
+                //vertical pass
+                for (x = 0; x < width; ++x)
+                {
+                    for (y = 0; y < height; ++y)
+                    {
+                        max = 0;
+                        for (ky = -radius; ky <= radius; ky++)
+                        {
+                            ypos = y + ky;
+                            if (ypos >= 0 && ypos < height)
+                            {
+                                tmp.GetAlpha32(x, ypos, ref a);
+                                if (a > max)
+                                    max = a;
+                            }
+                        }
+
+                        PutAlpha32(x, y, max);
+
+                    }
+                }
+
+            }
+
+            tmp.Free();
+
+        }
 
 
         public void BlurAlpha(int radius, int passes)

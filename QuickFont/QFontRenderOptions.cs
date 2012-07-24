@@ -50,8 +50,15 @@ namespace QuickFont
         /// <summary>
         /// Opacity of drop shadows
         /// </summary>
-        public float DropShadowOpacity = 0.5f;
+        public Color DropShadowColour = Color.FromArgb(128, Color.Black);
 
+        public float DropShadowOpacity
+        {
+            set
+            {
+                DropShadowColour = Color.FromArgb((byte)(value * 255), Color.Black);
+            }
+        }
 
         /// <summary>
         /// Whether to render the font in monospaced mode. If set to "Natural", then 
@@ -244,7 +251,7 @@ namespace QuickFont
             clone.LineSpacing = LineSpacing;
             clone.DropShadowActive = DropShadowActive;
             clone.DropShadowOffset = DropShadowOffset;
-            clone.DropShadowOpacity = DropShadowOpacity;
+            clone.DropShadowColour = DropShadowColour;
             clone.Monospacing = Monospacing;
             clone.TransformToViewport = TransformToViewport;
             clone.LockToPixel = LockToPixel;
@@ -260,6 +267,10 @@ namespace QuickFont
 
             return clone;
         }
+
+
+
+
 
     }
 }

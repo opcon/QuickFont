@@ -7,6 +7,11 @@ namespace QuickFont
 
 
 
+    public enum ShadowType
+    {
+        Blurred,
+        Expanded
+    }
 
     /// <summary>
     /// The configuration used when building a font drop shadow.
@@ -17,6 +22,13 @@ namespace QuickFont
         /// Scale in relation to the actual font glyphs
         /// </summary>
         public float Scale = 1.0f;
+
+
+        /// <summary>
+        /// if type is blurred then font is blurred with gaussian blur
+        /// if type is expanded letter is expanded in every direction by given amount of pixels
+        /// </summary>
+        public ShadowType Type = ShadowType.Blurred;
 
         /// <summary>
         /// The blur radius. Caution: high values will greatly impact the 
