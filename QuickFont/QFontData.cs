@@ -41,6 +41,12 @@ namespace QuickFont
 
 
         /// <summary>
+        /// true if this font is dropShadow
+        /// </summary>
+        public bool isDropShadow;
+
+
+        /// <summary>
         /// Whether the original font (from ttf) was detected to be monospaced
         /// </summary>
         public bool naturallyMonospaced = false;

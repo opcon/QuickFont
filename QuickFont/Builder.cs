@@ -604,12 +604,14 @@ namespace QuickFont
                 ScaleSheetsAndGlyphs(bitmapSheets, newGlyphs, shadowConfig.Scale); //no point in retargeting yet, since we will do it after blur
 
 
-            //blacken and blur
+            //whiten and blur
             foreach (var bitmapSheet in bitmapSheets)
             {
-                bitmapSheet.Colour32(0, 0, 0);
-                bitmapSheet.BlurAlpha(shadowConfig.blurRadius, shadowConfig.blurPasses);
-
+                bitmapSheet.Colour32(255, 255, 255);
+                if (shadowConfig.Type == ShadowType.Blurred)
+                    bitmapSheet.BlurAlpha(shadowConfig.blurRadius, shadowConfig.blurPasses);
+                else
+                    bitmapSheet.ExpandAlpha(shadowConfig.blurRadius, shadowConfig.blurPasses);
             }
 
             
@@ -637,7 +639,7 @@ namespace QuickFont
             foreach (var sheet in bitmapSheets)
                 sheet.Free();
 
-            
+            fontData.isDropShadow = true;
             return new QFont(fontData);
         }
 
