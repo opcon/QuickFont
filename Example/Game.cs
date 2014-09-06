@@ -240,10 +240,10 @@ namespace StarterKit
 
             codeText = new QFont("Fonts/Comfortaa-Regular.ttf", 12,FontStyle.Regular);
 
-            heading1.Options.Colour = new Color4(0.2f, 0.2f, 0.2f, 1.0f);
-            mainText.Options.Colour = new Color4(0.1f, 0.1f, 0.1f, 1.0f);
+            heading1.Options.Colour = Color.FromArgb(new Color4(0.2f, 0.2f, 0.2f, 1.0f).ToArgb());
+            mainText.Options.Colour = Color.FromArgb(new Color4(0.1f, 0.1f, 0.1f, 1.0f).ToArgb());
             mainText.Options.DropShadowActive = false;
-            codeText.Options.Colour = new Color4(0.0f, 0.0f, 0.4f, 1.0f);
+            codeText.Options.Colour = Color.FromArgb(new Color4(0.0f, 0.0f, 0.4f, 1.0f).ToArgb());
 
             QFontBuilderConfiguration config2 = new QFontBuilderConfiguration();
             config2.SuperSampleLevels = 1;
@@ -253,7 +253,7 @@ namespace StarterKit
 
 
             monoSpaced = new QFont("Fonts/Anonymous.ttf", 10);
-            monoSpaced.Options.Colour = new Color4(0.1f, 0.1f, 0.1f, 1.0f);
+            monoSpaced.Options.Colour = Color.FromArgb(new Color4(0.1f, 0.1f, 0.1f, 1.0f).ToArgb());
 
             Console.WriteLine(" Monospaced : " + monoSpaced.IsMonospacingActive);
 
@@ -341,7 +341,6 @@ namespace StarterKit
         }
 
         private void PrintComment(QFont font, string comment,QFontAlignment alignment, ref float yOffset){
-
 
             GL.PushMatrix();
                 yOffset += 20;
@@ -747,7 +746,7 @@ namespace StarterKit
             {
                 GL.PushMatrix();
                 GL.Translate(Width - 10 - 16 * (float)(1 + Math.Sin(cnt * 4)), Height - controlsText.Measure("P").Height - 10f, 0f);
-                controlsText.Options.Colour = new Color4(0.8f, 0.1f, 0.1f, 1.0f);
+                controlsText.Options.Colour = Color.FromArgb(new Color4(0.8f, 0.1f, 0.1f, 1.0f).ToArgb());
                 controlsText.Print("Press [Right] ->", QFontAlignment.Right);
                 GL.PopMatrix();
             }
@@ -758,7 +757,7 @@ namespace StarterKit
 
                 GL.PushMatrix();
                 GL.Translate(10 + 16 * (float)(1 + Math.Sin(cnt * 4)), Height - controlsText.Measure("P").Height - 10f, 0f);
-                controlsText.Options.Colour = new Color4(0.8f, 0.1f, 0.1f, 1.0f);
+                controlsText.Options.Colour = Color.FromArgb(new Color4(0.8f, 0.1f, 0.1f, 1.0f).ToArgb());
                 controlsText.Print("<- Press [Left]", QFontAlignment.Left);
                 GL.PopMatrix();
             }
