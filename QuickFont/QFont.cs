@@ -468,6 +468,16 @@ namespace QuickFont
             GL.PopMatrix();
         }
 
+        public void Print(string text, float maxWidth, QFontAlignment alignment, Vector2 position)
+        {
+            Print(text, new SizeF(maxWidth, -1), alignment, position);
+        }
+
+        public void Print(string text, float maxWidth, QFontAlignment alignment)
+        {
+            Print(text, new SizeF(maxWidth, -1), alignment);
+        }
+
         public void Print(string text, SizeF maxSize, QFontAlignment alignment, Vector2 position)
         {
             position = TransformPositionToViewport(position);
@@ -546,6 +556,11 @@ namespace QuickFont
         public SizeF Measure(string text, QFontAlignment alignment = QFontAlignment.Left)
         {
             return TransformMeasureFromViewport(PrintOrMeasure(text, alignment, true));
+        }
+
+        public SizeF Measure(string text, float maxWidth, QFontAlignment alignment)
+        {
+            return Measure(text, new SizeF(maxWidth, -1), alignment);
         }
 
         /// <summary>
@@ -1201,7 +1216,7 @@ namespace QuickFont
 
                     if (newLine)
                     {
-                        if (yOffset + LineSpacing - yPos >= processedText.maxSize.Height)
+                        if (processedText.maxSize.Height > 0 && yOffset + LineSpacing - yPos >= processedText.maxSize.Height)
                             break;
 
                         yOffset += LineSpacing;
