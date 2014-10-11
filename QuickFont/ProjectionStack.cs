@@ -21,11 +21,14 @@ namespace QuickFont
         public TransformViewport(float X, float Y, float Width, float Height) { this.X = X; this.Y = Y; this.Width = Width; this.Height = Height; }
     }
 
-    class ProjectionStack
+    public class ProjectionStack
     {
+        private static ProjectionStack m_defaultStack = new ProjectionStack();
+        public static ProjectionStack DefaultStack { get { return m_defaultStack; } }
+
 
         //The currently set viewport
-        public static Viewport? CurrentViewport {
+        public Viewport? CurrentViewport {
             get {
 
                 if (currentViewport == null)
@@ -36,9 +39,9 @@ namespace QuickFont
                 return currentViewport; 
             }
         }
-        private static Viewport? currentViewport = null;
+        private Viewport? currentViewport = null;
 
-        public static void UpdateCurrentViewport()
+        public void UpdateCurrentViewport()
         {
             GraphicsContext.Assert();
             Viewport viewport = new Viewport();
@@ -47,13 +50,13 @@ namespace QuickFont
         }
 
 
-        public static void InvalidateViewport()
+        public void InvalidateViewport()
         {
             currentViewport = null;
         }
 
 
-        public static void GetCurrentOrthogProjection(out bool isOrthog, out float left, out float right, out float bottom, out float top)
+        public void GetCurrentOrthogProjection(out bool isOrthog, out float left, out float right, out float bottom, out float top)
         {
             Matrix4 matrix = new Matrix4();
             GL.GetFloat(GetPName.ProjectionMatrix, out matrix.Row0.X);
@@ -79,7 +82,7 @@ namespace QuickFont
         }
 
 
-        public static void Begin()
+        public void Begin()
         {
 
             GraphicsContext.Assert();
@@ -97,7 +100,7 @@ namespace QuickFont
 
         }
 
-        public static void End()
+        public void End()
         {
             GraphicsContext.Assert();
 

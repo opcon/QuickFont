@@ -36,11 +36,13 @@ namespace QuickFont
         /// <param name="code"></param>
         public static void SafeGLEnable(EnableCap cap, Action code)
         {
+            bool enabled = GL.IsEnabled(cap);
             GL.Enable(cap);
 
             code();
 
-            GL.Disable(cap);
+            if (!enabled)
+                GL.Disable(cap);
         }
 
         /// <summary>
@@ -50,13 +52,23 @@ namespace QuickFont
         /// <param name="code"></param>
         public static void SafeGLEnable(EnableCap[] caps, Action code)
         {
-            foreach(var cap in caps)
-                GL.Enable(cap);
+            bool[] m_previouslyEnabled = new bool[caps.Length];
+
+            for (int i = 0; i < caps.Length; i++)
+            {
+                if (GL.IsEnabled(caps[i]))
+                    m_previouslyEnabled[i] = true;
+                else 
+                    GL.Enable(caps[i]);
+            }
 
             code();
 
-            foreach (var cap in caps)
-                GL.Disable(cap);
+            for (int i = 0; i < caps.Length; i++)
+            {
+                if (!m_previouslyEnabled[i])
+                    GL.Disable(caps[i]);
+            }
         }
 
         public static void SafeGLEnableClientStates(ArrayCap[] caps, Action code)
