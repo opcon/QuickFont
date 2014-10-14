@@ -1,7 +1,7 @@
 ###Todo
-[ ] Implement Vertex Array support
-[ ] Implement Shader support
-[ ] Remove legacy OpenGL render code and switch to a fully programmable pipeline forward compatible with OpenGL 4.4
+- [ ] Implement Vertex Array support
+- [ ] Implement Shader support
+- [ ] Remove legacy OpenGL render code and switch to a fully programmable pipeline forward compatible with OpenGL 4.4
 
 
 ###Using Vertex Buffers
