@@ -1252,12 +1252,12 @@ namespace QuickFont
             ProjectionStack.End();
         }*/
 
-        public static void Begin()
+        public void Begin()
         {
             ProjectionStack.DefaultStack.Begin();
         }
 
-        public static void End()
+        public void End()
         {
             ProjectionStack.DefaultStack.End();
         }
