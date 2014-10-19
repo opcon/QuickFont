@@ -64,9 +64,13 @@ namespace QuickFont
         #region Constructors and font builders
 
         private QFont() { }
-        internal QFont(QFontData fontData) { this.fontData = fontData; }
-        public QFont(Font font) : this(font, null) { }
-        public QFont(Font font, QFontBuilderConfiguration config)
+
+        internal QFont(QFontData fontData)
+        {
+            this.fontData = fontData;
+        }
+
+        public QFont(Font font, QFontBuilderConfiguration config = null)
         {
 
             optionsStack.Push(new QFontRenderOptions());
@@ -84,12 +88,7 @@ namespace QuickFont
         }
 
 
-
-
-        public QFont(string fileName, float size) : this(fileName, size, FontStyle.Regular, null) { }
-        public QFont(string fileName, float size, FontStyle style) : this(fileName, size, style, null) { }
-        public QFont(string fileName, float size, QFontBuilderConfiguration config) : this(fileName, size, FontStyle.Regular, config) { }
-        public QFont(string fileName, float size, FontStyle style, QFontBuilderConfiguration config)
+        public QFont(string fileName, float size, QFontBuilderConfiguration config = null, FontStyle style = FontStyle.Regular)
         {
             PrivateFontCollection pfc = new PrivateFontCollection();
             pfc.AddFontFile(fileName);
@@ -119,22 +118,13 @@ namespace QuickFont
                 InitVBOs();
         }
 
-
-        public static void CreateTextureFontFiles(Font font, string newFontName) { CreateTextureFontFiles(font, null); }
         public static void CreateTextureFontFiles(Font font, string newFontName, QFontBuilderConfiguration config)
         {
             var fontData = BuildFont(font, config, newFontName);
             Builder.SaveQFontDataToFile(fontData, newFontName);
         }
 
-        
-
-
-
-        public static void CreateTextureFontFiles(string fileName, float size, string newFontName) { CreateTextureFontFiles(fileName, size, FontStyle.Regular, null, newFontName); }
-        public static void CreateTextureFontFiles(string fileName, float size, FontStyle style, string newFontName) { CreateTextureFontFiles(fileName, size, style, null, newFontName); }
-        public static void CreateTextureFontFiles(string fileName, float size, QFontBuilderConfiguration config, string newFontName) { CreateTextureFontFiles(fileName, size, FontStyle.Regular, config, newFontName); }
-        public static void CreateTextureFontFiles(string fileName, float size, FontStyle style, QFontBuilderConfiguration config, string newFontName)
+        public static void CreateTextureFontFiles(string fileName, float size, string newFontName, FontStyle style = FontStyle.Regular, QFontBuilderConfiguration config = null)
         {
             PrivateFontCollection pfc = new PrivateFontCollection();
             pfc.AddFontFile(fileName);
@@ -156,12 +146,8 @@ namespace QuickFont
             
         }
 
-        public static QFont FromQFontFile(string filePath, QFontLoaderConfiguration loaderConfig = null, ProjectionStack proj = null) { return FromQFontFile(filePath, 1.0f, loaderConfig, proj); }
-        public static QFont FromQFontFile(string filePath, float downSampleFactor, QFontLoaderConfiguration loaderConfig = null, ProjectionStack proj = null)
+        public static QFont FromQFontFile(string filePath, float downSampleFactor = 1.0f, QFontLoaderConfiguration loaderConfig = null, ProjectionStack proj = null)
         {
-
-
-
             if (loaderConfig == null)
                 loaderConfig = new QFontLoaderConfiguration();
 
@@ -189,8 +175,6 @@ namespace QuickFont
             Builder builder = new Builder(font, config);
             return builder.BuildFontData(saveName);
         }
-
-
 
         #endregion
 
@@ -353,10 +337,6 @@ namespace QuickFont
             }
         }
 
-
-        
-
-
         private float MeasureNextlineLength(string text)
         {
 
@@ -454,8 +434,6 @@ namespace QuickFont
             }
             return input;
         }
-
-
 
         public void Print(ProcessedText processedText, Vector2 position)
         {
@@ -586,7 +564,6 @@ namespace QuickFont
             return TransformMeasureFromViewport(PrintOrMeasure(processedText, true));
         }
 
-
         private SizeF PrintOrMeasure(string text, QFontAlignment alignment, bool measureOnly)
         {
             float maxWidth = 0f;
@@ -679,13 +656,6 @@ namespace QuickFont
             return new SizeF(maxWidth, yOffset + LineSpacing);
         }
 
-
-
-
-
-
-
-
         private void RenderWord(float x, float y, TextNode node)
         {
 
@@ -735,11 +705,6 @@ namespace QuickFont
                 }
             }
         }
-
-
-
-
-
 
         /// <summary>
         /// Computes the length of the next line, and whether the line is valid for

@@ -11,8 +11,8 @@ namespace QuickFont
     {
 
         public QFontLoaderConfiguration() { }
-        public QFontLoaderConfiguration(bool addDropShadow) : this(addDropShadow, false) { }
-        public QFontLoaderConfiguration(bool addDropShadow, bool TransformToOrthogProjection)
+
+        public QFontLoaderConfiguration(bool addDropShadow, bool TransformToOrthogProjection = false)
         {
             if (addDropShadow)
                 this.ShadowConfig = new QFontShadowConfiguration();

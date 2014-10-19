@@ -248,7 +248,7 @@ namespace StarterKit
             controlsText = new QFont("Fonts/HappySans.ttf", 32, new QFontBuilderConfiguration(true));
 
 
-            codeText = new QFont("Fonts/Comfortaa-Regular.ttf", 12,FontStyle.Regular);
+            codeText = new QFont("Fonts/Comfortaa-Regular.ttf", 12,style: FontStyle.Regular);
 
             heading1.Options.Colour = Color.FromArgb(new Color4(0.2f, 0.2f, 0.2f, 1.0f).ToArgb());
             mainText.Options.Colour = Color.FromArgb(new Color4(0.1f, 0.1f, 0.1f, 1.0f).ToArgb());
