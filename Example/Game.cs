@@ -1,7 +1,7 @@
 // Released to the public domain. Use, modify and relicense at will.
 
 using System;
-
+using System.Diagnostics;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -18,7 +18,10 @@ namespace StarterKit
 
         QFont heading1;
         //QFont heading2;
-        //QFont mainText;
+        QFont mainText;
+        private ProcessedText _introductionProcessedText;
+        private Stopwatch _stopwatch;
+        private QFont _benchmarkResults;
         //QFont codeText;
         //QFont controlsText;
         //QFont monoSpaced;
@@ -124,6 +127,9 @@ namespace StarterKit
 
         int currentDemoPage = 1;
         int lastPage = 9;
+        private int frameCount = 0;
+
+        private string _benchResult="";
 
         QFontAlignment cycleAlignment = QFontAlignment.Left;
 
@@ -131,7 +137,7 @@ namespace StarterKit
         public Game()
             : base(800, 600, GraphicsMode.Default, "OpenTK Quick Start Sample")
         {
-            VSync = VSyncMode.On;
+            VSync = VSyncMode.Off;
             this.WindowBorder = WindowBorder.Fixed;
         }
 
@@ -232,9 +238,13 @@ namespace StarterKit
             builderConfig.ShadowConfig.Type = ShadowType.Blurred;
             builderConfig.TextGenerationRenderHint = TextGenerationRenderHint.ClearTypeGridFit; //best render hint for this font
             builderConfig.UseVertexBuffer = true;
-            //mainText = new QFont("Fonts/times.ttf", 14, builderConfig);
+            mainText = new QFont("Fonts/times.ttf", 14, builderConfig);
+            mainText.Options.DropShadowActive = false;
             //mainText.Options.DropShadowOffset = new Vector2(0, 0);
             //mainText.Options.DropShadowColour = Color.Red;
+
+            _benchmarkResults = new QFont("Fonts/times.ttf", 14, builderConfig);
+            _benchmarkResults.Options.DropShadowActive = false;
 
 
 
@@ -251,7 +261,8 @@ namespace StarterKit
             //codeText = new QFont("Fonts/Comfortaa-Regular.ttf", 12,style: FontStyle.Regular);
 
             heading1.Options.Colour = Color.FromArgb(new Color4(0.2f, 0.2f, 0.2f, 1.0f).ToArgb());
-            //mainText.Options.Colour = Color.FromArgb(new Color4(0.1f, 0.1f, 0.1f, 1.0f).ToArgb());
+            mainText.Options.Colour = Color.FromArgb(new Color4(0.1f, 0.1f, 0.1f, 1.0f).ToArgb());
+            _introductionProcessedText = mainText.ProcessText(introduction, new SizeF(Width - 50, float.MaxValue), QFontAlignment.Justify);
             //mainText.Options.DropShadowActive = false;
             //codeText.Options.Colour = Color.FromArgb(new Color4(0.0f, 0.0f, 0.4f, 1.0f).ToArgb());
 
@@ -443,6 +454,8 @@ namespace StarterKit
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref modelview);
 
+            frameCount++;
+
 
             //mainText.Begin();
             //GL.Begin(BeginMode.Quads);
@@ -470,7 +483,7 @@ namespace StarterKit
                         //mainText.Begin();
                         heading1.Begin();
                                 heading1.ResetVBOs();
-                                heading1.PrintToVBO("QuickFont", new Vector3(50, 50, 0),
+                                heading1.PrintToVBO("QuickFont", new Vector3((float)Width /2, -Height, 0),
                                     heading1.Options.Colour, QFontAlignment.Centre);
                                 yOffset += heading1.Measure("QuickFont").Height;
                                 heading1.LoadVBOs();
@@ -485,15 +498,45 @@ namespace StarterKit
                             //    yOffset += heading2.Measure("Introduction").Height;
                             //GL.PopMatrix();
 
+                        _stopwatch = Stopwatch.StartNew();
+                        mainText.Begin();
+                        mainText.ResetVBOs();
+                        mainText.PrintToVBO(_introductionProcessedText, new Vector3(20, -Height + mainText.Measure(introduction).Height * 0.5f + 40, 0));
+                        //mainText.PrintToVBO(introduction, new SizeF(Width - 50, float.MaxValue),
+                        //    QFontAlignment.Justify, new Vector2(20, -Height + mainText.Measure(introduction).Height*0.5f + 40));
+                        mainText.LoadVBOs();
+                        mainText.DrawVBOs();
+                        mainText.End();
+                        _stopwatch.Stop();
+                        long preprocessed = _stopwatch.Elapsed.Ticks;
 
-                            //    mainText.ResetVBOs();
-                            //    mainText.PrintToVBO(introduction, new SizeF(Width - 50, float.MaxValue),
-                            //        QFontAlignment.Justify, new Vector2(30f, yOffset + 20));
-                            //    mainText.LoadVBOs();
-                            //    mainText.DrawVBOs();
+                        _stopwatch = Stopwatch.StartNew();
+                        mainText.Begin();
+                        mainText.ResetVBOs();
+                        mainText.PrintToVBO(introduction, new SizeF(Width - 50, float.MaxValue),
+                            QFontAlignment.Justify, new Vector2(20, -Height + mainText.Measure(introduction).Height * 0.5f + 40));
+                        mainText.LoadVBOs();
+                        mainText.DrawVBOs();
+                        mainText.End();
+                        _stopwatch.Stop();
+                        long notpreprocessed = _stopwatch.Elapsed.Ticks;
 
-                            //mainText.End();
-                        
+
+                        if (frameCount > 30)
+                        {
+                            _benchResult = string.Format(("{0}       {1}\nPreprocessed was {2} ticks faster"),
+                                preprocessed,
+                                notpreprocessed, notpreprocessed - preprocessed);
+                            frameCount = 0;
+                        }
+
+                        _benchmarkResults.Begin();
+                        _benchmarkResults.ResetVBOs();
+                        _benchmarkResults.PrintToVBO(_benchResult, new Vector3(Width * 0.5f, -50, 0), Color.White, QFontAlignment.Centre);
+                        _benchmarkResults.LoadVBOs();
+                        _benchmarkResults.DrawVBOs();
+                        _benchmarkResults.End();
+
                     }
                     break;
 
