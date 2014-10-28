@@ -17,7 +17,7 @@ namespace StarterKit
     {
 
         QFont heading1;
-        //QFont heading2;
+        QFont heading2;
         QFont mainText;
         private ProcessedText _introductionProcessedText;
         private Stopwatch _stopwatch;
@@ -230,7 +230,7 @@ namespace StarterKit
             */
 
 
-            //heading2 = QFont.FromQFontFile("woodenFont.qfont", 1.0f, new QFontLoaderConfiguration(true));
+            heading2 = QFont.FromQFontFile("woodenFont.qfont", 1.0f, new QFontLoaderConfiguration(true));
 
             var builderConfig = new QFontBuilderConfiguration(true);
             builderConfig.ShadowConfig.blurRadius = 2; //reduce blur radius because font is very small
@@ -262,7 +262,9 @@ namespace StarterKit
 
             heading1.Options.Colour = Color.FromArgb(new Color4(0.2f, 0.2f, 0.2f, 1.0f).ToArgb());
             mainText.Options.Colour = Color.FromArgb(new Color4(0.1f, 0.1f, 0.1f, 1.0f).ToArgb());
-            _introductionProcessedText = mainText.ProcessText(introduction, new SizeF(Width - 50, float.MaxValue), QFontAlignment.Justify);
+            mainText.Options.Colour = Color.White;
+            heading2.Options.Colour = Color.Red;
+            _introductionProcessedText = mainText.ProcessText(introduction, new SizeF(Width - 50, float.MaxValue), QFontAlignment.Left);
             //mainText.Options.DropShadowActive = false;
             //codeText.Options.Colour = Color.FromArgb(new Color4(0.0f, 0.0f, 0.4f, 1.0f).ToArgb());
 
@@ -498,10 +500,18 @@ namespace StarterKit
                             //    yOffset += heading2.Measure("Introduction").Height;
                             //GL.PopMatrix();
 
+                        heading2.Begin();
+                        heading2.ResetVBOs();
+                        heading2.PrintToVBO("Introduction", new Vector3(20, -Height + yOffset*0.8f, 0), heading2.Options.Colour);
+                        yOffset += heading2.Measure("Introduction").Height;
+                        heading2.LoadVBOs();
+                        heading2.DrawVBOs();
+                        heading2.End();
+
                         _stopwatch = Stopwatch.StartNew();
                         mainText.Begin();
                         mainText.ResetVBOs();
-                        mainText.PrintToVBO(_introductionProcessedText, new Vector3(20, -Height + mainText.Measure(introduction).Height * 0.5f + 40, 0));
+                        mainText.PrintToVBO(_introductionProcessedText, new Vector3(20, -Height + mainText.Measure(introduction).Height * 0.5f + yOffset*0.5f, 0));
                         //mainText.PrintToVBO(introduction, new SizeF(Width - 50, float.MaxValue),
                         //    QFontAlignment.Justify, new Vector2(20, -Height + mainText.Measure(introduction).Height*0.5f + 40));
                         mainText.LoadVBOs();
@@ -513,8 +523,8 @@ namespace StarterKit
                         _stopwatch = Stopwatch.StartNew();
                         mainText.Begin();
                         mainText.ResetVBOs();
-                        mainText.PrintToVBO(introduction, new SizeF(Width - 50, float.MaxValue),
-                            QFontAlignment.Justify, new Vector2(20, -Height + mainText.Measure(introduction).Height * 0.5f + 40));
+                        //mainText.PrintToVBO(introduction, new SizeF(Width - 50, float.MaxValue),
+                        //    QFontAlignment.Justify, new Vector2(20, -Height + mainText.Measure(introduction).Height * 0.5f + 40));
                         mainText.LoadVBOs();
                         mainText.DrawVBOs();
                         mainText.End();
