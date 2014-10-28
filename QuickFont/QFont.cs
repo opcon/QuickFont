@@ -365,9 +365,9 @@ void main(void)
             TexturePage sheet = fontData.Pages[glyph.page];
 
             float tx1 = (float) (glyph.rect.X)/sheet.Width;
-            float ty2 = (float) (glyph.rect.Y)/sheet.Height;
+            float ty1 = (float) (glyph.rect.Y)/sheet.Height;
             float tx2 = (float) (glyph.rect.X + glyph.rect.Width)/sheet.Width;
-            float ty1 = (float) (glyph.rect.Y + glyph.rect.Height)/sheet.Height;
+            float ty2 = (float) (glyph.rect.Y + glyph.rect.Height)/sheet.Height;
 
             var tv1 = new Vector2(tx1, ty1);
             var tv2 = new Vector2(tx1, ty2);
