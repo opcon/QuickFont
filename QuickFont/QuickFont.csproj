@@ -61,6 +61,7 @@
     <Compile Include="Configuration\QFontShadowConfiguration.cs" />
     <Compile Include="QFontGlyph.cs" />
     <Compile Include="QFontRenderOptions.cs" />
+    <Compile Include="QVertexArrayObject.cs" />
     <Compile Include="QVertexBuffer.cs" />
     <Compile Include="TextNodeList.cs" />
     <Compile Include="TexturePage.cs" />

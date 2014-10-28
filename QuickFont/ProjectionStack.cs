@@ -23,8 +23,7 @@ namespace QuickFont
 
     public class ProjectionStack
     {
-        private static ProjectionStack m_defaultStack = new ProjectionStack();
-        public static ProjectionStack DefaultStack { get { return m_defaultStack; } }
+        public static ProjectionStack DefaultStack { get; private set; }
 
 
         //The currently set viewport
@@ -40,6 +39,11 @@ namespace QuickFont
             }
         }
         private Viewport? currentViewport = null;
+
+        static ProjectionStack()
+        {
+            DefaultStack = new ProjectionStack();
+        }
 
         public void UpdateCurrentViewport()
         {
@@ -111,6 +115,18 @@ namespace QuickFont
             GL.PopMatrix(); //pop projection
 
             GL.MatrixMode(MatrixMode.Modelview);
+        }
+
+        public Matrix4 GetOrtho()
+        {
+            var currentVp = (Viewport) CurrentViewport;
+            //return Matrix4.CreateScale(0.4f);
+            var mat = Matrix4.CreateOrthographicOffCenter((float) currentVp.X, (float) currentVp.Width,
+                (float) currentVp.Height, (float) currentVp.Y, -1.0f, 1.0f);
+            mat = Matrix4.CreateOrthographic((float)currentVp.Width, (float)currentVp.Height, -100.0f, 200.0f);
+            //mat = Matrix4.Mult(Matrix4.CreateScale(200f), mat);
+            return mat;
+            //return Matrix4.CreateOrthographic((float)currentVp.Width, currentVp.Height, -1.0f, 1.0f);
         }
 
 

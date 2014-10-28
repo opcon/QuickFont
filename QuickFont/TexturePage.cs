@@ -54,6 +54,8 @@ namespace QuickFont
 
                 GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0,
                     OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, dataSource.Scan0);
+
+                GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
             });
         }
 

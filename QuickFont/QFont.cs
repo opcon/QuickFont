@@ -18,15 +18,9 @@ namespace QuickFont
         internal QFontData fontData;
 
         private bool UsingVertexBuffers;
-        public QVertexBuffer[] VertexBuffers = new QVertexBuffer[0];
+        public QVertexArrayObject[] VertexArrayObjects = new QVertexArrayObject[0];
 
-        private ProjectionStack m_projectionStack = ProjectionStack.DefaultStack;
-
-        public ProjectionStack ProjectionStack
-        {
-            get { return m_projectionStack; }
-            set { m_projectionStack = value; }
-        }
+        public ProjectionStack ProjectionStack { get; set; }
 
         private Vector3 m_printOffset;
 
@@ -61,19 +55,64 @@ namespace QuickFont
             }
         }
 
+        private const string fragShaderSource = @"#version 430 core
+
+uniform sampler2D tex_object;
+
+in VS_OUT
+{
+	vec2 tc;
+	vec4 colour;
+} fs_in;
+
+out vec4 colour;
+
+void main(void)
+{
+	colour = texture(tex_object, fs_in.tc.st) + vec4(fs_in.colour.rgb, 0.);
+    //colour = vec4(0., 0.5, 0., 1.0);
+}";
+        private const string vertShaderSource = @"#version 430 core
+
+uniform mat4 proj_matrix;
+
+in vec3 in_position;
+in vec2 in_tc;
+in vec4 in_colour;
+
+out VS_OUT
+{
+	vec2 tc;
+	vec4 colour;
+} vs_out;
+
+void main(void)
+{
+	vs_out.tc = in_tc;
+	vs_out.colour = in_colour;
+	gl_Position = proj_matrix * vec4(in_position, 1.); 
+//    gl_Position = vec4(0.,0.,0.,1.);
+}";
+
+        public ShaderVariables ShaderVariables;
+        private int sampler;
+
         #region Constructors and font builders
 
         private QFont()
         {
+            ProjectionStack = ProjectionStack.DefaultStack;
         }
 
         internal QFont(QFontData fontData)
         {
+            ProjectionStack = ProjectionStack.DefaultStack;
             this.fontData = fontData;
         }
 
         public QFont(Font font, QFontBuilderConfiguration config = null)
         {
+            ProjectionStack = ProjectionStack.DefaultStack;
             optionsStack.Push(new QFontRenderOptions());
 
             if (config == null)
@@ -84,14 +123,18 @@ namespace QuickFont
             if (config.ShadowConfig != null)
                 Options.DropShadowActive = true;
 
-            if (config.UseVertexBuffer)
-                InitVBOs();
+            //if (config.UseVertexBuffer)
+            //    InitVBOs();
+            
+            //Always use VBOs
+            InitVBOs();
         }
 
 
         public QFont(string fileName, float size, QFontBuilderConfiguration config = null,
             FontStyle style = FontStyle.Regular)
         {
+            ProjectionStack = ProjectionStack.DefaultStack;
             PrivateFontCollection pfc = new PrivateFontCollection();
             pfc.AddFontFile(fileName);
             var fontFamily = pfc.Families[0];
@@ -116,6 +159,43 @@ namespace QuickFont
                 Options.DropShadowActive = true;
             if (transToVp != null)
                 Options.TransformToViewport = transToVp;
+
+
+            int vert = GL.CreateShader(ShaderType.VertexShader);
+            int frag = GL.CreateShader(ShaderType.FragmentShader);
+
+            ShaderVariables = new ShaderVariables();
+
+            if (vert != -1 && frag != -1)
+            {
+                GL.ShaderSource(vert, vertShaderSource);
+                GL.CompileShader(vert);
+
+                GL.ShaderSource(frag, fragShaderSource);
+                GL.CompileShader(frag);
+
+                ShaderVariables.ShaderProgram = GL.CreateProgram();
+                GL.AttachShader(ShaderVariables.ShaderProgram, vert);
+                GL.AttachShader(ShaderVariables.ShaderProgram, frag);
+                GL.LinkProgram(ShaderVariables.ShaderProgram);
+                var programInfoLog = GL.GetProgramInfoLog(ShaderVariables.ShaderProgram);
+
+                GL.DeleteShader(vert);
+                GL.DeleteShader(frag);
+
+                ShaderVariables.MVPUniformLocation = GL.GetUniformLocation(ShaderVariables.ShaderProgram, "proj_matrix");
+                ShaderVariables.SamplerLocation = GL.GetUniformLocation(ShaderVariables.ShaderProgram, "tex_object");
+                ShaderVariables.PositionCoordAttribLocation = GL.GetAttribLocation(ShaderVariables.ShaderProgram,
+                    "in_position");
+                ShaderVariables.TextureCoordAttribLocation = GL.GetAttribLocation(ShaderVariables.ShaderProgram,
+                    "in_tc");
+                ShaderVariables.ColorCoordAttribLocation = GL.GetAttribLocation(ShaderVariables.ShaderProgram,
+                    "in_colour");
+            }
+
+            sampler = GL.GenSampler();
+
+
 
             if (config.UseVertexBuffer)
                 InitVBOs();
@@ -193,14 +273,14 @@ namespace QuickFont
         {
             bool isOrthog;
             float left, right, bottom, top;
-            m_projectionStack.GetCurrentOrthogProjection(out isOrthog, out left, out right, out bottom, out top);
+            ProjectionStack.GetCurrentOrthogProjection(out isOrthog, out left, out right, out bottom, out top);
 
             if (!isOrthog)
                 throw new ArgumentOutOfRangeException(
                     "Current projection matrix was not Orthogonal. Please ensure that you have set an orthogonal projection before attempting to create a font with the TransformToOrthogProjection flag set to true.");
 
             var viewportTransform = new TransformViewport(left, top, right - left, bottom - top);
-            fontScale = Math.Abs((float) m_projectionStack.CurrentViewport.Value.Height/viewportTransform.Height);
+            fontScale = Math.Abs((float) ProjectionStack.CurrentViewport.Value.Height/viewportTransform.Height);
             return viewportTransform;
         }
 
@@ -285,9 +365,9 @@ namespace QuickFont
             TexturePage sheet = fontData.Pages[glyph.page];
 
             float tx1 = (float) (glyph.rect.X)/sheet.Width;
-            float ty1 = (float) (glyph.rect.Y)/sheet.Height;
+            float ty2 = (float) (glyph.rect.Y)/sheet.Height;
             float tx2 = (float) (glyph.rect.X + glyph.rect.Width)/sheet.Width;
-            float ty2 = (float) (glyph.rect.Y + glyph.rect.Height)/sheet.Height;
+            float ty1 = (float) (glyph.rect.Y + glyph.rect.Height)/sheet.Height;
 
             var tv1 = new Vector2(tx1, ty1);
             var tv2 = new Vector2(tx1, ty2);
@@ -312,15 +392,17 @@ namespace QuickFont
 
                 int argb = Helper.ToRgba(color);
 
-                var vbo = VertexBuffers[glyph.page];
+                var vbo = VertexArrayObjects[glyph.page];
 
-                vbo.AddVertex(v1, normal, tv1, argb);
-                vbo.AddVertex(v2, normal, tv2, argb);
-                vbo.AddVertex(v3, normal, tv3, argb);
+                Vector4 colour = Helper.ToVector4(color);
 
-                vbo.AddVertex(v1, normal, tv1, argb);
-                vbo.AddVertex(v3, normal, tv3, argb);
-                vbo.AddVertex(v4, normal, tv4, argb);
+                vbo.AddVertex(v1, tv1, colour);
+                vbo.AddVertex(v2, tv2, colour);
+                vbo.AddVertex(v3, tv3, colour);
+
+                vbo.AddVertex(v1, tv1, colour);
+                vbo.AddVertex(v3, tv3, colour);
+                vbo.AddVertex(v4, tv4, colour);
             }
 
                 // else use immediate mode
@@ -389,7 +471,7 @@ namespace QuickFont
             {
                 return input;
             }
-            var v1 = m_projectionStack.CurrentViewport;
+            var v1 = ProjectionStack.CurrentViewport;
 
             float X, Y;
 
@@ -406,7 +488,7 @@ namespace QuickFont
             {
                 return input;
             }
-            var v1 = m_projectionStack.CurrentViewport;
+            var v1 = ProjectionStack.CurrentViewport;
 
             return input*((float) v1.Value.Width/v2.Value.Width);
         }
@@ -418,7 +500,7 @@ namespace QuickFont
             {
                 return input;
             }
-            var v1 = m_projectionStack.CurrentViewport;
+            var v1 = ProjectionStack.CurrentViewport;
 
             float X, Y;
 
@@ -528,6 +610,24 @@ namespace QuickFont
             Options.Colour = color;
             PrintOffset = position;
             PrintOrMeasure(text, alignment, false);
+            //var vao = VertexArrayObjects[0];
+            //var positions = new[]
+            //{
+            //    new Vector3(1.0f, 1.0f, 0.0f), new Vector3(-1.0f, 1.0f, 0.0f), new Vector3(-1.0f, -1.0f, 0.0f),
+            //    new Vector3(1.0f, -1.0f, 0.0f)
+            //};
+            //var textures = new[]
+            //{new Vector2(1.0f, 0.0f), new Vector2(0.0f, 0.0f), new Vector2(0.0f, 1.0f), new Vector2(1.0f, 1.0f)};
+
+            //Vector4 colour = Helper.ToVector4(Color.Black);
+
+            //for (int i = 0; i < 6; i++)
+            //{
+            //    if (i > 2)
+            //        vao.AddVertex(positions[(i-1)%4], textures[(i-1)%4], colour);
+            //    else
+            //        vao.AddVertex(positions[i], textures[i], colour);
+            //}
         }
 
         public void PrintToVBO(string text, QFontAlignment alignment, Vector3 position, Color color, SizeF maxSize)
@@ -1190,12 +1290,19 @@ namespace QuickFont
 
         public void Begin()
         {
-            ProjectionStack.DefaultStack.Begin();
+
+            //ProjectionStack.DefaultStack.Begin();
+            GL.UseProgram(ShaderVariables.ShaderProgram);
+            //GL.Disable(EnableCap.CullFace);
+            var mat = ProjectionStack.DefaultStack.GetOrtho();
+            //mat = Matrix4.Identity;
+            GL.Enable(EnableCap.Blend);
+            GL.UniformMatrix4(ShaderVariables.MVPUniformLocation, false, ref mat);
         }
 
         public void End()
         {
-            ProjectionStack.DefaultStack.End();
+            //ProjectionStack.DefaultStack.End();
         }
 
         /// <summary>
@@ -1213,21 +1320,21 @@ namespace QuickFont
         private void InitVBOs()
         {
             UsingVertexBuffers = true;
-            VertexBuffers = new QVertexBuffer[fontData.Pages.Length];
+            VertexArrayObjects = new QVertexArrayObject[fontData.Pages.Length];
 
-            for (int i = 0; i < VertexBuffers.Length; i++)
+            for (int i = 0; i < VertexArrayObjects.Length; i++)
             {
                 int textureID = fontData.Pages[i].GLTexID;
-                VertexBuffers[i] = new QVertexBuffer(textureID);
+                VertexArrayObjects[i] = new QVertexArrayObject(ref ShaderVariables, textureID);
             }
 
-            if (fontData.dropShadow != null)
-                fontData.dropShadow.InitVBOs();
+            //if (fontData.dropShadow != null)
+            //    fontData.dropShadow.InitVBOs();
         }
 
         public void ResetVBOs()
         {
-            foreach (var buffer in VertexBuffers)
+            foreach (var buffer in VertexArrayObjects)
                 buffer.Reset();
 
             if (fontData.dropShadow != null)
@@ -1236,19 +1343,30 @@ namespace QuickFont
 
         public void LoadVBOs()
         {
-            foreach (var buffer in VertexBuffers)
+            foreach (var buffer in VertexArrayObjects)
                 buffer.Load();
 
-            if (fontData.dropShadow != null)
-                fontData.dropShadow.LoadVBOs();
+            //if (fontData.dropShadow != null)
+            //    fontData.dropShadow.LoadVBOs();
         }
 
         public void DrawVBOs()
         {
-            if (fontData.dropShadow != null)
-                fontData.dropShadow.DrawVBOs();
+            GL.UseProgram(ShaderVariables.ShaderProgram);
+            GL.Uniform1(ShaderVariables.SamplerLocation, 0);
+            GL.PointSize(8);
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindSampler(0, sampler);
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapS, (int)TextureWrapMode.Clamp);
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapT, (int)TextureWrapMode.Clamp);
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            //if (fontData.dropShadow != null)
+            //    fontData.dropShadow.DrawVBOs();
 
-            foreach (var buffer in VertexBuffers)
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            //GL.Disable(EnableCap.Blend);
+            foreach (var buffer in VertexArrayObjects)
                 buffer.Draw();
         }
 
@@ -1288,7 +1406,7 @@ namespace QuickFont
                 if (disposing)
                 {
                     fontData.Dispose();
-                    foreach (var buffer in VertexBuffers)
+                    foreach (var buffer in VertexArrayObjects)
                         buffer.Dispose();
                 }
 
@@ -1298,5 +1416,15 @@ namespace QuickFont
         }
 
         #endregion
+    }
+
+    public struct ShaderVariables
+    {
+        public int ShaderProgram;
+        public int MVPUniformLocation;
+        public int TextureCoordAttribLocation;
+        public int PositionCoordAttribLocation;
+        public int SamplerLocation;
+        public int ColorCoordAttribLocation;
     }
 }

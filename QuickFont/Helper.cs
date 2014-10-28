@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System.Drawing;
 
@@ -85,6 +86,11 @@ namespace QuickFont
         public static int ToRgba(Color color)
         {
             return color.A << 24 | color.B << 16 | color.G << 8 | color.R;
+        }
+
+        public static Vector4 ToVector4(Color color)
+        {
+            return new Vector4{X = (float)color.R / byte.MaxValue, Y = (float)color.G / byte.MaxValue, Z = (float)color.B / byte.MaxValue, W = (float)color.A / byte.MaxValue};
         }
     }
 }

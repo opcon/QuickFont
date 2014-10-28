@@ -170,12 +170,12 @@ namespace QuickFont
             get { return justifyCharWeightForExpand; }
             set { 
 
-                justifyCharWeightForExpand = value;
+                justifyCharWeightForExpand = MathHelper.Clamp(value, 0.0f, 1.0f);
 
-                if (justifyCharWeightForExpand < 0f)
-                    justifyCharWeightForExpand = 0f;
-                else if (justifyCharWeightForExpand > 1.0f)
-                    justifyCharWeightForExpand = 1.0f;
+                //if (justifyCharWeightForExpand < 0f)
+                //    justifyCharWeightForExpand = 0f;
+                //else if (justifyCharWeightForExpand > 1.0f)
+                //    justifyCharWeightForExpand = 1.0f;
             }
         }
 
