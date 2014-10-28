@@ -604,6 +604,12 @@ void main(void)
             PrintOrMeasure(text, alignment, false);
         }
 
+        public void PrintToVBO(ProcessedText processedText, Vector3 position)
+        {
+            PrintOffset = position;
+            PrintOrMeasure(processedText, false);
+        }
+
         public void PrintToVBO(string text, Vector3 position, Color color,
             QFontAlignment alignment = QFontAlignment.Left)
         {
@@ -613,20 +619,19 @@ void main(void)
             //var vao = VertexArrayObjects[0];
             //var positions = new[]
             //{
-            //    new Vector3(1.0f, 1.0f, 0.0f), new Vector3(-1.0f, 1.0f, 0.0f), new Vector3(-1.0f, -1.0f, 0.0f),
-            //    new Vector3(1.0f, -1.0f, 0.0f)
+            //    new Vector3(128.0f, 128.0f, 0.0f), new Vector3(-128.0f, 128.0f, 0.0f), new Vector3(-128.0f, -128.0f, 0.0f),
+            //    new Vector3(128.0f, -128.0f, 0.0f)
             //};
-            //var textures = new[]
-            //{new Vector2(1.0f, 0.0f), new Vector2(0.0f, 0.0f), new Vector2(0.0f, 1.0f), new Vector2(1.0f, 1.0f)};
+            //var textures = new[] { new Vector2(1.0f, 0.0f), new Vector2(0.0f, 0.0f), new Vector2(0.0f, 1.0f), new Vector2(1.0f, 1.0f) };
 
             //Vector4 colour = Helper.ToVector4(Color.Black);
 
             //for (int i = 0; i < 6; i++)
             //{
             //    if (i > 2)
-            //        vao.AddVertex(positions[(i-1)%4], textures[(i-1)%4], colour);
+            //        vao.AddVertex(positions[(i - 1) % 4] + new Vector3(300, -300, 0), textures[(i - 1) % 4], colour);
             //    else
-            //        vao.AddVertex(positions[i], textures[i], colour);
+            //        vao.AddVertex(positions[i] + new Vector3(300, -300, 0), textures[i], colour);
             //}
         }
 
@@ -1416,6 +1421,8 @@ void main(void)
         }
 
         #endregion
+
+
     }
 
     public struct ShaderVariables
