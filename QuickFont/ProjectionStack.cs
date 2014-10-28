@@ -122,8 +122,8 @@ namespace QuickFont
             var currentVp = (Viewport) CurrentViewport;
             //return Matrix4.CreateScale(0.4f);
             var mat = Matrix4.CreateOrthographicOffCenter((float) currentVp.X, (float) currentVp.Width,
-                (float) currentVp.Height, (float) currentVp.Y, -1.0f, 1.0f);
-            mat = Matrix4.CreateOrthographic((float)currentVp.Width, (float)currentVp.Height, -100.0f, 200.0f);
+                (float) currentVp.Y, (float) currentVp.Height, -1.0f, 1.0f);
+            //mat = Matrix4.CreateOrthographic((float)currentVp.Width, (float)currentVp.Height, -100.0f, 200.0f);
             //mat = Matrix4.Mult(Matrix4.CreateScale(200f), mat);
             return mat;
             //return Matrix4.CreateOrthographic((float)currentVp.Width, currentVp.Height, -1.0f, 1.0f);
