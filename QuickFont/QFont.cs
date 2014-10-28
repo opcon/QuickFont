@@ -102,6 +102,8 @@ void main(void)
         private QFont()
         {
             ProjectionStack = ProjectionStack.DefaultStack;
+            UsingVertexBuffers = true;
+
         }
 
         internal QFont(QFontData fontData)
@@ -160,7 +162,15 @@ void main(void)
             if (transToVp != null)
                 Options.TransformToViewport = transToVp;
 
+            InitialiseShaders();
 
+
+            if (config.UseVertexBuffer)
+                InitVBOs();
+        }
+
+        private void InitialiseShaders()
+        {
             int vert = GL.CreateShader(ShaderType.VertexShader);
             int frag = GL.CreateShader(ShaderType.FragmentShader);
 
@@ -194,11 +204,6 @@ void main(void)
             }
 
             sampler = GL.GenSampler();
-
-
-
-            if (config.UseVertexBuffer)
-                InitVBOs();
         }
 
         public static void CreateTextureFontFiles(Font font, string newFontName, QFontBuilderConfiguration config)
@@ -251,6 +256,9 @@ void main(void)
                 qfont.Options.DropShadowActive = true;
             if (transToVp != null)
                 qfont.Options.TransformToViewport = transToVp;
+
+            qfont.InitialiseShaders();
+            qfont.InitVBOs();
 
             return qfont;
         }
