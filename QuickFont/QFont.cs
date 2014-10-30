@@ -17,7 +17,6 @@ namespace QuickFont
         private Stack<QFontRenderOptions> optionsStack = new Stack<QFontRenderOptions>();
         internal QFontData fontData;
 
-        private bool UsingVertexBuffers;
         public QVertexArrayObject[] VertexArrayObjects = new QVertexArrayObject[0];
 
         public ProjectionStack ProjectionStack { get; set; }
@@ -509,24 +508,25 @@ void main(void)
                 color = Options.Colour;
 
 
-            if (UsingVertexBuffers)
-            {
-                var normal = new Vector3(0, 0, -1);
+            //we are always using vertex buffers
+            //if (UsingVertexBuffers)
+            //{
+            var normal = new Vector3(0, 0, -1);
 
-                int argb = Helper.ToRgba(color);
+            int argb = Helper.ToRgba(color);
 
-                var vbo = VertexArrayObjects[glyph.page];
+            var vbo = VertexArrayObjects[glyph.page];
 
-                Vector4 colour = Helper.ToVector4(color);
+            Vector4 colour = Helper.ToVector4(color);
 
-                vbo.AddVertex(v1, tv1, colour);
-                vbo.AddVertex(v2, tv2, colour);
-                vbo.AddVertex(v3, tv3, colour);
+            vbo.AddVertex(v1, tv1, colour);
+            vbo.AddVertex(v2, tv2, colour);
+            vbo.AddVertex(v3, tv3, colour);
 
-                vbo.AddVertex(v1, tv1, colour);
-                vbo.AddVertex(v3, tv3, colour);
-                vbo.AddVertex(v4, tv4, colour);
-            }
+            vbo.AddVertex(v1, tv1, colour);
+            vbo.AddVertex(v3, tv3, colour);
+            vbo.AddVertex(v4, tv4, colour);
+            //}
 
                 // else use immediate mode
             //no immediate mode
@@ -819,8 +819,9 @@ void main(void)
             float yOffset = 0f;
 
             var caps = new EnableCap[] {};
-            if (!UsingVertexBuffers)
-                caps = new EnableCap[] {EnableCap.Texture2D, EnableCap.Blend};
+            //not using vertex buffers
+            //if (!UsingVertexBuffers)
+            //    caps = new EnableCap[] {EnableCap.Texture2D, EnableCap.Blend};
 
             //make sure fontdata font's options are synced with the actual options
             if (fontData.dropShadow != null && fontData.dropShadow.Options != Options)
@@ -1339,8 +1340,9 @@ void main(void)
 
             Helper.SafeGLEnable(caps, () =>
             {
-                if (!measureOnly && !UsingVertexBuffers && Options.UseDefaultBlendFunction)
-                    GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+                //not using vertex buffers
+                //if (!measureOnly && !UsingVertexBuffers && Options.UseDefaultBlendFunction)
+                //    GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
                 float maxWidth = processedText.maxSize.Width;
                 var alignment = processedText.alignment;
@@ -1467,7 +1469,6 @@ void main(void)
 
         private void InitVBOs()
         {
-            UsingVertexBuffers = true;
             VertexArrayObjects = new QVertexArrayObject[fontData.Pages.Length];
 
             for (int i = 0; i < VertexArrayObjects.Length; i++)
