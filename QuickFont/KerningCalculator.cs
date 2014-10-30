@@ -5,8 +5,7 @@ using System.Drawing;
 
 namespace QuickFont
 {
-
-    class KerningCalculator
+    static class KerningCalculator
     {
 
         private struct XLimits
