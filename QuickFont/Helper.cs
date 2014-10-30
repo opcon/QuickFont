@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using OpenTK.Graphics.OpenGL;
+using OpenTK;
+using OpenTK.Graphics.OpenGL4;
 using System.Drawing;
 
 namespace QuickFont
@@ -13,20 +14,6 @@ namespace QuickFont
             T[] output = new T[collection.Count];
             collection.CopyTo(output, 0);
             return output;
-        }
-
-        /// <summary>
-        /// Ensures GL.End() is called
-        /// </summary>
-        /// <param name="mode"></param>
-        /// <param name="code"></param>
-        public static void SafeGLBegin(BeginMode mode, Action code)
-        {
-            GL.Begin(mode);
-
-            code();
-
-            GL.End();
         }
 
         /// <summary>
@@ -71,20 +58,14 @@ namespace QuickFont
             }
         }
 
-        public static void SafeGLEnableClientStates(ArrayCap[] caps, Action code)
-        {
-            foreach (var cap in caps)
-                GL.EnableClientState(cap);
-
-            code();
-
-            foreach (var cap in caps)
-                GL.DisableClientState(cap);
-        }
-
         public static int ToRgba(Color color)
         {
             return color.A << 24 | color.B << 16 | color.G << 8 | color.R;
+        }
+
+        public static Vector4 ToVector4(Color color)
+        {
+            return new Vector4{X = (float)color.R / byte.MaxValue, Y = (float)color.G / byte.MaxValue, Z = (float)color.B / byte.MaxValue, W = (float)color.A / byte.MaxValue};
         }
     }
 }

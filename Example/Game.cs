@@ -1,10 +1,11 @@
 // Released to the public domain. Use, modify and relicense at will.
 
 using System;
-
+using System.Diagnostics;
+using System.Linq.Expressions;
 using OpenTK;
 using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
 using OpenTK.Input;
@@ -19,9 +20,13 @@ namespace StarterKit
         QFont heading1;
         QFont heading2;
         QFont mainText;
-        QFont codeText;
-        QFont controlsText;
-        QFont monoSpaced;
+        private ProcessedText _introductionProcessedText;
+        private Stopwatch _stopwatch;
+        private QFont _benchmarkResults;
+        private Matrix4 _projectionMatrix;
+        //QFont codeText;
+        //QFont controlsText;
+        //QFont monoSpaced;
 
 
         #region string constants
@@ -124,6 +129,9 @@ namespace StarterKit
 
         int currentDemoPage = 1;
         int lastPage = 9;
+        private int frameCount = 0;
+
+        private string _benchResult="";
 
         QFontAlignment cycleAlignment = QFontAlignment.Left;
 
@@ -131,7 +139,7 @@ namespace StarterKit
         public Game()
             : base(800, 600, GraphicsMode.Default, "OpenTK Quick Start Sample")
         {
-            VSync = VSyncMode.On;
+            VSync = VSyncMode.Off;
             this.WindowBorder = WindowBorder.Fixed;
         }
 
@@ -224,36 +232,41 @@ namespace StarterKit
             */
 
 
-            heading2 = QFont.FromQFontFile("woodenFont.qfont", 1.0f, new QFontLoaderConfiguration(true));
+            //heading2 = QFont.FromQFontFile("woodenFont.qfont", 1.0f, new QFontLoaderConfiguration(true));
+            heading2 = new QFont("woodenFont.qfont", new QFontConfiguration(true), 1.0f);
 
             var builderConfig = new QFontBuilderConfiguration(true);
             builderConfig.ShadowConfig.blurRadius = 2; //reduce blur radius because font is very small
             builderConfig.ShadowConfig.blurPasses = 1;
             builderConfig.ShadowConfig.Type = ShadowType.Blurred;
             builderConfig.TextGenerationRenderHint = TextGenerationRenderHint.ClearTypeGridFit; //best render hint for this font
-            builderConfig.UseVertexBuffer = true;
             mainText = new QFont("Fonts/times.ttf", 14, builderConfig);
-            mainText.Options.DropShadowOffset = new Vector2(0, 0);
-            mainText.Options.DropShadowColour = Color.Red;
+            mainText.Options.DropShadowActive = false;
+            mainText.Options.WordSpacing = 0.5f;
+            //mainText.Options.DropShadowOffset = new Vector2(0, 0);
+            //mainText.Options.DropShadowColour = Color.Red;
+
+            _benchmarkResults = new QFont("Fonts/times.ttf", 14, builderConfig);
+            _benchmarkResults.Options.DropShadowActive = false;
 
 
 
-            heading1 = new QFont("Fonts/HappySans.ttf", 72, new QFontBuilderConfiguration(true)
-            {
-                UseVertexBuffer = true
-            });
-            heading1.Options.DropShadowActive = true;
+            heading1 = new QFont("Fonts/HappySans.ttf", 72, new QFontBuilderConfiguration(true));
+            //heading1.Options.DropShadowActive = false;
           
 
-            controlsText = new QFont("Fonts/HappySans.ttf", 32, new QFontBuilderConfiguration(true));
+            //controlsText = new QFont("Fonts/HappySans.ttf", 32, new QFontBuilderConfiguration(true));
 
 
-            codeText = new QFont("Fonts/Comfortaa-Regular.ttf", 12,FontStyle.Regular);
+            //codeText = new QFont("Fonts/Comfortaa-Regular.ttf", 12,style: FontStyle.Regular);
 
             heading1.Options.Colour = Color.FromArgb(new Color4(0.2f, 0.2f, 0.2f, 1.0f).ToArgb());
             mainText.Options.Colour = Color.FromArgb(new Color4(0.1f, 0.1f, 0.1f, 1.0f).ToArgb());
-            mainText.Options.DropShadowActive = false;
-            codeText.Options.Colour = Color.FromArgb(new Color4(0.0f, 0.0f, 0.4f, 1.0f).ToArgb());
+            mainText.Options.Colour = Color.White;
+            heading2.Options.Colour = Color.Red;
+            _introductionProcessedText = mainText.ProcessText(introduction, new SizeF(Width - 50, float.MaxValue), QFontAlignment.Left);
+            //mainText.Options.DropShadowActive = false;
+            //codeText.Options.Colour = Color.FromArgb(new Color4(0.0f, 0.0f, 0.4f, 1.0f).ToArgb());
 
             QFontBuilderConfiguration config2 = new QFontBuilderConfiguration();
             config2.SuperSampleLevels = 1;
@@ -262,14 +275,14 @@ namespace StarterKit
          //   font.Options.CharacterSpacing = 0.1f;
 
 
-            monoSpaced = new QFont("Fonts/Anonymous.ttf", 10);
-            monoSpaced.Options.Colour = Color.FromArgb(new Color4(0.1f, 0.1f, 0.1f, 1.0f).ToArgb());
+            //monoSpaced = new QFont("Fonts/Anonymous.ttf", 10);
+            //monoSpaced.Options.Colour = Color.FromArgb(new Color4(0.1f, 0.1f, 0.1f, 1.0f).ToArgb());
 
-            Console.WriteLine(" Monospaced : " + monoSpaced.IsMonospacingActive);
+            //Console.WriteLine(" Monospaced : " + monoSpaced.IsMonospacingActive);
 
 
-            GL.ClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-            GL.Disable(EnableCap.DepthTest);
+            GL.ClearColor(Color4.CornflowerBlue);
+            //GL.Disable(EnableCap.DepthTest);
 
         }
 
@@ -285,9 +298,9 @@ namespace StarterKit
 
             GL.Viewport(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
 
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, Width / (float)Height, 1.0f, 64.0f);
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadMatrix(ref projection);
+            //_projectionMatrix = Matrix4.CreateOrthographicOffCenter(X, Width, Y, Height, -1.0f, 1.0f);
+            _projectionMatrix = Matrix4.CreateOrthographicOffCenter(ClientRectangle.X, ClientRectangle.Width, ClientRectangle.Y, ClientRectangle.Height, -1.0f, 1.0f);
+            _projectionMatrix = Matrix4.Mult(Matrix4.CreateScale(1, -1.0f, 1), _projectionMatrix);
         }
 
         double cnt;
@@ -316,114 +329,114 @@ namespace StarterKit
         }
 
 
-        private void PrintWithBounds(QFont font, string text, RectangleF bounds, QFontAlignment alignment, ref float yOffset)
-        {
+        //private void PrintWithBounds(QFont font, string text, RectangleF bounds, QFontAlignment alignment, ref float yOffset)
+        //{
 
-            GL.Disable(EnableCap.Texture2D);
-            GL.Color4(1.0f, 0f, 0f, 1.0f);
-
-
-            float maxWidth = bounds.Width;
-
-            float height = font.Measure(text, new SizeF(maxWidth, float.MaxValue), alignment).Height;
-
-            GL.Begin(BeginMode.LineLoop);
-                GL.Vertex3(bounds.X, bounds.Y, 0f);
-                GL.Vertex3(bounds.X + bounds.Width, bounds.Y, 0f);
-                GL.Vertex3(bounds.X + bounds.Width, bounds.Y + height, 0f);
-                GL.Vertex3(bounds.X, bounds.Y + height, 0f);
-            GL.End();
+        //    GL.Disable(EnableCap.Texture2D);
+        //    GL.Color4(1.0f, 0f, 0f, 1.0f);
 
 
-            font.Print(text, new SizeF(maxWidth, float.MaxValue), alignment, new Vector2(bounds.X, bounds.Y));
-            yOffset += height;
+        //    float maxWidth = bounds.Width;
 
-        }
+        //    float height = font.Measure(text, new SizeF(maxWidth, float.MaxValue), alignment).Height;
 
-        private void PrintWithBoundsVBO(QFont font, string text, RectangleF bounds, QFontAlignment alignment, ref float yOffset)
-        {
+        //    GL.Begin(BeginMode.LineLoop);
+        //        GL.Vertex3(bounds.X, bounds.Y, 0f);
+        //        GL.Vertex3(bounds.X + bounds.Width, bounds.Y, 0f);
+        //        GL.Vertex3(bounds.X + bounds.Width, bounds.Y + height, 0f);
+        //        GL.Vertex3(bounds.X, bounds.Y + height, 0f);
+        //    GL.End();
 
-            GL.Disable(EnableCap.Texture2D);
-            GL.Color4(1.0f, 0f, 0f, 1.0f);
+
+        //    font.Print(text, new SizeF(maxWidth, float.MaxValue), alignment, new Vector2(bounds.X, bounds.Y));
+        //    yOffset += height;
+
+        //}
+
+        //private void PrintWithBoundsVBO(QFont font, string text, RectangleF bounds, QFontAlignment alignment, ref float yOffset)
+        //{
+
+        //    GL.Disable(EnableCap.Texture2D);
+        //    GL.Color4(1.0f, 0f, 0f, 1.0f);
 
 
-            float maxWidth = bounds.Width;
+        //    float maxWidth = bounds.Width;
 
-            float height = font.Measure(text, new SizeF(maxWidth, float.MaxValue), alignment).Height;
+        //    float height = font.Measure(text, new SizeF(maxWidth, float.MaxValue), alignment).Height;
 
-            GL.Begin(BeginMode.LineLoop);
-            GL.Vertex3(bounds.X, bounds.Y, 0f);
-            GL.Vertex3(bounds.X + bounds.Width, bounds.Y, 0f);
-            GL.Vertex3(bounds.X + bounds.Width, bounds.Y + height, 0f);
-            GL.Vertex3(bounds.X, bounds.Y + height, 0f);
-            GL.End();
+        //    GL.Begin(BeginMode.LineLoop);
+        //    GL.Vertex3(bounds.X, bounds.Y, 0f);
+        //    GL.Vertex3(bounds.X + bounds.Width, bounds.Y, 0f);
+        //    GL.Vertex3(bounds.X + bounds.Width, bounds.Y + height, 0f);
+        //    GL.Vertex3(bounds.X, bounds.Y + height, 0f);
+        //    GL.End();
 
-            font.ResetVBOs();
-            font.PrintToVBO(text, new SizeF(maxWidth, float.MaxValue), alignment, new Vector2(bounds.X, bounds.Y));
-            font.LoadVBOs();
-            font.DrawVBOs();
-            yOffset += height;
+        //    font.ResetVBOs();
+        //    font.PrintToVBO(text, new Vector3(bounds.X, bounds.Y, 0), new SizeF(maxWidth, float.MaxValue), alignment);
+        //    font.LoadVBOs();
+        //    font.DrawVBOs();
+        //    yOffset += height;
 
-        }       
+        //}       
        //some helpers
 
 
 
         private void PrintComment(string comment, ref float yOffset)
         {
-            PrintComment(mainText, comment, QFontAlignment.Justify, ref yOffset);
+            //PrintComment(mainText, comment, QFontAlignment.Justify, ref yOffset);
         }
 
-        private void PrintComment(QFont font, string comment,QFontAlignment alignment, ref float yOffset){
+        //private void PrintComment(QFont font, string comment,QFontAlignment alignment, ref float yOffset){
 
-            GL.PushMatrix();
-                yOffset += 20;
-                GL.Translate(30f, yOffset, 0f);
-                font.Print(comment, new SizeF(Width - 60, float.MaxValue), alignment);
-                yOffset += font.Measure(comment, new SizeF(Width - 60, float.MaxValue), alignment).Height;
-            GL.PopMatrix();
+        //    GL.PushMatrix();
+        //        yOffset += 20;
+        //        GL.Translate(30f, yOffset, 0f);
+        //        font.Print(comment, new SizeF(Width - 60, float.MaxValue), alignment);
+        //        yOffset += font.Measure(comment, new SizeF(Width - 60, float.MaxValue), alignment).Height;
+        //    GL.PopMatrix();
 
-        }
+        //}
 
 
 
         private void PrintCommentWithLine(string comment, QFontAlignment alignment, float xOffset, ref float yOffset)
         {
-            PrintCommentWithLine(mainText, comment, alignment, xOffset, ref yOffset);
+            //PrintCommentWithLine(mainText, comment, alignment, xOffset, ref yOffset);
         }
 
-        private void PrintCommentWithLine(QFont font, string comment, QFontAlignment alignment, float xOffset, ref float yOffset)
-        {
+        //private void PrintCommentWithLine(QFont font, string comment, QFontAlignment alignment, float xOffset, ref float yOffset)
+        //{
 
 
-            GL.PushMatrix();
-            yOffset += 20;
-            GL.Translate((int)xOffset, yOffset, 0f);
-            font.Print(comment, alignment);
-            var bounds = font.Measure(comment, new SizeF(Width - 60, float.MaxValue), alignment);
+        //    GL.PushMatrix();
+        //    yOffset += 20;
+        //    GL.Translate((int)xOffset, yOffset, 0f);
+        //    font.Print(comment, alignment);
+        //    var bounds = font.Measure(comment, new SizeF(Width - 60, float.MaxValue), alignment);
 
 
-            GL.Disable(EnableCap.Texture2D);
-            GL.Begin(BeginMode.Lines);
-                GL.Color4(1.0f, 0f, 0f, 1f); GL.Vertex2(0f, 0f);
-                GL.Color4(1.0f, 0f, 0f, 1f); GL.Vertex2(0f, bounds.Height + 20f);
-            GL.End();
+        //    GL.Disable(EnableCap.Texture2D);
+        //    GL.Begin(BeginMode.Lines);
+        //        GL.Color4(1.0f, 0f, 0f, 1f); GL.Vertex2(0f, 0f);
+        //        GL.Color4(1.0f, 0f, 0f, 1f); GL.Vertex2(0f, bounds.Height + 20f);
+        //    GL.End();
 
-            yOffset += bounds.Height;
+        //    yOffset += bounds.Height;
 
-            GL.PopMatrix();
+        //    GL.PopMatrix();
 
-        }
+        //}
 
         
         private void PrintCode(string code, ref float yOffset){
 
-            GL.PushMatrix();
-                yOffset += 20;
-                GL.Translate(50f, yOffset, 0f);
-                codeText.Print(code, new SizeF(Width - 50, float.MaxValue), QFontAlignment.Left);
-                yOffset += codeText.Measure(code, new SizeF(Width - 50, float.MaxValue), QFontAlignment.Left).Height;
-            GL.PopMatrix();
+            //GL.PushMatrix();
+            //    yOffset += 20;
+            //    GL.Translate(50f, yOffset, 0f);
+            //    codeText.Print(code, new SizeF(Width - 50, float.MaxValue), QFontAlignment.Left);
+            //    yOffset += codeText.Measure(code, new SizeF(Width - 50, float.MaxValue), QFontAlignment.Left).Height;
+            //GL.PopMatrix();
 
         }
 
@@ -439,24 +452,31 @@ namespace StarterKit
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            Matrix4 modelview = Matrix4.LookAt(Vector3.Zero, Vector3.UnitZ, Vector3.UnitY);
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadMatrix(ref modelview);
+            //Matrix4 modelview = Matrix4.LookAt(Vector3.Zero, Vector3.UnitZ, Vector3.UnitY);
+            //GL.MatrixMode(MatrixMode.Modelview);
+            //GL.LoadMatrix(ref modelview);
+
+            heading1.ProjectionMatrix = _projectionMatrix;
+            mainText.ProjectionMatrix = _projectionMatrix;
+            heading2.ProjectionMatrix = _projectionMatrix;
+            _benchmarkResults.ProjectionMatrix = _projectionMatrix;
+
+            frameCount++;
 
 
-            mainText.Begin();
-            GL.Begin(BeginMode.Quads);
+            //mainText.Begin();
+            //GL.Begin(BeginMode.Quads);
  
 
-            GL.Color3(1.0f, 1.0f, 1.0); GL.Vertex2(0, 0);
-            GL.Color3(0.9f, 0.9f, 0.9f); GL.Vertex2(0, Height);
-            GL.Color3(0.9f, 0.9f, 0.9f); GL.Vertex2(Width, Height);
-            GL.Color3(0.9f, 0.9f, 0.9f); GL.Vertex2(Width, 0);
+            //GL.Color3(1.0f, 1.0f, 1.0); GL.Vertex2(0, 0);
+            //GL.Color3(0.9f, 0.9f, 0.9f); GL.Vertex2(0, Height);
+            //GL.Color3(0.9f, 0.9f, 0.9f); GL.Vertex2(Width, Height);
+            //GL.Color3(0.9f, 0.9f, 0.9f); GL.Vertex2(Width, 0);
                 
      
   
-            GL.End();
-            mainText.End();
+            //GL.End();
+            //mainText.End();
 
 
 
@@ -467,306 +487,344 @@ namespace StarterKit
                     {
                         float yOffset = 0;
 
-                        mainText.Begin();
-
+                        //mainText.Begin();
+                        heading1.Begin();
                                 heading1.ResetVBOs();
-                                heading1.PrintToVBO("QuickFont", new Vector3(Width * 0.5f, yOffset, 0f),
-                                    heading1.Options.Colour, QFontAlignment.Centre);
+                                heading1.PrintToVBO("QuickFont", new Vector3((float)Width /2, -Height, 0), QFontAlignment.Centre, heading1.Options.Colour);
                                 yOffset += heading1.Measure("QuickFont").Height;
                                 heading1.LoadVBOs();
                                 heading1.DrawVBOs();
+                        heading1.End();
 
 
 
-                            GL.PushMatrix();
-                                GL.Translate(20f, yOffset, 0f);
-                                heading2.Print("Introduction", QFontAlignment.Left);
-                                yOffset += heading2.Measure("Introduction").Height;
-                            GL.PopMatrix();
+                            //GL.PushMatrix();
+                            //    GL.Translate(20f, yOffset, 0f);
+                            //    heading2.Print("Introduction", QFontAlignment.Left);
+                            //    yOffset += heading2.Measure("Introduction").Height;
+                            //GL.PopMatrix();
 
+                        heading2.Begin();
+                        heading2.ResetVBOs();
+                        heading2.PrintToVBO("Introduction", new Vector3(20, -Height + yOffset*0.8f, 0), QFontAlignment.Left, heading2.Options.Colour);
+                        yOffset += heading2.Measure("Introduction").Height;
+                        heading2.LoadVBOs();
+                        heading2.DrawVBOs();
+                        heading2.End();
 
-                                mainText.ResetVBOs();
-                                mainText.PrintToVBO(introduction, new SizeF(Width - 50, float.MaxValue),
-                                    QFontAlignment.Justify, new Vector2(30f, yOffset + 20));
-                                mainText.LoadVBOs();
-                                mainText.DrawVBOs();
-
-                            mainText.End();
-                        
-                    }
-                    break;
-
-
-
-
-                case 2:
-                    {
-
-                        float yOffset = 20;
-
+                        _stopwatch = Stopwatch.StartNew();
                         mainText.Begin();
-
-
-                            GL.PushMatrix();
-                                GL.Translate(20f, yOffset, 0f);
-                                heading2.Print("Easy as ABC!", QFontAlignment.Left);
-                                yOffset += heading2.Measure("Easy as ABC!").Height;
-                            GL.PopMatrix();
-
-
-                            PrintComment(usingQuickFontIsSuperEasy, ref yOffset);
-                            PrintCode(loadingAFont1, ref yOffset);
-
-                            PrintComment(andPrintWithIt, ref yOffset);
-                            PrintCode(printWithFont1, ref yOffset);
-
-                            PrintComment(itIsAlsoEasyToMeasure, ref yOffset);
-                            PrintCode(measureText1, ref yOffset);
-
-                            PrintComment(oneOfTheFirstGotchas, ref yOffset);
-                            PrintCode(loadingAFont2, ref yOffset);
-
-                            mainText.End();
-           
-                    }
-                    break;
-
-                case 3:
-                    {
-
-                        float yOffset = 20;
-
-                        mainText.Begin();
-
-
-                        GL.PushMatrix();
-                        GL.Translate(20f, yOffset, 0f);
-                        heading2.Print("Alignment", QFontAlignment.Left);
-                        yOffset += heading2.Measure("Easy as ABC!").Height;
-                        GL.PopMatrix();
-
-                        PrintCommentWithLine(whenPrintingText, QFontAlignment.Left, Width * 0.5f, ref yOffset);
-                        PrintCode(printWithFont2, ref yOffset);
-
-
-                        PrintCommentWithLine(righAlignedText, QFontAlignment.Right, Width * 0.5f, ref yOffset);
-                        yOffset += 10f;
-
-                        PrintCommentWithLine(centredTextAsYou, QFontAlignment.Centre, Width * 0.5f, ref yOffset);
-   
+                        mainText.ResetVBOs();
+                        mainText.PrintToVBO(_introductionProcessedText, new Vector3(20, -Height + mainText.Measure(introduction).Height * 0.5f + yOffset*0.5f, 0));
+                        //mainText.PrintToVBO(introduction, new SizeF(Width - 50, float.MaxValue),
+                        //    QFontAlignment.Justify, new Vector2(20, -Height + mainText.Measure(introduction).Height*0.5f + 40));
+                        mainText.LoadVBOs();
+                        mainText.DrawVBOs();
                         mainText.End();
+                        _stopwatch.Stop();
+                        long preprocessed = _stopwatch.Elapsed.Ticks;
+
+                        _stopwatch = Stopwatch.StartNew();
+                        mainText.Begin();
+                        mainText.ResetVBOs();
+                        //mainText.PrintToVBO(introduction, new SizeF(Width - 50, float.MaxValue),
+                        //    QFontAlignment.Justify, new Vector2(20, -Height + mainText.Measure(introduction).Height * 0.5f + 40));
+                        mainText.LoadVBOs();
+                        mainText.DrawVBOs();
+                        mainText.End();
+                        _stopwatch.Stop();
+                        long notpreprocessed = _stopwatch.Elapsed.Ticks;
+
+
+                        if (frameCount > 30)
+                        {
+                            _benchResult = string.Format(("{0}       {1}\nPreprocessed was {2} ticks faster"),
+                                preprocessed,
+                                notpreprocessed, notpreprocessed - preprocessed);
+                            frameCount = 0;
+                        }
+
+                        _benchmarkResults.Begin();
+                        _benchmarkResults.ResetVBOs();
+                        _benchmarkResults.PrintToVBO(_benchResult, new Vector3(Width * 0.5f, -50, 0), QFontAlignment.Centre, Color.White);
+                        _benchmarkResults.LoadVBOs();
+                        _benchmarkResults.DrawVBOs();
+                        _benchmarkResults.End();
 
                     }
                     break;
 
 
 
-                case 4:
-                    {
 
-                        float yOffset = 20;
+                //case 2:
+                //    {
 
-                        mainText.Begin();
+                //        float yOffset = 20;
 
-
-                        GL.PushMatrix();
-                        GL.Translate(20f, yOffset, 0f);
-                        heading2.Print("Bounds and Justify", QFontAlignment.Left);
-                        yOffset += heading2.Measure("Easy as ABC!").Height;
-                        GL.PopMatrix();
+                //        mainText.Begin();
 
 
+                //            GL.PushMatrix();
+                //                GL.Translate(20f, yOffset, 0f);
+                //                heading2.Print("Easy as ABC!", QFontAlignment.Left);
+                //                yOffset += heading2.Measure("Easy as ABC!").Height;
+                //            GL.PopMatrix();
 
-                        GL.PushMatrix();
-                        yOffset += 20;
-                        GL.Translate((int)(Width * 0.5), yOffset, 0f);
-                        controlsText.Print("Press [Up], [Down] or [Enter]!", QFontAlignment.Centre);
-                        yOffset += controlsText.Measure("[]").Height;
-                        GL.PopMatrix();
+
+                //            PrintComment(usingQuickFontIsSuperEasy, ref yOffset);
+                //            PrintCode(loadingAFont1, ref yOffset);
+
+                //            PrintComment(andPrintWithIt, ref yOffset);
+                //            PrintCode(printWithFont1, ref yOffset);
+
+                //            PrintComment(itIsAlsoEasyToMeasure, ref yOffset);
+                //            PrintCode(measureText1, ref yOffset);
+
+                //            PrintComment(oneOfTheFirstGotchas, ref yOffset);
+                //            PrintCode(loadingAFont2, ref yOffset);
+
+                //            mainText.End();
+           
+                //    }
+                //    break;
+
+                //case 3:
+                //    {
+
+                //        float yOffset = 20;
+
+                //        mainText.Begin();
+
+
+                //        GL.PushMatrix();
+                //        GL.Translate(20f, yOffset, 0f);
+                //        heading2.Print("Alignment", QFontAlignment.Left);
+                //        yOffset += heading2.Measure("Easy as ABC!").Height;
+                //        GL.PopMatrix();
+
+                //        PrintCommentWithLine(whenPrintingText, QFontAlignment.Left, Width * 0.5f, ref yOffset);
+                //        PrintCode(printWithFont2, ref yOffset);
+
+
+                //        PrintCommentWithLine(righAlignedText, QFontAlignment.Right, Width * 0.5f, ref yOffset);
+                //        yOffset += 10f;
+
+                //        PrintCommentWithLine(centredTextAsYou, QFontAlignment.Centre, Width * 0.5f, ref yOffset);
+   
+                //        mainText.End();
+
+                //    }
+                //    break;
+
+
+
+                //case 4:
+                //    {
+
+                //        float yOffset = 20;
+
+                //        mainText.Begin();
+
+
+                //        GL.PushMatrix();
+                //        GL.Translate(20f, yOffset, 0f);
+                //        heading2.Print("Bounds and Justify", QFontAlignment.Left);
+                //        yOffset += heading2.Measure("Easy as ABC!").Height;
+                //        GL.PopMatrix();
+
+
+
+                //        GL.PushMatrix();
+                //        yOffset += 20;
+                //        GL.Translate((int)(Width * 0.5), yOffset, 0f);
+                //        controlsText.Print("Press [Up], [Down] or [Enter]!", QFontAlignment.Centre);
+                //        yOffset += controlsText.Measure("[]").Height;
+                //        GL.PopMatrix();
 
 
             
-                        float boundShrink = (int) (350* (1- Math.Cos(boundsAnimationCnt * Math.PI * 2)));
+                //        float boundShrink = (int) (350* (1- Math.Cos(boundsAnimationCnt * Math.PI * 2)));
 
-                        yOffset += 15; ;
-                        PrintWithBounds(mainText, ofCourseItsNot, new RectangleF(30f + boundShrink*0.5f, yOffset, Width - 60 - boundShrink, 350f), cycleAlignment, ref yOffset);
-
-
-                        string printWithBounds = "myFont.Print(text,400f,QFontAlignment." + cycleAlignment + ");";
-                        yOffset += 15f;
-                        PrintCode(printWithBounds, ref yOffset);
+                //        yOffset += 15; ;
+                //        PrintWithBounds(mainText, ofCourseItsNot, new RectangleF(30f + boundShrink*0.5f, yOffset, Width - 60 - boundShrink, 350f), cycleAlignment, ref yOffset);
 
 
-
-                        mainText.End();
-
-                    }
-                    break;
+                //        string printWithBounds = "myFont.Print(text,400f,QFontAlignment." + cycleAlignment + ");";
+                //        yOffset += 15f;
+                //        PrintCode(printWithBounds, ref yOffset);
 
 
+
+                //        mainText.End();
+
+                //    }
+                //    break;
 
 
 
 
-                case 5:
-                    {
-
-                        float yOffset = 20;
-
-                        mainText.Begin();
 
 
-                        GL.PushMatrix();
-                        GL.Translate(20f, yOffset, 0f);
-                        heading2.Print("Your own Texture Fonts", QFontAlignment.Left);
-                        yOffset += heading2.Measure("T").Height;
-                        GL.PopMatrix();
+                //case 5:
+                //    {
+
+                //        float yOffset = 20;
+
+                //        mainText.Begin();
 
 
-                        PrintComment(anotherCoolFeature, ref yOffset);
-                        PrintCode(textureFontCode1, ref yOffset);
-                        PrintComment(thisWillHaveCreated, ref yOffset);
+                //        GL.PushMatrix();
+                //        GL.Translate(20f, yOffset, 0f);
+                //        heading2.Print("Your own Texture Fonts", QFontAlignment.Left);
+                //        yOffset += heading2.Measure("T").Height;
+                //        GL.PopMatrix();
+
+
+                //        PrintComment(anotherCoolFeature, ref yOffset);
+                //        PrintCode(textureFontCode1, ref yOffset);
+                //        PrintComment(thisWillHaveCreated, ref yOffset);
                 
                         
 
-                        mainText.End();
+                //        mainText.End();
 
-                    }
-                    break;
-
-
-                case 6:
-                    {
-
-                        float yOffset = 20;
-
-                        mainText.Begin();
+                //    }
+                //    break;
 
 
-                        GL.PushMatrix();
-                        GL.Translate(20f, yOffset, 0f);
-                        heading2.Print("Your own Texture Fonts", QFontAlignment.Left);
-                        yOffset += heading2.Measure("T").Height;
-                        GL.PopMatrix();
+                //case 6:
+                //    {
+
+                //        float yOffset = 20;
+
+                //        mainText.Begin();
 
 
-                        PrintComment(ifYouDoIntend, ref yOffset);
-                        PrintCode(textureFontCode2, ref yOffset);
-                        PrintComment(actuallyTexturing, ref yOffset);
-                        PrintCode(textureFontCode3, ref yOffset);
+                //        GL.PushMatrix();
+                //        GL.Translate(20f, yOffset, 0f);
+                //        heading2.Print("Your own Texture Fonts", QFontAlignment.Left);
+                //        yOffset += heading2.Measure("T").Height;
+                //        GL.PopMatrix();
 
 
-                        mainText.End();
-
-                    }
-                    break;
-
-
-
-                case 7:
-                    {
-
-                        float yOffset = 20;
-
-                        mainText.Begin();
+                //        PrintComment(ifYouDoIntend, ref yOffset);
+                //        PrintCode(textureFontCode2, ref yOffset);
+                //        PrintComment(actuallyTexturing, ref yOffset);
+                //        PrintCode(textureFontCode3, ref yOffset);
 
 
-                        heading2.Options.DropShadowOffset = new Vector2(0.1f + 0.2f * (float)Math.Sin(cnt), 0.1f + 0.2f * (float)Math.Cos(cnt));
+                //        mainText.End();
 
-                        GL.PushMatrix();
-                        GL.Translate(20f, yOffset, 0f);
-                        heading2.Print("Drop Shadows", QFontAlignment.Left);
-                        yOffset += heading2.Measure("T").Height;
-                        GL.PopMatrix();
-
-                        heading2.Options.DropShadowOffset = new Vector2(0.16f, 0.16f); //back to default
-
-                        mainText.Options.DropShadowActive = true;
-                        mainText.Options.DropShadowColour = Color.FromArgb((byte) (0.7 * 255), Color.White);
-                        mainText.Options.DropShadowOffset = new Vector2(0.1f + 0.2f * (float)Math.Sin(cnt), 0.1f + 0.2f * (float)Math.Cos(cnt));
+                //    }
+                //    break;
 
 
 
-                        PrintComment(asIhaveleant, ref yOffset);
-                        PrintCode(dropShadowCode1, ref yOffset);
-                        PrintComment(thisWorksFine, ref yOffset);
-                        PrintCode(dropShadowCode2, ref yOffset);
-                        PrintComment(onceAFont, ref yOffset);
+                //case 7:
+                //    {
+
+                //        float yOffset = 20;
+
+                //        mainText.Begin();
 
 
-                        mainText.Options.DropShadowActive = false;
+                //        heading2.Options.DropShadowOffset = new Vector2(0.1f + 0.2f * (float)Math.Sin(cnt), 0.1f + 0.2f * (float)Math.Cos(cnt));
 
-                        mainText.End();
+                //        GL.PushMatrix();
+                //        GL.Translate(20f, yOffset, 0f);
+                //        heading2.Print("Drop Shadows", QFontAlignment.Left);
+                //        yOffset += heading2.Measure("T").Height;
+                //        GL.PopMatrix();
 
-                    }
-                    break;
+                //        heading2.Options.DropShadowOffset = new Vector2(0.16f, 0.16f); //back to default
 
-
-
-
-                case 8:
-                    {
-
-                        float yOffset = 20;
-
-                        mainText.Begin();
+                //        mainText.Options.DropShadowActive = true;
+                //        mainText.Options.DropShadowColour = Color.FromArgb((byte) (0.7 * 255), Color.White);
+                //        mainText.Options.DropShadowOffset = new Vector2(0.1f + 0.2f * (float)Math.Sin(cnt), 0.1f + 0.2f * (float)Math.Cos(cnt));
 
 
 
-                        monoSpaced.Options.CharacterSpacing = 0.05f;
-
-                        GL.PushMatrix();
-                        GL.Translate(20f, yOffset, 0f);
-                        heading2.Print("Monospaced Fonts", QFontAlignment.Left);
-                        yOffset += heading2.Measure("T").Height;
-                        GL.PopMatrix();
+                //        PrintComment(asIhaveleant, ref yOffset);
+                //        PrintCode(dropShadowCode1, ref yOffset);
+                //        PrintComment(thisWorksFine, ref yOffset);
+                //        PrintCode(dropShadowCode2, ref yOffset);
+                //        PrintComment(onceAFont, ref yOffset);
 
 
-                        PrintComment(monoSpaced, hereIsSomeMono, QFontAlignment.Left, ref yOffset);
-                        PrintCode(monoCode1, ref yOffset);
-                        PrintComment(monoSpaced, theDefaultMono, QFontAlignment.Left, ref yOffset);
+                //        mainText.Options.DropShadowActive = false;
+
+                //        mainText.End();
+
+                //    }
+                //    break;
+
+
+
+
+                //case 8:
+                //    {
+
+                //        float yOffset = 20;
+
+                //        mainText.Begin();
+
+
+
+                //        monoSpaced.Options.CharacterSpacing = 0.05f;
+
+                //        GL.PushMatrix();
+                //        GL.Translate(20f, yOffset, 0f);
+                //        heading2.Print("Monospaced Fonts", QFontAlignment.Left);
+                //        yOffset += heading2.Measure("T").Height;
+                //        GL.PopMatrix();
+
+
+                //        PrintComment(monoSpaced, hereIsSomeMono, QFontAlignment.Left, ref yOffset);
+                //        PrintCode(monoCode1, ref yOffset);
+                //        PrintComment(monoSpaced, theDefaultMono, QFontAlignment.Left, ref yOffset);
    
-                        PrintCommentWithLine(monoSpaced, mono, QFontAlignment.Left, Width * 0.5f, ref yOffset);
-                        yOffset += 2f;
-                        PrintCommentWithLine(monoSpaced, mono, QFontAlignment.Right, Width * 0.5f, ref yOffset);
-                        yOffset += 2f;
-                        PrintCommentWithLine(monoSpaced, mono, QFontAlignment.Centre, Width * 0.5f, ref yOffset);
-                        yOffset += 2f;
+                //        PrintCommentWithLine(monoSpaced, mono, QFontAlignment.Left, Width * 0.5f, ref yOffset);
+                //        yOffset += 2f;
+                //        PrintCommentWithLine(monoSpaced, mono, QFontAlignment.Right, Width * 0.5f, ref yOffset);
+                //        yOffset += 2f;
+                //        PrintCommentWithLine(monoSpaced, mono, QFontAlignment.Centre, Width * 0.5f, ref yOffset);
+                //        yOffset += 2f;
 
-                        monoSpaced.Options.CharacterSpacing = 0.5f;
-                        PrintComment(monoSpaced, "As usual, you can adjust character spacing with myFont.Options.CharacterSpacing.", QFontAlignment.Left, ref yOffset);
-
-
-                        mainText.End();
-
-                    }
-                    break;
+                //        monoSpaced.Options.CharacterSpacing = 0.5f;
+                //        PrintComment(monoSpaced, "As usual, you can adjust character spacing with myFont.Options.CharacterSpacing.", QFontAlignment.Left, ref yOffset);
 
 
-                case 9:
-                    {
+                //        mainText.End();
 
-                        float yOffset = 20;
-
-                        mainText.Begin();
+                //    }
+                //    break;
 
 
-                        GL.PushMatrix();
-                        GL.Translate(20f, yOffset, 0f);
-                        heading2.Print("In Conclusion", QFontAlignment.Left);
-                        yOffset += heading2.Measure("T").Height;
-                        GL.PopMatrix();
+                //case 9:
+                //    {
+
+                //        float yOffset = 20;
+
+                //        mainText.Begin();
 
 
-                        PrintComment(thereAreActually, ref yOffset);
+                //        GL.PushMatrix();
+                //        GL.Translate(20f, yOffset, 0f);
+                //        heading2.Print("In Conclusion", QFontAlignment.Left);
+                //        yOffset += heading2.Measure("T").Height;
+                //        GL.PopMatrix();
+
+
+                //        PrintComment(thereAreActually, ref yOffset);
         
 
       
 
-                        mainText.End();
+                //        mainText.End();
 
-                    }
-                    break;
+                //    }
+                //    break;
 
 
 
@@ -775,35 +833,35 @@ namespace StarterKit
 
 
 
-            mainText.Begin();
+            //mainText.Begin();
             
 
-            if (currentDemoPage != lastPage)
-            {
-                GL.PushMatrix();
-                GL.Translate(Width - 10 - 16 * (float)(1 + Math.Sin(cnt * 4)), Height - controlsText.Measure("P").Height - 10f, 0f);
-                controlsText.Options.Colour = Color.FromArgb(new Color4(0.8f, 0.1f, 0.1f, 1.0f).ToArgb());
-                controlsText.Print("Press [Right] ->", QFontAlignment.Right);
-                GL.PopMatrix();
-            }
+            //if (currentDemoPage != lastPage)
+            //{
+            //    GL.PushMatrix();
+            //    GL.Translate(Width - 10 - 16 * (float)(1 + Math.Sin(cnt * 4)), Height - controlsText.Measure("P").Height - 10f, 0f);
+            //    controlsText.Options.Colour = Color.FromArgb(new Color4(0.8f, 0.1f, 0.1f, 1.0f).ToArgb());
+            //    controlsText.Print("Press [Right] ->", QFontAlignment.Right);
+            //    GL.PopMatrix();
+            //}
 
 
-            if (currentDemoPage != 1)
-            {
+            //if (currentDemoPage != 1)
+            //{
 
-                GL.PushMatrix();
-                GL.Translate(10 + 16 * (float)(1 + Math.Sin(cnt * 4)), Height - controlsText.Measure("P").Height - 10f, 0f);
-                controlsText.Options.Colour = Color.FromArgb(new Color4(0.8f, 0.1f, 0.1f, 1.0f).ToArgb());
-                controlsText.Print("<- Press [Left]", QFontAlignment.Left);
-                GL.PopMatrix();
-            }
+            //    GL.PushMatrix();
+            //    GL.Translate(10 + 16 * (float)(1 + Math.Sin(cnt * 4)), Height - controlsText.Measure("P").Height - 10f, 0f);
+            //    controlsText.Options.Colour = Color.FromArgb(new Color4(0.8f, 0.1f, 0.1f, 1.0f).ToArgb());
+            //    controlsText.Print("<- Press [Left]", QFontAlignment.Left);
+            //    GL.PopMatrix();
+            //}
 
             
-            mainText.End();
+            //mainText.End();
 
 
 
-            GL.Disable(EnableCap.Texture2D);
+            //GL.Disable(EnableCap.Texture2D);
 
             SwapBuffers();
         }

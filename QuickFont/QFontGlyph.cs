@@ -7,7 +7,6 @@ namespace QuickFont
 {
     public class QFontGlyph
     {
-       
         /// <summary>
         /// Which texture page the glyph is on
         /// </summary>

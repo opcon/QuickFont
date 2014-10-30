@@ -48,10 +48,9 @@
   <ItemGroup>
     <Compile Include="Configuration\QFontConfiguration.cs" />
     <Compile Include="Configuration\QFontKerningConfiguration.cs" />
-    <Compile Include="Configuration\QFontLoaderConfiguration.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="KerningCalculator.cs" />
-    <Compile Include="ProjectionStack.cs" />
+    <Compile Include="ViewportHelper.cs" />
     <Compile Include="QBitmap.cs" />
     <Compile Include="QFont.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -61,7 +60,7 @@
     <Compile Include="Configuration\QFontShadowConfiguration.cs" />
     <Compile Include="QFontGlyph.cs" />
     <Compile Include="QFontRenderOptions.cs" />
-    <Compile Include="QVertexBuffer.cs" />
+    <Compile Include="QVertexArrayObject.cs" />
     <Compile Include="TextNodeList.cs" />
     <Compile Include="TexturePage.cs" />
   </ItemGroup>

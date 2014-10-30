@@ -6,8 +6,6 @@ using System.Drawing;
 
 namespace QuickFont
 {
-
-
     enum TextNodeType { Word, LineBreak, Space }
 
     class TextNode
@@ -32,7 +30,6 @@ namespace QuickFont
 
     }
 
-
     /// <summary>
     /// Class to hide TextNodeList and related classes from 
     /// user whilst allowing a textNodeList to be passed around.
@@ -44,7 +41,6 @@ namespace QuickFont
         internal QFontAlignment alignment;
     }
 
-
     /// <summary>
     /// A doubly linked list of text nodes
     /// </summary>
@@ -52,8 +48,6 @@ namespace QuickFont
     {
         public TextNode Head;
         public TextNode Tail;
-       
-
 
         /// <summary>
         /// Builds a doubly linked list of text nodes from the given input string
@@ -61,8 +55,6 @@ namespace QuickFont
         /// <param name="text"></param>
         public TextNodeList(string text)
         {
-
-            
             #region parse text
 
             text = text.Replace("\r\n", "\r");
@@ -79,8 +71,6 @@ namespace QuickFont
                         Add(new TextNode(TextNodeType.Word, currentWord.ToString()));
                         wordInProgress = false;
                     }
-
-
 
                     if (text[i] == '\r' || text[i] == '\n')
                         Add(new TextNode(TextNodeType.LineBreak, null));
@@ -104,11 +94,7 @@ namespace QuickFont
             if (wordInProgress)
                 Add(new TextNode(TextNodeType.Word, currentWord.ToString()));
 
-
             #endregion
-
-
-
         }
 
         public void MeasureNodes(QFontData fontData, QFontRenderOptions options){
@@ -118,8 +104,6 @@ namespace QuickFont
                     node.Length = MeasureTextNodeLength(node,fontData,options);
             }
         }
-
-
 
         private float MeasureTextNodeLength(TextNode node, QFontData fontData, QFontRenderOptions options)
         {
@@ -134,7 +118,6 @@ namespace QuickFont
 
                 return (float)Math.Ceiling(fontData.meanGlyphWidth * options.WordSpacing);
             }
-
 
             float length = 0f;
             if (node.Type == TextNodeType.Word)
@@ -155,8 +138,6 @@ namespace QuickFont
             return length;
         }
 
-
-
         /// <summary>
         /// Splits a word into sub-words of size less than or equal to baseCaseSize 
         /// </summary>
@@ -176,7 +157,6 @@ namespace QuickFont
 
         }
 
-
         /// <summary>
         /// Splits a word node in two, adding both new nodes to the list in sequence.
         /// </summary>
@@ -191,7 +171,6 @@ namespace QuickFont
 
             string newFirstHalf = node.Text.Substring(0, midPoint);
             string newSecondHalf = node.Text.Substring(midPoint, node.Text.Length - midPoint);
-
 
             TextNode newFirst = new TextNode(TextNodeType.Word, newFirstHalf);
             TextNode newSecond = new TextNode(TextNodeType.Word, newSecondHalf);
@@ -219,10 +198,6 @@ namespace QuickFont
             return newFirst;
         }
 
-
-
-
-
         public void Add(TextNode node){
 
             //new node is head (and tail)
@@ -236,7 +211,6 @@ namespace QuickFont
             }
 
         }
-
 
         public override string ToString()
         {
@@ -253,14 +227,10 @@ namespace QuickFont
                     builder.Append(System.Environment.NewLine);
                 if (node.Type == TextNodeType.Word)
                     builder.Append("" + node.Text + "");
-
             }
 
             return builder.ToString();
         }
-
-
-
         
         #region IEnumerable Members
 
@@ -270,9 +240,6 @@ namespace QuickFont
         }
 
         #endregion
-
-
-
 
         private class TextNodeListEnumerator : IEnumerator
         {
@@ -307,14 +274,6 @@ namespace QuickFont
             {
 
             }
-
         }
-
-
     }
-
-
-
-
-
 }

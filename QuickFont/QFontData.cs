@@ -7,7 +7,6 @@ namespace QuickFont
 {
     class QFontData
     {
-
         /// <summary>
         /// Mapping from a pair of characters to a pixel offset
         /// </summary>
@@ -33,44 +32,34 @@ namespace QuickFont
         /// </summary>
         public int maxGlyphHeight;
 
-
         /// <summary>
         /// Null if no dropShadow is available
         /// </summary>
         public QFont dropShadow;
-
 
         /// <summary>
         /// true if this font is dropShadow
         /// </summary>
         public bool isDropShadow;
 
-
         /// <summary>
         /// Whether the original font (from ttf) was detected to be monospaced
         /// </summary>
         public bool naturallyMonospaced = false;
-
 
         public bool IsMonospacingActive(QFontRenderOptions options)
         {
             return (options.Monospacing == QFontMonospacing.Natural && naturallyMonospaced) || options.Monospacing == QFontMonospacing.Yes; 
         }
 
-
-
         public float GetMonoSpaceWidth(QFontRenderOptions options)
         {
             return (float)Math.Ceiling(1 + (1 + options.CharacterSpacing) * meanGlyphWidth);
         }
 
-
-
-
         public List<String> Serialize()
         {
             var data = new List<String>();
-
 
             data.Add("" + Pages.Length);
             data.Add("" + CharSetMapping.Count);
@@ -95,7 +84,6 @@ namespace QuickFont
         {
             CharSetMapping = new Dictionary<char, QFontGlyph>();
             var charSetList = new List<char>();
-
             try
             {
                 pageCount = int.Parse(input[0]);
@@ -109,8 +97,6 @@ namespace QuickFont
                     CharSetMapping.Add(vals[0][0], glyph);
                     charSetList.Add(vals[0][0]);
                 }
-
-
             }
             catch (Exception e)
             {
@@ -118,7 +104,6 @@ namespace QuickFont
             }
 
             charSet = charSetList.ToArray();
-
         }
 
         public void CalculateMeanWidth()
@@ -128,18 +113,14 @@ namespace QuickFont
                 meanGlyphWidth += glyph.Value.rect.Width;
 
             meanGlyphWidth /= CharSetMapping.Count;
-
         }
-
 
         public void CalculateMaxHeight()
         {
             maxGlyphHeight = 0;
             foreach (var glyph in CharSetMapping)
                 maxGlyphHeight = Math.Max(glyph.Value.rect.Height, maxGlyphHeight);
-
         }
-
 
         /// <summary>
         /// Returns the kerning length correction for the character at the given index in the given string.
@@ -154,7 +135,6 @@ namespace QuickFont
         {
             if (KerningPairs == null)
                 return 0;
-
 
             var chars = new char[2];
 
@@ -174,14 +154,11 @@ namespace QuickFont
 
             String str = new String(chars);
 
-
             if (KerningPairs.ContainsKey(str))
                 return KerningPairs[str];
 
             return 0;
-            
         }
-
 
         public void Dispose()
         {
