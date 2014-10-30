@@ -1395,8 +1395,7 @@ void main(void)
         {
             GL.UseProgram(InstanceSharedState.ShaderVariables.ShaderProgram);
             GL.Uniform1(InstanceSharedState.ShaderVariables.SamplerLocation, 0);
-            GL.PointSize(8);
-            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.ActiveTexture(InstanceSharedState.DefaultTextureUnit);
             GL.BindSampler(0, InstanceSharedState.SamplerID);
 
             if (fontData.dropShadow != null)
