@@ -21,19 +21,18 @@ namespace QuickFont
 
         public ProjectionStack ProjectionStack { get; set; }
 
-        private Vector3 m_printOffset;
+        private Vector3 _printOffset;
 
         public Vector3 PrintOffset
         {
-            get { return m_printOffset; }
+            get { return _printOffset; }
             set
             {
-                m_printOffset = value;
+                _printOffset = value;
                 if (fontData.dropShadow != null)
                     fontData.dropShadow.PrintOffset = value;
             }
         }
-
 
         public QFontRenderOptions Options
         {
