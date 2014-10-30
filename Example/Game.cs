@@ -241,6 +241,7 @@ namespace StarterKit
             builderConfig.TextGenerationRenderHint = TextGenerationRenderHint.ClearTypeGridFit; //best render hint for this font
             mainText = new QFont("Fonts/times.ttf", 14, builderConfig);
             mainText.Options.DropShadowActive = false;
+            mainText.Options.WordSpacing = 0.5f;
             //mainText.Options.DropShadowOffset = new Vector2(0, 0);
             //mainText.Options.DropShadowColour = Color.Red;
 
@@ -250,7 +251,7 @@ namespace StarterKit
 
 
             heading1 = new QFont("Fonts/HappySans.ttf", 72, new QFontBuilderConfiguration(true));
-            heading1.Options.DropShadowActive = false;
+            //heading1.Options.DropShadowActive = false;
           
 
             //controlsText = new QFont("Fonts/HappySans.ttf", 32, new QFontBuilderConfiguration(true));
