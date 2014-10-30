@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 using System.Drawing;
 
 namespace QuickFont
@@ -16,19 +16,20 @@ namespace QuickFont
             return output;
         }
 
-        /// <summary>
-        /// Ensures GL.End() is called
-        /// </summary>
-        /// <param name="mode"></param>
-        /// <param name="code"></param>
-        public static void SafeGLBegin(BeginMode mode, Action code)
-        {
-            GL.Begin(mode);
+        //TODO check if it is safe to delete following method and if so delete it
+        ///// <summary>
+        ///// Ensures GL.End() is called
+        ///// </summary>
+        ///// <param name="mode"></param>
+        ///// <param name="code"></param>
+        //public static void SafeGLBegin(BeginMode mode, Action code)
+        //{
+        //    GL.Begin(mode);
 
-            code();
+        //    code();
 
-            GL.End();
-        }
+        //    GL.End();
+        //}
 
         /// <summary>
         /// Ensures that state is disabled
@@ -72,16 +73,17 @@ namespace QuickFont
             }
         }
 
-        public static void SafeGLEnableClientStates(ArrayCap[] caps, Action code)
-        {
-            foreach (var cap in caps)
-                GL.EnableClientState(cap);
+        //TODO check if it is safe to delete following method, and if so then delete it
+        //public static void SafeGLEnableClientStates(ArrayCap[] caps, Action code)
+        //{
+        //    foreach (var cap in caps)
+        //        GL.EnableClientState(cap);
 
-            code();
+        //    code();
 
-            foreach (var cap in caps)
-                GL.DisableClientState(cap);
-        }
+        //    foreach (var cap in caps)
+        //        GL.DisableClientState(cap);
+        //}
 
         public static int ToRgba(Color color)
         {
