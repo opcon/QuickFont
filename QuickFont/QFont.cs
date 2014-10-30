@@ -6,7 +6,7 @@ using System.Drawing.Text;
 using System.Drawing.Imaging;
 using System.Linq;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Graphics;
 
 namespace QuickFont
@@ -470,22 +470,24 @@ void main(void)
             }
 
                 // else use immediate mode
-            else
-            {
-                GL.Color4(color);
-                GL.BindTexture(TextureTarget.Texture2D, sheet.GLTexID);
+            //no immediate mode
 
-                GL.Begin(BeginMode.Quads);
-                GL.TexCoord2(tv1);
-                GL.Vertex3(v1);
-                GL.TexCoord2(tv2);
-                GL.Vertex3(v2);
-                GL.TexCoord2(tv3);
-                GL.Vertex3(v3);
-                GL.TexCoord2(tv4);
-                GL.Vertex3(v4);
-                GL.End();
-            }
+            //else
+            //{
+            //    GL.Color4(color);
+            //    GL.BindTexture(TextureTarget.Texture2D, sheet.GLTexID);
+
+            //    GL.Begin(BeginMode.Quads);
+            //    GL.TexCoord2(tv1);
+            //    GL.Vertex3(v1);
+            //    GL.TexCoord2(tv2);
+            //    GL.Vertex3(v2);
+            //    GL.TexCoord2(tv3);
+            //    GL.Vertex3(v3);
+            //    GL.TexCoord2(tv4);
+            //    GL.Vertex3(v4);
+            //    GL.End();
+            //}
         }
 
         private float MeasureNextlineLength(string text)
@@ -590,10 +592,13 @@ void main(void)
             position = TransformPositionToViewport(position);
             position = LockToPixel(position);
 
-            GL.PushMatrix();
-            GL.Translate(position.X, position.Y, 0f);
-            Print(processedText);
-            GL.PopMatrix();
+            //no immediate mode
+            //TODO Fix positioning
+
+            //GL.PushMatrix();
+            //GL.Translate(position.X, position.Y, 0f);
+            //Print(processedText);
+            //GL.PopMatrix();
         }
 
         public void Print(string text, float maxWidth, QFontAlignment alignment, Vector2 position)
@@ -611,10 +616,13 @@ void main(void)
             position = TransformPositionToViewport(position);
             position = LockToPixel(position);
 
-            GL.PushMatrix();
-            GL.Translate(position.X, position.Y, 0f);
-            Print(text, maxSize, alignment);
-            GL.PopMatrix();
+            //no immediate mode
+            //TODO Fix positioning
+
+            //GL.PushMatrix();
+            //GL.Translate(position.X, position.Y, 0f);
+            //Print(text, maxSize, alignment);
+            //GL.PopMatrix();
         }
 
         public void Print(string text, Vector2 position, QFontAlignment alignment = QFontAlignment.Left)
@@ -622,10 +630,13 @@ void main(void)
             position = TransformPositionToViewport(position);
             position = LockToPixel(position);
 
-            GL.PushMatrix();
-            GL.Translate(position.X, position.Y, 0f);
-            Print(text, alignment);
-            GL.PopMatrix();
+            //no immediate mode
+            //TODO Fix positioning
+
+            //GL.PushMatrix();
+            //GL.Translate(position.X, position.Y, 0f);
+            //Print(text, alignment);
+            //GL.PopMatrix();
         }
 
         public void Print(string text, QFontAlignment alignment = QFontAlignment.Left)
@@ -640,11 +651,14 @@ void main(void)
             position2 = TransformPositionToViewport(position2);
             position2 = LockToPixel(position2);
 
+            //no immediate mode
+            //TODO Fix positioning
+
             Options.Colour = color;
-            GL.PushMatrix();
-            GL.Translate(position.X, position.Y, 0f);
-            PrintOrMeasure(text, alignment, false);
-            GL.PopMatrix();
+            //GL.PushMatrix();
+            //GL.Translate(position.X, position.Y, 0f);
+            //PrintOrMeasure(text, alignment, false);
+            //GL.PopMatrix();
         }
 
 
@@ -760,13 +774,16 @@ void main(void)
                 float maxXpos = float.MinValue;
                 float minXPos = float.MaxValue;
 
-                if (!UsingVertexBuffers)
-                {
-                    GL.Color4(1.0f, 1.0f, 1.0f, 1.0f);
+                //no immediate mode / deprecated functionality
+                //TODO remove following code
 
-                    if (Options.UseDefaultBlendFunction)
-                        GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-                }
+                //if (!UsingVertexBuffers)
+                //{
+                //    GL.Color4(1.0f, 1.0f, 1.0f, 1.0f);
+
+                //    if (Options.UseDefaultBlendFunction)
+                //        GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+                //}
 
                 text = text.Replace("\r\n", "\r");
 
@@ -1245,12 +1262,15 @@ void main(void)
             // determine what capacities we need
             var caps = new EnableCap[] {};
 
-            if (!measureOnly && !UsingVertexBuffers)
-            {
-                GL.Color4(1.0f, 1.0f, 1.0f, 1.0f);
+            //no immediate mode / deprecated functionality
+            //TODO remove following code
 
-                caps = new EnableCap[] {EnableCap.Texture2D, EnableCap.Blend};
-            }
+            //if (!measureOnly && !UsingVertexBuffers)
+            //{
+            //    GL.Color4(1.0f, 1.0f, 1.0f, 1.0f);
+
+            //    caps = new EnableCap[] {EnableCap.Texture2D, EnableCap.Blend};
+            //}
 
             //make sure fontdata font's options are synced with the actual options
             if (fontData.dropShadow != null && fontData.dropShadow.Options != Options)
