@@ -1334,7 +1334,11 @@ void main(void)
         {
             //ProjectionStack.DefaultStack.Begin();
             GL.UseProgram(InstanceSharedState.ShaderVariables.ShaderProgram);
-            GL.Enable(EnableCap.Blend);
+            if (Options.UseDefaultBlendFunction)
+            {
+                GL.Enable(EnableCap.Blend);
+                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            }
             GL.UniformMatrix4(InstanceSharedState.ShaderVariables.MVPUniformLocation, false, ref _projectionMatrix);
         }
 
@@ -1398,7 +1402,6 @@ void main(void)
             if (fontData.dropShadow != null)
                 fontData.dropShadow.DrawVBOs();
 
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             foreach (var buffer in VertexArrayObjects)
                 buffer.Draw();
         }
