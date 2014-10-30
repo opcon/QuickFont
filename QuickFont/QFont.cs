@@ -93,9 +93,6 @@ void main(void)
 //    gl_Position = vec4(0.,0.,0.,1.);
 }";
 
-        //public ShaderVariables ShaderVariables;
-        //private int sampler;
-
         private static SharedState _QFontSharedState;
         public static SharedState QFontSharedState { get { return _QFontSharedState; } }
 
@@ -312,61 +309,11 @@ void main(void)
 
         public static void CreateTextureFontFiles(string fileName, float size, string newFontName, QFontBuilderConfiguration config, FontStyle style = FontStyle.Regular)
         {
-            /* PrivateFontCollection pfc = new PrivateFontCollection();
-            pfc.AddFontFile(fontPath);
-            var fontFamily = pfc.Families[0];
-
-            if (!fontFamily.IsStyleAvailable(style))
-                throw new ArgumentException("Font file: " + fontPath + " does not support style: " + style); */
-
-            /*
-            if (config == null)
-                config = new QFontBuilderConfiguration();
-            */
-
-
-            /*
-            using (var font = new Font(fontFamily, size*config.SuperSampleLevels, style))
-            {
-                fontData = BuildFont(font, config, newFontName);
-            }
-            */
-
             using (var font = GetFont(fileName, size, style, config == null ? 1 : config.SuperSampleLevels))
             {
                 CreateTextureFontFiles(font, newFontName, config);
             }
-
-            /* Builder.SaveQFontDataToFile(fontData, newFontName); */
         }
-
-        //public static QFont FromQFontFile(string filePath, float downSampleFactor = 1.0f,
-        //    QFontLoaderConfiguration loaderConfig = null, ProjectionStack proj = null)
-        //{
-        //    if (loaderConfig == null)
-        //        loaderConfig = new QFontLoaderConfiguration();
-
-        //    QFont qfont = new QFont();
-        //    if (proj != null)
-        //        qfont.ProjectionStack = proj;
-
-        //    TransformViewport? transToVp = null;
-        //    float fontScale = 1f;
-        //    if (loaderConfig.TransformToCurrentOrthogProjection)
-        //        transToVp = qfont.OrthogonalTransform(out fontScale);
-
-        //    qfont.fontData = Builder.LoadQFontDataFromFile(filePath, downSampleFactor*fontScale, loaderConfig);
-
-        //    if (loaderConfig.ShadowConfig != null)
-        //        qfont.Options.DropShadowActive = true;
-        //    if (transToVp != null)
-        //        qfont.Options.TransformToViewport = transToVp;
-
-        //    qfont.InitialiseState();
-        //    qfont.InitVBOs();
-
-        //    return qfont;
-        //}
 
         private static QFontData BuildFont(Font font, QFontBuilderConfiguration config, string saveName)
         {
@@ -498,10 +445,6 @@ void main(void)
             else
                 color = Options.Colour;
 
-
-            //we are always using vertex buffers
-            //if (UsingVertexBuffers)
-            //{
             var normal = new Vector3(0, 0, -1);
 
             int argb = Helper.ToRgba(color);
@@ -517,27 +460,6 @@ void main(void)
             vbo.AddVertex(v1, tv1, colour);
             vbo.AddVertex(v3, tv3, colour);
             vbo.AddVertex(v4, tv4, colour);
-            //}
-
-                // else use immediate mode
-            //no immediate mode
-
-            //else
-            //{
-            //    GL.Color4(color);
-            //    GL.BindTexture(TextureTarget.Texture2D, sheet.GLTexID);
-
-            //    GL.Begin(BeginMode.Quads);
-            //    GL.TexCoord2(tv1);
-            //    GL.Vertex3(v1);
-            //    GL.TexCoord2(tv2);
-            //    GL.Vertex3(v2);
-            //    GL.TexCoord2(tv3);
-            //    GL.Vertex3(v3);
-            //    GL.TexCoord2(tv4);
-            //    GL.Vertex3(v4);
-            //    GL.End();
-            //}
         }
 
         private float MeasureNextlineLength(string text)
@@ -810,9 +732,6 @@ void main(void)
             float yOffset = 0f;
 
             var caps = new EnableCap[] {};
-            //not using vertex buffers
-            //if (!UsingVertexBuffers)
-            //    caps = new EnableCap[] {EnableCap.Texture2D, EnableCap.Blend};
 
             //make sure fontdata font's options are synced with the actual options
             if (fontData.dropShadow != null && fontData.dropShadow.Options != Options)
@@ -824,17 +743,6 @@ void main(void)
             {
                 float maxXpos = float.MinValue;
                 float minXPos = float.MaxValue;
-
-                //no immediate mode / deprecated functionality
-                //TODO remove following code
-
-                //if (!UsingVertexBuffers)
-                //{
-                //    GL.Color4(1.0f, 1.0f, 1.0f, 1.0f);
-
-                //    if (Options.UseDefaultBlendFunction)
-                //        GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-                //}
 
                 text = text.Replace("\r\n", "\r");
 
@@ -1313,16 +1221,6 @@ void main(void)
             // determine what capacities we need
             var caps = new EnableCap[] {};
 
-            //no immediate mode / deprecated functionality
-            //TODO remove following code
-
-            //if (!measureOnly && !UsingVertexBuffers)
-            //{
-            //    GL.Color4(1.0f, 1.0f, 1.0f, 1.0f);
-
-            //    caps = new EnableCap[] {EnableCap.Texture2D, EnableCap.Blend};
-            //}
-
             //make sure fontdata font's options are synced with the actual options
             if (fontData.dropShadow != null && fontData.dropShadow.Options != Options)
             {
@@ -1331,10 +1229,6 @@ void main(void)
 
             Helper.SafeGLEnable(caps, () =>
             {
-                //not using vertex buffers
-                //if (!measureOnly && !UsingVertexBuffers && Options.UseDefaultBlendFunction)
-                //    GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-
                 float maxWidth = processedText.maxSize.Width;
                 var alignment = processedText.alignment;
 
@@ -1502,7 +1396,6 @@ void main(void)
                 fontData.dropShadow.DrawVBOs();
 
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            //GL.Disable(EnableCap.Blend);
             foreach (var buffer in VertexArrayObjects)
                 buffer.Draw();
         }
