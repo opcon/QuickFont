@@ -4,9 +4,6 @@ using System.Text;
 
 namespace QuickFont
 {
-
-
-
     public enum ShadowType
     {
         Blurred,
@@ -22,7 +19,6 @@ namespace QuickFont
         /// Scale in relation to the actual font glyphs
         /// </summary>
         public float Scale = 1.0f;
-
 
         /// <summary>
         /// if type is blurred then font is blurred with gaussian blur
@@ -65,6 +61,5 @@ namespace QuickFont
         /// which is automatically added.
         /// </summary>
         public int GlyphMargin = 2;
-
     }
 }

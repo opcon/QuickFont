@@ -4,8 +4,6 @@ using System.Text;
 
 namespace QuickFont
 {
-
-
     public enum TextGenerationRenderHint
     {
         /// <summary>
@@ -35,7 +33,6 @@ namespace QuickFont
     /// </summary>
     public class QFontBuilderConfiguration : QFontConfiguration
     {
-
         /// <summary>
         /// Whether to use super sampling when building font texture pages
         /// 

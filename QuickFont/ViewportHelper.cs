@@ -5,9 +5,8 @@ using System.Drawing.Drawing2D;
 using System.Security.Permissions;
 using System.Text;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Graphics;
-
 
 namespace QuickFont
 {

@@ -23,6 +23,5 @@ namespace QuickFont
 
             this.TransformToCurrentOrthogProjection = transformToOrthogProjection;
         }
-
     }
 }

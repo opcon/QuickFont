@@ -7,15 +7,11 @@ namespace QuickFont
 {
     static class KerningCalculator
     {
-
         private struct XLimits
         {
             public int Min;
             public int Max;
         }
-
-
-
 
         private static int Kerning(QFontGlyph g1, QFontGlyph g2, XLimits[] lim1, XLimits[] lim2, QFontKerningConfiguration config)
         {
@@ -34,10 +30,8 @@ namespace QuickFont
             for (int j = startY; j < endY; j++)
                 worstCase = Math.Min(worstCase, w1 - lim1[j-yOffset1].Max + lim2[j-yOffset2].Min);
 
-
             worstCase = Math.Min(worstCase, g1.rect.Width);
             worstCase = Math.Min(worstCase, g2.rect.Width);
-
 
             //modify by character kerning rules
             CharacterKerningRule kerningRule = config.GetOverridingCharacterKerningRuleForPair(""+g1.character + g2.character);
@@ -50,15 +44,12 @@ namespace QuickFont
                 return (int)Math.Min(Math.Min(g1.rect.Width,g2.rect.Width)*0.5f, worstCase);
             }
 
-
             return worstCase;
         }
 
         public static Dictionary<String, int> CalculateKerning(char[] charSet, QFontGlyph[] glyphs, List<QBitmap> bitmapPages, QFontKerningConfiguration config)
         {
             var kerningPairs = new Dictionary<String, int>();
-
-
 
             //we start by computing the index of the first and last non-empty pixel in each row of each glyph
             XLimits[][] limits = new XLimits[charSet.Length][];
@@ -103,7 +94,6 @@ namespace QuickFont
                 }
             }
 
-
             //we now bring up each row to the max (or min) of it's two adjacent rows, this is to stop glyphs sliding together too closely
             var tmp = new XLimits[maxHeight];
 
@@ -130,7 +120,6 @@ namespace QuickFont
 
                 for (int j = 0; j < limits[n].Length; j++)
                     limits[n][j] = tmp[j];
-
             }
 
             for (int i = 0; i < charSet.Length; i++)
@@ -139,6 +128,5 @@ namespace QuickFont
 
             return kerningPairs;
         }
-
     }
 }

@@ -20,7 +20,6 @@ namespace QuickFont
         public int Width { get { return width; } }
         public int Height { get { return height; } }
 
-
         public TexturePage(string filePath)
         {
             var bitmap = new QBitmap(filePath);
@@ -32,7 +31,6 @@ namespace QuickFont
         {
             CreateTexture(dataSource);
         }
-
 
         private void CreateTexture(BitmapData dataSource)
         {
@@ -59,14 +57,9 @@ namespace QuickFont
             });
         }
 
-
         public void Dispose()
         {
             GL.DeleteTexture(gLTexID);
         }
-
-
-
-
     }
 }

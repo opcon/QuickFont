@@ -23,7 +23,6 @@ namespace QuickFont
         NotMoreThanHalf
     }
 
-
     public class QFontKerningConfiguration
     {
         /// <summary>
@@ -68,7 +67,6 @@ namespace QuickFont
             {
                 return CharacterKerningRules[c];
             }
-
             return CharacterKerningRule.Normal;
         }
 
@@ -97,7 +95,6 @@ namespace QuickFont
             {
                 return CharacterKerningRule.NotMoreThanHalf;
             }
-
             return CharacterKerningRule.Normal;
         }
 
@@ -108,7 +105,4 @@ namespace QuickFont
             SetCharacterKerningRule('\'', CharacterKerningRule.NotMoreThanHalf);
         }
     }
-
-
-
 }

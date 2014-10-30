@@ -16,21 +16,6 @@ namespace QuickFont
             return output;
         }
 
-        //TODO check if it is safe to delete following method and if so delete it
-        ///// <summary>
-        ///// Ensures GL.End() is called
-        ///// </summary>
-        ///// <param name="mode"></param>
-        ///// <param name="code"></param>
-        //public static void SafeGLBegin(BeginMode mode, Action code)
-        //{
-        //    GL.Begin(mode);
-
-        //    code();
-
-        //    GL.End();
-        //}
-
         /// <summary>
         /// Ensures that state is disabled
         /// </summary>
@@ -72,18 +57,6 @@ namespace QuickFont
                     GL.Disable(caps[i]);
             }
         }
-
-        //TODO check if it is safe to delete following method, and if so then delete it
-        //public static void SafeGLEnableClientStates(ArrayCap[] caps, Action code)
-        //{
-        //    foreach (var cap in caps)
-        //        GL.EnableClientState(cap);
-
-        //    code();
-
-        //    foreach (var cap in caps)
-        //        GL.DisableClientState(cap);
-        //}
 
         public static int ToRgba(Color color)
         {

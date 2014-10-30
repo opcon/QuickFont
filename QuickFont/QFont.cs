@@ -1,57 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using System.Drawing;
 using System.Drawing.Text;
-using System.Drawing.Imaging;
-using System.Linq;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
-using OpenTK.Graphics;
 
 namespace QuickFont
 {
     public class QFont
     {
         //private QFontRenderOptions options = new QFontRenderOptions();
-        private Stack<QFontRenderOptions> optionsStack = new Stack<QFontRenderOptions>();
-        internal QFontData fontData;
-
-        public QVertexArrayObject[] VertexArrayObjects = new QVertexArrayObject[0];
-
-        private Vector3 _printOffset;
-
-        public Vector3 PrintOffset
-        {
-            get { return _printOffset; }
-            set
-            {
-                _printOffset = value;
-                if (fontData.dropShadow != null)
-                    fontData.dropShadow.PrintOffset = value;
-            }
-        }
-
-        public QFontRenderOptions Options
-        {
-            get
-            {
-                if (optionsStack.Count == 0)
-                {
-                    optionsStack.Push(new QFontRenderOptions());
-                }
-
-                return optionsStack.Peek();
-            }
-            private set
-            {
-                //not sure if we should even allow this...
-                optionsStack.Pop();
-                optionsStack.Push(value);
-            }
-        }
-
         private const string fragShaderSource = @"#version 430 core
 
 uniform sampler2D tex_object;
@@ -92,25 +51,81 @@ void main(void)
 }";
 
         private static SharedState _QFontSharedState;
-        public static SharedState QFontSharedState { get { return _QFontSharedState; } }
+        private readonly Stack<QFontRenderOptions> optionsStack = new Stack<QFontRenderOptions>();
 
+        public QVertexArrayObject[] VertexArrayObjects = new QVertexArrayObject[0];
         private SharedState _instanceSharedState;
+
+        private Vector3 _printOffset;
+        private Matrix4 _projectionMatrix;
+        internal QFontData fontData;
+
+        public Vector3 PrintOffset
+        {
+            get { return _printOffset; }
+            set
+            {
+                _printOffset = value;
+                if (fontData.dropShadow != null)
+                    fontData.dropShadow.PrintOffset = value;
+            }
+        }
+
+        public QFontRenderOptions Options
+        {
+            get
+            {
+                if (optionsStack.Count == 0)
+                {
+                    optionsStack.Push(new QFontRenderOptions());
+                }
+
+                return optionsStack.Peek();
+            }
+            private set
+            {
+                //not sure if we should even allow this...
+                optionsStack.Pop();
+                optionsStack.Push(value);
+            }
+        }
+
+        public static SharedState QFontSharedState
+        {
+            get { return _QFontSharedState; }
+        }
+
         public SharedState InstanceSharedState
         {
             get { return _instanceSharedState ?? QFontSharedState; }
         }
 
-        private Matrix4 _projectionMatrix;
         public Matrix4 ProjectionMatrix
         {
             get { return _projectionMatrix; }
             set { _projectionMatrix = value; }
         }
 
+        public float LineSpacing
+        {
+            get { return (float) Math.Ceiling(fontData.maxGlyphHeight*Options.LineSpacing); }
+        }
+
+        public bool IsMonospacingActive
+        {
+            get { return fontData.IsMonospacingActive(Options); }
+        }
+
+
+        public float MonoSpaceWidth
+        {
+            get { return fontData.GetMonoSpaceWidth(Options); }
+        }
+
         #region Constructors and font builders
 
         /// <summary>
-        /// Used for creating a dropshadow QFont object
+        ///     Used for creating a dropshadow QFont object
         /// </summary>
         /// <param name="fontData"></param>
         internal QFont(QFontData fontData)
@@ -119,7 +134,7 @@ void main(void)
         }
 
         /// <summary>
-        /// Initialise QFont from a System.Drawing.Font object 
+        ///     Initialise QFont from a System.Drawing.Font object
         /// </summary>
         /// <param name="font"></param>
         /// <param name="config"></param>
@@ -128,26 +143,8 @@ void main(void)
             InitialiseQFont(font, config);
         }
 
-        private void InitialiseQFont(Font font, QFontBuilderConfiguration config, QFontData data = null)
-        {
-            ProjectionMatrix = Matrix4.Identity;
-
-            fontData = data ?? BuildFont(font, config, null);
-
-            if (config.ShadowConfig != null)
-                Options.DropShadowActive = true;
-
-            //NOTE This should be the only usage of InitialiseState() (I think).
-            //TODO allow instance render states
-            InitialiseState();
-
-            //Always use VBOs
-            InitVBOs();
-        }
-
-
         /// <summary>
-        /// Initialise QFont from a font file
+        ///     Initialise QFont from a font file
         /// </summary>
         /// <param name="fontPath">The font file to load</param>
         /// <param name="size"></param>
@@ -162,7 +159,7 @@ void main(void)
             if (config.TransformToCurrentOrthogProjection)
                 transToVp = OrthogonalTransform(out fontScale);
 
-            using (var font = GetFont(fontPath, size, style, config == null ? 1 : config.SuperSampleLevels, fontScale))
+            using (Font font = GetFont(fontPath, size, style, config == null ? 1 : config.SuperSampleLevels, fontScale))
             {
                 InitialiseQFont(font, config);
             }
@@ -172,7 +169,7 @@ void main(void)
         }
 
         /// <summary>
-        /// Initialise QFont from a .qfont file
+        ///     Initialise QFont from a .qfont file
         /// </summary>
         /// <param name="qfontPath">The .qfont file to load</param>
         /// <param name="loaderConfig"></param>
@@ -193,8 +190,25 @@ void main(void)
                 Options.TransformToViewport = transToVp;
         }
 
+        private void InitialiseQFont(Font font, QFontBuilderConfiguration config, QFontData data = null)
+        {
+            ProjectionMatrix = Matrix4.Identity;
+
+            fontData = data ?? BuildFont(font, config, null);
+
+            if (config.ShadowConfig != null)
+                Options.DropShadowActive = true;
+
+            //NOTE This should be the only usage of InitialiseState() (I think).
+            //TODO allow instance render states
+            InitialiseState();
+
+            //Always use VBOs
+            InitVBOs();
+        }
+
         /// <summary>
-        /// Returns a System.Drawing.Font object created from the specified font file
+        ///     Returns a System.Drawing.Font object created from the specified font file
         /// </summary>
         /// <param name="fontPath">The path to the font file</param>
         /// <param name="size"></param>
@@ -204,9 +218,9 @@ void main(void)
         /// <returns></returns>
         private static Font GetFont(string fontPath, float size, FontStyle style, int superSampleLevels = 1, float scale = 1.0f)
         {
-            PrivateFontCollection pfc = new PrivateFontCollection();
+            var pfc = new PrivateFontCollection();
             pfc.AddFontFile(fontPath);
-            var fontFamily = pfc.Families[0];
+            FontFamily fontFamily = pfc.Families[0];
 
             if (!fontFamily.IsStyleAvailable(style))
                 throw new ArgumentException("Font file: " + fontPath + " does not support style: " + style);
@@ -215,7 +229,7 @@ void main(void)
         }
 
         /// <summary>
-        /// Initialises the static shared render state
+        ///     Initialises the static shared render state
         /// </summary>
         private static void InitialiseStaticState()
         {
@@ -230,7 +244,7 @@ void main(void)
             //Compile default (simple) shaders
             int vertCompileStatus;
             int fragCompileStatus;
-            
+
             GL.ShaderSource(vert, vertShaderSource);
             GL.CompileShader(vert);
             GL.ShaderSource(frag, fragShaderSource);
@@ -243,8 +257,8 @@ void main(void)
             //TODO Worth doing this rather than just checking the total program error log?
             if (vertCompileStatus == 0 || fragCompileStatus == 0)
             {
-                var vertInfo = GL.GetShaderInfoLog(vert);
-                var fragInfo = GL.GetShaderInfoLog(frag);
+                string vertInfo = GL.GetShaderInfoLog(vert);
+                string fragInfo = GL.GetShaderInfoLog(frag);
                 throw new Exception(String.Format("Shaders were not compiled correctly. Info logs are\nVert:\n{0}\nFrag:\n{1}", vertInfo, fragInfo));
             }
 
@@ -260,7 +274,7 @@ void main(void)
             GL.GetProgram(prog, GetProgramParameterName.LinkStatus, out progLinkStatus);
             if (progLinkStatus == 0)
             {
-                var programInfoLog = GL.GetProgramInfoLog(prog);
+                string programInfoLog = GL.GetProgramInfoLog(prog);
                 throw new Exception(String.Format("Program was not linked correctly. Info log is\n{0}", programInfoLog));
             }
 
@@ -278,10 +292,10 @@ void main(void)
             int colLoc = GL.GetAttribLocation(prog, "in_colour");
 
             int sampler = GL.GenSampler();
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapS, (int) TextureWrapMode.ClampToBorder);
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapT, (int) TextureWrapMode.ClampToBorder);
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureMinFilter, (int) TextureMinFilter.Linear);
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureMagFilter, (int) TextureMagFilter.Linear);
 
             //Now we have all the information, time to create the immutable shared state object
             var shaderVariables = new ShaderVariables(prog, mvpLoc, tcLoc, posLoc, samplerLoc, colLoc);
@@ -291,9 +305,12 @@ void main(void)
         }
 
         /// <summary>
-        /// Initialises the instance render state
+        ///     Initialises the instance render state
         /// </summary>
-        /// <param name="state">If state is null, this method will instead initialise the static state, which is returned when no instance state is set</param>
+        /// <param name="state">
+        ///     If state is null, this method will instead initialise the static state, which is returned when no
+        ///     instance state is set
+        /// </param>
         private void InitialiseState(SharedState state = null)
         {
             if (state == null)
@@ -310,13 +327,13 @@ void main(void)
 
         public static void CreateTextureFontFiles(Font font, string newFontName, QFontBuilderConfiguration config)
         {
-            var fontData = BuildFont(font, config, newFontName);
+            QFontData fontData = BuildFont(font, config, newFontName);
             Builder.SaveQFontDataToFile(fontData, newFontName);
         }
 
         public static void CreateTextureFontFiles(string fileName, float size, string newFontName, QFontBuilderConfiguration config, FontStyle style = FontStyle.Regular)
         {
-            using (var font = GetFont(fileName, size, style, config == null ? 1 : config.SuperSampleLevels))
+            using (Font font = GetFont(fileName, size, style, config == null ? 1 : config.SuperSampleLevels))
             {
                 CreateTextureFontFiles(font, newFontName, config);
             }
@@ -324,15 +341,15 @@ void main(void)
 
         private static QFontData BuildFont(Font font, QFontBuilderConfiguration config, string saveName)
         {
-            Builder builder = new Builder(font, config);
+            var builder = new Builder(font, config);
             return builder.BuildFontData(saveName);
         }
 
         #endregion
 
         /// <summary>
-        /// When TransformToOrthogProjection is enabled, we need to get the current orthogonal transformation,
-        /// the font scale, and ensure that the projection is actually orthogonal
+        ///     When TransformToOrthogProjection is enabled, we need to get the current orthogonal transformation,
+        ///     the font scale, and ensure that the projection is actually orthogonal
         /// </summary>
         /// <param name="fontScale"></param>
         /// <param name="viewportTransform"></param>
@@ -344,17 +361,17 @@ void main(void)
 
             if (!ViewportHelper.IsOrthographicProjection(ref _projectionMatrix))
                 throw new ArgumentOutOfRangeException(
-                    "Current projection matrix was not Orthogonal. Please ensure that you have set an orthogonal projection before attempting to create a font with the TransformToOrthogProjection flag set to true.", "projectionMatrix");
+                    "Current projection matrix was not Orthogonal. Please ensure that you have set an orthogonal projection before attempting to create a font with the TransformToOrthogProjection flag set to true.",
+                    "projectionMatrix");
 
             //var viewportTransform = new Viewport(left, top, right - left, bottom - top);
-            var viewportTransform = ViewportHelper.GetViewportFromOrthographicProjection(ref _projectionMatrix);
-            fontScale = Math.Abs((float) ViewportHelper.CurrentViewport.Value.Height/viewportTransform.Height);
+            Viewport viewportTransform = ViewportHelper.GetViewportFromOrthographicProjection(ref _projectionMatrix);
+            fontScale = Math.Abs(ViewportHelper.CurrentViewport.Value.Height/viewportTransform.Height);
             return viewportTransform;
         }
 
-
         /// <summary>
-        /// Pushes the specified QFont options onto the options stack
+        ///     Pushes the specified QFont options onto the options stack
         /// </summary>
         /// <param name="newOptions"></param>
         public void PushOptions(QFontRenderOptions newOptions)
@@ -363,8 +380,8 @@ void main(void)
         }
 
         /// <summary>
-        /// Creates a clone of the current font options and pushes
-        /// it onto the stack
+        ///     Creates a clone of the current font options and pushes
+        ///     it onto the stack
         /// </summary>
         public void PushOptions()
         {
@@ -384,24 +401,6 @@ void main(void)
             }
         }
 
-
-        public float LineSpacing
-        {
-            get { return (float) Math.Ceiling(fontData.maxGlyphHeight*Options.LineSpacing); }
-        }
-
-        public bool IsMonospacingActive
-        {
-            get { return fontData.IsMonospacingActive(Options); }
-        }
-
-
-        public float MonoSpaceWidth
-        {
-            get { return fontData.GetMonoSpaceWidth(Options); }
-        }
-
-
         private void RenderDropShadow(float x, float y, char c, QFontGlyph nonShadowGlyph)
         {
             //note can cast drop shadow offset to int, but then you can't move the shadow smoothly...
@@ -417,7 +416,7 @@ void main(void)
 
         public void RenderGlyph(float x, float y, char c)
         {
-            var glyph = fontData.CharSetMapping[c];
+            QFontGlyph glyph = fontData.CharSetMapping[c];
 
             //note: it's not immediately obvious, but this combined with the paramteters to 
             //RenderGlyph for the shadow mean that we render the shadow centrally (despite it being a different size)
@@ -442,10 +441,10 @@ void main(void)
             var tv3 = new Vector2(tx2, ty2);
             var tv4 = new Vector2(tx2, ty1);
 
-            var v1 = PrintOffset + new Vector3(x, y + glyph.yOffset, 0);
-            var v2 = PrintOffset + new Vector3(x, y + glyph.yOffset + glyph.rect.Height, 0);
-            var v3 = PrintOffset + new Vector3(x + glyph.rect.Width, y + glyph.yOffset + glyph.rect.Height, 0);
-            var v4 = PrintOffset + new Vector3(x + glyph.rect.Width, y + glyph.yOffset, 0);
+            Vector3 v1 = PrintOffset + new Vector3(x, y + glyph.yOffset, 0);
+            Vector3 v2 = PrintOffset + new Vector3(x, y + glyph.yOffset + glyph.rect.Height, 0);
+            Vector3 v3 = PrintOffset + new Vector3(x + glyph.rect.Width, y + glyph.yOffset + glyph.rect.Height, 0);
+            Vector3 v4 = PrintOffset + new Vector3(x + glyph.rect.Width, y + glyph.yOffset, 0);
 
             Color color;
             if (fontData.isDropShadow)
@@ -457,7 +456,7 @@ void main(void)
 
             int argb = Helper.ToRgba(color);
 
-            var vbo = VertexArrayObjects[glyph.page];
+            QVertexArrayObject vbo = VertexArrayObjects[glyph.page];
 
             Vector4 colour = Helper.ToVector4(color);
 
@@ -509,52 +508,51 @@ void main(void)
             return xOffset;
         }
 
-
         private Vector2 TransformPositionToViewport(Vector2 input)
         {
-            var v2 = Options.TransformToViewport;
+            Viewport? v2 = Options.TransformToViewport;
             if (v2 == null)
             {
                 return input;
             }
-            var v1 = ViewportHelper.CurrentViewport;
+            Viewport? v1 = ViewportHelper.CurrentViewport;
 
             float X, Y;
 
             Debug.Assert(v1 != null, "v1 != null");
-            X = (input.X - v2.Value.X)*((float) v1.Value.Width/v2.Value.Width);
-            Y = (input.Y - v2.Value.Y)*((float) v1.Value.Height/v2.Value.Height);
+            X = (input.X - v2.Value.X)*(v1.Value.Width/v2.Value.Width);
+            Y = (input.Y - v2.Value.Y)*(v1.Value.Height/v2.Value.Height);
 
             return new Vector2(X, Y);
         }
 
         private float TransformWidthToViewport(float input)
         {
-            var v2 = Options.TransformToViewport;
+            Viewport? v2 = Options.TransformToViewport;
             if (v2 == null)
             {
                 return input;
             }
-            var v1 = ViewportHelper.CurrentViewport;
+            Viewport? v1 = ViewportHelper.CurrentViewport;
 
             Debug.Assert(v1 != null, "v1 != null");
-            return input*((float) v1.Value.Width/v2.Value.Width);
+            return input*(v1.Value.Width/v2.Value.Width);
         }
 
         private SizeF TransformMeasureFromViewport(SizeF input)
         {
-            var v2 = Options.TransformToViewport;
+            Viewport? v2 = Options.TransformToViewport;
             if (v2 == null)
             {
                 return input;
             }
-            var v1 = ViewportHelper.CurrentViewport;
+            Viewport? v1 = ViewportHelper.CurrentViewport;
 
             float X, Y;
 
             Debug.Assert(v1 != null, "v1 != null");
-            X = input.Width*((float) v2.Value.Width/v1.Value.Width);
-            Y = input.Height*((float) v2.Value.Height/v1.Value.Height);
+            X = input.Width*(v2.Value.Width/v1.Value.Width);
+            Y = input.Height*(v2.Value.Height/v1.Value.Height);
 
             return new SizeF(X, Y);
         }
@@ -572,18 +570,18 @@ void main(void)
 
         private Vector3 TransformToViewport(Vector3 input)
         {
-            return new Vector3(LockToPixel(TransformPositionToViewport(input.Xy))){Z=input.Z};
+            return new Vector3(LockToPixel(TransformPositionToViewport(input.Xy))) {Z = input.Z};
         }
 
         public void PrintToVBO(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment)
         {
-            var processedText = ProcessText(text, maxSize, alignment);
+            ProcessedText processedText = ProcessText(text, maxSize, alignment);
             PrintToVBO(processedText, TransformToViewport(position));
         }
 
         public void PrintToVBO(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color colour)
         {
-            var processedText = ProcessText(text, maxSize, alignment);
+            ProcessedText processedText = ProcessText(text, maxSize, alignment);
             PrintToVBO(processedText, TransformToViewport(position), colour);
         }
 
@@ -624,7 +622,7 @@ void main(void)
         }
 
         /// <summary>
-        /// Measures the actual width and height of the block of text.
+        ///     Measures the actual width and height of the block of text.
         /// </summary>
         /// <param name="text"></param>
         /// <param name="bounds"></param>
@@ -632,12 +630,12 @@ void main(void)
         /// <returns></returns>
         public SizeF Measure(string text, SizeF maxSize, QFontAlignment alignment)
         {
-            var processedText = ProcessText(text, maxSize, alignment);
+            ProcessedText processedText = ProcessText(text, maxSize, alignment);
             return Measure(processedText);
         }
 
         /// <summary>
-        /// Measures the actual width and height of the block of text
+        ///     Measures the actual width and height of the block of text
         /// </summary>
         /// <param name="processedText"></param>
         /// <returns></returns>
@@ -676,7 +674,6 @@ void main(void)
                 {
                     char c = text[i];
 
-
                     //newline
                     if (c == '\r' || c == '\n')
                     {
@@ -699,7 +696,6 @@ void main(void)
                             if (!measureOnly)
                                 RenderGlyph(xOffset, yOffset, c);
                         }
-
 
                         if (IsMonospacingActive)
                             xOffset += MonoSpaceWidth;
@@ -741,7 +737,7 @@ void main(void)
             float yOffset = yPos;
 
             // determine what capacities we need
-            var caps = new EnableCap[] { };
+            var caps = new EnableCap[] {};
 
             //make sure fontdata font's options are synced with the actual options
             if (fontData.dropShadow != null && fontData.dropShadow.Options != Options)
@@ -752,20 +748,20 @@ void main(void)
             Helper.SafeGLEnable(caps, () =>
             {
                 float maxWidth = processedText.maxSize.Width;
-                var alignment = processedText.alignment;
+                QFontAlignment alignment = processedText.alignment;
 
 
                 //TODO - use these instead of translate when rendering by position (at some point)
 
-                var nodeList = processedText.textNodeList;
+                TextNodeList nodeList = processedText.textNodeList;
                 for (TextNode node = nodeList.Head; node != null; node = node.Next)
                     node.LengthTweak = 0f; //reset tweaks
 
 
                 if (alignment == QFontAlignment.Right)
-                    xOffset -= (float)Math.Ceiling(TextNodeLineLength(nodeList.Head, maxWidth) - maxWidth);
+                    xOffset -= (float) Math.Ceiling(TextNodeLineLength(nodeList.Head, maxWidth) - maxWidth);
                 else if (alignment == QFontAlignment.Centre)
-                    xOffset -= (float)Math.Ceiling(0.5f * TextNodeLineLength(nodeList.Head, maxWidth));
+                    xOffset -= (float) Math.Ceiling(0.5f*TextNodeLineLength(nodeList.Head, maxWidth));
                 else if (alignment == QFontAlignment.Justify)
                     JustifyLine(nodeList.Head, maxWidth);
 
@@ -820,9 +816,9 @@ void main(void)
                         if (node.Next != null)
                         {
                             if (alignment == QFontAlignment.Right)
-                                xOffset -= (float)Math.Ceiling(TextNodeLineLength(node.Next, maxWidth) - maxWidth);
+                                xOffset -= (float) Math.Ceiling(TextNodeLineLength(node.Next, maxWidth) - maxWidth);
                             else if (alignment == QFontAlignment.Centre)
-                                xOffset -= (float)Math.Ceiling(0.5f * TextNodeLineLength(node.Next, maxWidth));
+                                xOffset -= (float) Math.Ceiling(0.5f*TextNodeLineLength(node.Next, maxWidth));
                             else if (alignment == QFontAlignment.Justify)
                                 JustifyLine(node.Next, maxWidth);
                         }
@@ -857,7 +853,7 @@ void main(void)
                 char c = node.Text[i];
                 if (fontData.CharSetMapping.ContainsKey(c))
                 {
-                    var glyph = fontData.CharSetMapping[c];
+                    QFontGlyph glyph = fontData.CharSetMapping[c];
 
                     RenderGlyph(x, y, c);
 
@@ -886,8 +882,8 @@ void main(void)
         }
 
         /// <summary>
-        /// Computes the length of the next line, and whether the line is valid for
-        /// justification.
+        ///     Computes the length of the next line, and whether the line is valid for
+        ///     justification.
         /// </summary>
         /// <param name="node"></param>
         /// <param name="maxLength"></param>
@@ -927,10 +923,9 @@ void main(void)
             return (node.Type == TextNodeType.Word && node.Next != null && node.Next.Type == TextNodeType.Word);
         }
 
-
         /// <summary>
-        /// Computes the length of the next line, and whether the line is valid for
-        /// justification.
+        ///     Computes the length of the next line, and whether the line is valid for
+        ///     justification.
         /// </summary>
         private void JustifyLine(TextNode node, float targetLength)
         {
@@ -939,7 +934,7 @@ void main(void)
             if (node == null)
                 return;
 
-            var headNode = node; //keep track of the head node
+            TextNode headNode = node; //keep track of the head node
 
 
             //start by finding the length of the block of text that we know will actually fit:
@@ -949,7 +944,7 @@ void main(void)
 
             bool atLeastOneNodeCosumedOnLine = false;
             float length = 0;
-            var expandEndNode = node; //the node at the end of the smaller list (before adding additional word)
+            TextNode expandEndNode = node; //the node at the end of the smaller list (before adding additional word)
             for (; node != null; node = node.Next)
             {
                 if (node.Type == TextNodeType.LineBreak)
@@ -987,7 +982,6 @@ void main(void)
                 }
             }
 
-
             //now we check how much additional length is added by adding an additional word to the line
             float extraLength = 0f;
             int extraSpaceGaps = 0;
@@ -1014,7 +1008,6 @@ void main(void)
                 }
             }
 
-
             if (justifiable)
             {
                 //last part of this condition is to ensure that the full contraction is possible (it is all or nothing with contractions, since it looks really bad if we don't manage the full)
@@ -1034,8 +1027,8 @@ void main(void)
                     }
 
 
-                    int totalPixels = (int) (targetLength - length);
-                        //the total number of pixels that need to be added to line to justify it
+                    var totalPixels = (int) (targetLength - length);
+                    //the total number of pixels that need to be added to line to justify it
                     int spacePixels = 0; //number of pixels to spread out amongst spaces
                     int charPixels = 0; //number of pixels to spread out amongst char gaps
 
@@ -1050,7 +1043,6 @@ void main(void)
                         if (totalPixels/targetLength > Options.JustifyCapExpand)
                             totalPixels = (int) (Options.JustifyCapExpand*targetLength);
                     }
-
 
                     //work out how to spread pixles between character gaps and word spaces
                     if (charGaps == 0)
@@ -1086,7 +1078,6 @@ void main(void)
                         pixelsPerChar = charPixels/charGaps;
                         leftOverCharPixels = charPixels - pixelsPerChar*charGaps;
                     }
-
 
                     int pixelsPerSpace = 0; //minimum number of pixels to add per space
                     int leftOverSpacePixels = 0; //number of pixels remaining to only add for some spaces
@@ -1147,13 +1138,11 @@ void main(void)
             }
         }
 
-
         /// <summary>
-        /// Checks whether to skip trailing space on line because the next word does not
-        /// fit.
-        /// 
-        /// We only check one space - the assumption is that if there is more than one,
-        /// it is a deliberate attempt to insert spaces.
+        ///     Checks whether to skip trailing space on line because the next word does not
+        ///     fit.
+        ///     We only check one space - the assumption is that if there is more than one,
+        ///     it is a deliberate attempt to insert spaces.
         /// </summary>
         /// <param name="node"></param>
         /// <param name="lengthSoFar"></param>
@@ -1170,12 +1159,8 @@ void main(void)
             return false;
         }
 
-
-
-
-
         /// <summary>
-        /// Creates node list object associated with the text.
+        ///     Creates node list object associated with the text.
         /// </summary>
         /// <param name="text"></param>
         /// <param name="bounds"></param>
@@ -1195,7 +1180,7 @@ void main(void)
                 if ((!Options.WordWrap || node.Length >= maxSize.Width) && node.Type == TextNodeType.Word)
                     nodesToCrumble.Add(node);
 
-            foreach (var node in nodesToCrumble)
+            foreach (TextNode node in nodesToCrumble)
                 nodeList.Crumble(node, 1);
 
             //need to measure crumbled words
@@ -1210,12 +1195,6 @@ void main(void)
 
             return processedText;
         }
-
-
-
-
-
-
 
         public void Begin()
         {
@@ -1233,16 +1212,15 @@ void main(void)
         }
 
         /// <summary>
-        /// Invalidates the internally cached viewport, causing it to be 
-        /// reread the next time it is required. This should be called
-        /// if the viewport (is resized?) and text is to be rendered to the new 
-        /// viewport.
+        ///     Invalidates the internally cached viewport, causing it to be
+        ///     reread the next time it is required. This should be called
+        ///     if the viewport (is resized?) and text is to be rendered to the new
+        ///     viewport.
         /// </summary>
         public static void RefreshViewport()
         {
             ViewportHelper.InvalidateViewport();
         }
-
 
         private void InitVBOs()
         {
@@ -1260,7 +1238,7 @@ void main(void)
 
         public void ResetVBOs()
         {
-            foreach (var buffer in VertexArrayObjects)
+            foreach (QVertexArrayObject buffer in VertexArrayObjects)
                 buffer.Reset();
 
             if (fontData.dropShadow != null)
@@ -1269,7 +1247,7 @@ void main(void)
 
         public void LoadVBOs()
         {
-            foreach (var buffer in VertexArrayObjects)
+            foreach (QVertexArrayObject buffer in VertexArrayObjects)
                 buffer.Load();
 
             if (fontData.dropShadow != null)
@@ -1286,14 +1264,14 @@ void main(void)
             if (fontData.dropShadow != null)
                 fontData.dropShadow.DrawVBOs();
 
-            foreach (var buffer in VertexArrayObjects)
+            foreach (QVertexArrayObject buffer in VertexArrayObjects)
                 buffer.Draw();
         }
 
         #region IDisposable impl
 
         // Track whether Dispose has been called.
-        private bool disposed = false;
+        private bool disposed;
 
         // Implement IDisposable.
         // Do not make this method virtual.
@@ -1319,14 +1297,14 @@ void main(void)
         protected virtual void Dispose(bool disposing)
         {
             // Check to see if Dispose has already been called.
-            if (!this.disposed)
+            if (!disposed)
             {
                 // If disposing equals true, dispose all managed
                 // and unmanaged resources.
                 if (disposing)
                 {
                     fontData.Dispose();
-                    foreach (var buffer in VertexArrayObjects)
+                    foreach (QVertexArrayObject buffer in VertexArrayObjects)
                         buffer.Dispose();
                 }
 
@@ -1336,19 +1314,10 @@ void main(void)
         }
 
         #endregion
-
-
     }
 
     public class ShaderVariables
     {
-        public int ShaderProgram { get; private set; }
-        public int MVPUniformLocation { get; private set; }
-        public int TextureCoordAttribLocation { get; private set; }
-        public int PositionCoordAttribLocation { get; private set; }
-        public int SamplerLocation { get; private set; }
-        public int ColorCoordAttribLocation { get; private set; }
-
         public ShaderVariables(int shaderProgram, int mvpUniformLocation, int textureCoordAttribLocation, int positionCoordAttribLocation, int samplerLocation, int colorCoordAttribLocation)
         {
             ColorCoordAttribLocation = colorCoordAttribLocation;
@@ -1359,19 +1328,25 @@ void main(void)
             ShaderProgram = shaderProgram;
         }
 
+        public int ShaderProgram { get; private set; }
+        public int MVPUniformLocation { get; private set; }
+        public int TextureCoordAttribLocation { get; private set; }
+        public int PositionCoordAttribLocation { get; private set; }
+        public int SamplerLocation { get; private set; }
+        public int ColorCoordAttribLocation { get; private set; }
     }
 
     public class SharedState
     {
-        public TextureUnit DefaultTextureUnit { get; private set; }
-        public ShaderVariables ShaderVariables { get; private set; }
-        public int SamplerID { get; private set; }
-
         public SharedState(TextureUnit defaultTextureUnit, ShaderVariables shaderVariables, int samplerId)
         {
             DefaultTextureUnit = defaultTextureUnit;
             ShaderVariables = shaderVariables;
             SamplerID = samplerId;
         }
+
+        public TextureUnit DefaultTextureUnit { get; private set; }
+        public ShaderVariables ShaderVariables { get; private set; }
+        public int SamplerID { get; private set; }
     }
 }

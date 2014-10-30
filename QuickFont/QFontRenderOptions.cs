@@ -7,8 +7,6 @@ using OpenTK.Graphics;
 
 namespace QuickFont
 {
-
-
     public enum QFontAlignment { Left=0, Right, Centre, Justify }
     public enum QFontMonospacing { Natural = 0, Yes, No }
 
@@ -33,7 +31,6 @@ namespace QuickFont
         /// Line spacing in units of max glyph width
         /// </summary>
         public float LineSpacing = 1.0f;
-
 
         /// <summary>
         /// Whether to draw a drop-shadow. Note: this requires
@@ -65,7 +62,6 @@ namespace QuickFont
         /// monospacing will be used if the font loaded font was detected to be monospaced.
         /// </summary>
         public QFontMonospacing Monospacing = QFontMonospacing.Natural;
-
 
         /// <summary>
         /// This is intended as a means of rendering text pixel-perfectly at a 
@@ -149,7 +145,6 @@ namespace QuickFont
         /// </summary>
         public bool WordWrap = true;
 
-
         #region Justify Options
 
         /// <summary>
@@ -181,7 +176,6 @@ namespace QuickFont
 
         private float justifyCharWeightForExpand = 0.5f;
 
-
         /// <summary>
         /// When a line of text is justified, space may be removed between
         /// characters, and between words. 
@@ -212,13 +206,10 @@ namespace QuickFont
 
         private float justifyCharWeightForContract = 0.2f;
 
-
-
         /// <summary>
         /// Total justification cap as a fraction of the boundary width.
         /// </summary>
         public float JustifyCapExpand = 0.5f;
-
 
         /// <summary>
         /// Total justification cap as a fraction of the boundary width.
@@ -236,10 +227,7 @@ namespace QuickFont
         /// </summary>
         public float JustifyContractionPenalty = 2;
 
-
         #endregion
-
-
 
         public QFontRenderOptions CreateClone()
         {
@@ -267,10 +255,5 @@ namespace QuickFont
 
             return clone;
         }
-
-
-
-
-
     }
 }
