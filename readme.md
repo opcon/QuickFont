@@ -2,8 +2,9 @@
 - [x] Implement Vertex Array support
 - [x] Implement Shader support
 - [x] Remove legacy OpenGL render code and switch to a fully programmable pipeline forward compatible with OpenGL 4.4
-- [ ] Remove option to pass in a null Configuration object - this only adds to visual complexity
-- [ ] Finish refactoring library
+- [x] Remove option to pass in a null Configuration object - this only adds to visual complexity
+
+###Please not this API is not backwards compatible with previous QuickFont releases
 
 
 ###Using Vertex Buffers
@@ -16,6 +17,11 @@ var config = new QFontBuilderConfiguration()
 
 QFont qfont = new QFont(font, config);
 ```
+
+Set orthographic projection matrix
+````C#
+qfont.ProjectionMatrix = projectionMatrix;
+````
 
 Print to the vertex buffer
 ```C#
