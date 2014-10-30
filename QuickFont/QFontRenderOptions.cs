@@ -121,7 +121,7 @@ namespace QuickFont
         /// 
         /// 
         /// </summary>
-        public TransformViewport? TransformToViewport = null;
+        public Viewport? TransformToViewport = null;
 
         /// <summary>
         /// Locks the position to a particular pixel, allowing the text to be rendered pixel-perfectly.

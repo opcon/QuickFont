@@ -19,8 +19,6 @@ namespace QuickFont
 
         public QVertexArrayObject[] VertexArrayObjects = new QVertexArrayObject[0];
 
-        public ProjectionStack ProjectionStack { get; set; }
-
         private Vector3 _printOffset;
 
         public Vector3 PrintOffset
@@ -116,7 +114,6 @@ void main(void)
         /// <param name="fontData"></param>
         internal QFont(QFontData fontData)
         {
-            ProjectionStack = ProjectionStack.DefaultStack;
             this.fontData = fontData;
         }
 
@@ -132,7 +129,6 @@ void main(void)
 
         private void InitialiseQFont(Font font, QFontBuilderConfiguration config, QFontData data = null)
         {
-            ProjectionStack = ProjectionStack.DefaultStack;
             ProjectionMatrix = Matrix4.Identity;
 
             fontData = data ?? BuildFont(font, config, null);
@@ -157,9 +153,10 @@ void main(void)
         /// <param name="config"></param>
         /// <param name="style"></param>
         public QFont(string fontPath, float size, QFontBuilderConfiguration config,
-            FontStyle style = FontStyle.Regular)
+            FontStyle style = FontStyle.Regular, Matrix4 projectionMatrix = default(Matrix4))
         {
-            TransformViewport? transToVp = null;
+            _projectionMatrix = projectionMatrix;
+            Viewport? transToVp = null;
             float fontScale = 1f;
             if (config.TransformToCurrentOrthogProjection)
                 transToVp = OrthogonalTransform(out fontScale);
@@ -180,14 +177,16 @@ void main(void)
         /// <param name="loaderConfig"></param>
         /// <param name="downSampleFactor"></param>
         /// <param name="proj"></param>
-        public QFont(string qfontPath, QFontConfiguration loaderConfig, float downSampleFactor = 1.0f)
+        public QFont(string qfontPath, QFontConfiguration loaderConfig, float downSampleFactor = 1.0f, Matrix4 projectionMatrix = default(Matrix4))
         {
-            TransformViewport? transToVp = null;
+            _projectionMatrix = projectionMatrix;
+            Viewport? transToVp = null;
             float fontScale = 1f;
             if (loaderConfig.TransformToCurrentOrthogProjection)
                 transToVp = OrthogonalTransform(out fontScale);
 
             InitialiseQFont(null, new QFontBuilderConfiguration(loaderConfig), Builder.LoadQFontDataFromFile(qfontPath, downSampleFactor*fontScale, loaderConfig));
+            ViewportHelper.CurrentViewport.ToString();
 
             if (transToVp != null)
                 Options.TransformToViewport = transToVp;
@@ -336,18 +335,19 @@ void main(void)
         /// </summary>
         /// <param name="fontScale"></param>
         /// <param name="viewportTransform"></param>
-        private TransformViewport OrthogonalTransform(out float fontScale)
+        private Viewport OrthogonalTransform(out float fontScale)
         {
-            bool isOrthog;
-            float left, right, bottom, top;
-            ProjectionStack.GetCurrentOrthogProjection(out isOrthog, out left, out right, out bottom, out top);
+            //bool isOrthog;
+            //float left, right, bottom, top;
+            //ViewportHelper.GetCurrentOrthogProjection(out isOrthog, out left, out right, out bottom, out top);
 
-            if (!isOrthog)
+            if (!ViewportHelper.IsOrthographicProjection(ref _projectionMatrix))
                 throw new ArgumentOutOfRangeException(
-                    "Current projection matrix was not Orthogonal. Please ensure that you have set an orthogonal projection before attempting to create a font with the TransformToOrthogProjection flag set to true.");
+                    "Current projection matrix was not Orthogonal. Please ensure that you have set an orthogonal projection before attempting to create a font with the TransformToOrthogProjection flag set to true.", "projectionMatrix");
 
-            var viewportTransform = new TransformViewport(left, top, right - left, bottom - top);
-            fontScale = Math.Abs((float) ProjectionStack.CurrentViewport.Value.Height/viewportTransform.Height);
+            //var viewportTransform = new Viewport(left, top, right - left, bottom - top);
+            var viewportTransform = ViewportHelper.GetViewportFromOrthographicProjection(ref _projectionMatrix);
+            fontScale = Math.Abs((float) ViewportHelper.CurrentViewport.Value.Height/viewportTransform.Height);
             return viewportTransform;
         }
 
@@ -516,7 +516,7 @@ void main(void)
             {
                 return input;
             }
-            var v1 = ProjectionStack.CurrentViewport;
+            var v1 = ViewportHelper.CurrentViewport;
 
             float X, Y;
 
@@ -533,7 +533,7 @@ void main(void)
             {
                 return input;
             }
-            var v1 = ProjectionStack.CurrentViewport;
+            var v1 = ViewportHelper.CurrentViewport;
 
             return input*((float) v1.Value.Width/v2.Value.Width);
         }
@@ -545,7 +545,7 @@ void main(void)
             {
                 return input;
             }
-            var v1 = ProjectionStack.CurrentViewport;
+            var v1 = ViewportHelper.CurrentViewport;
 
             float X, Y;
 
@@ -1318,21 +1318,8 @@ void main(void)
             return new SizeF(maxMeasuredWidth, yOffset + LineSpacing - yPos);
         }
 
-
-        /*
         public void Begin()
         {
-            ProjectionStack.Begin();
-        }
-
-        public void End()
-        {
-            ProjectionStack.End();
-        }*/
-
-        public void Begin()
-        {
-            //ProjectionStack.DefaultStack.Begin();
             GL.UseProgram(InstanceSharedState.ShaderVariables.ShaderProgram);
             if (Options.UseDefaultBlendFunction)
             {
@@ -1344,18 +1331,17 @@ void main(void)
 
         public void End()
         {
-            //ProjectionStack.DefaultStack.End();
         }
 
         /// <summary>
         /// Invalidates the internally cached viewport, causing it to be 
         /// reread the next time it is required. This should be called
-        /// if the viewport and text is to be rendered to the new 
+        /// if the viewport (is resized?) and text is to be rendered to the new 
         /// viewport.
         /// </summary>
         public static void RefreshViewport()
         {
-            ProjectionStack.DefaultStack.InvalidateViewport();
+            ViewportHelper.InvalidateViewport();
         }
 
 
