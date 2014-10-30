@@ -729,6 +729,110 @@ void main(void)
             return new SizeF(maxWidth, yOffset + LineSpacing);
         }
 
+        private SizeF PrintOrMeasure(ProcessedText processedText, bool measureOnly)
+        {
+            // init values we'll return
+            float maxMeasuredWidth = 0f;
+
+            float xPos = 0f;
+            float yPos = 0f;
+
+            float xOffset = xPos;
+            float yOffset = yPos;
+
+            // determine what capacities we need
+            var caps = new EnableCap[] { };
+
+            //make sure fontdata font's options are synced with the actual options
+            if (fontData.dropShadow != null && fontData.dropShadow.Options != Options)
+            {
+                fontData.dropShadow.Options = Options;
+            }
+
+            Helper.SafeGLEnable(caps, () =>
+            {
+                float maxWidth = processedText.maxSize.Width;
+                var alignment = processedText.alignment;
+
+
+                //TODO - use these instead of translate when rendering by position (at some point)
+
+                var nodeList = processedText.textNodeList;
+                for (TextNode node = nodeList.Head; node != null; node = node.Next)
+                    node.LengthTweak = 0f; //reset tweaks
+
+
+                if (alignment == QFontAlignment.Right)
+                    xOffset -= (float)Math.Ceiling(TextNodeLineLength(nodeList.Head, maxWidth) - maxWidth);
+                else if (alignment == QFontAlignment.Centre)
+                    xOffset -= (float)Math.Ceiling(0.5f * TextNodeLineLength(nodeList.Head, maxWidth));
+                else if (alignment == QFontAlignment.Justify)
+                    JustifyLine(nodeList.Head, maxWidth);
+
+
+                bool atLeastOneNodeCosumedOnLine = false;
+                float length = 0f;
+                for (TextNode node = nodeList.Head; node != null; node = node.Next)
+                {
+                    bool newLine = false;
+
+                    if (node.Type == TextNodeType.LineBreak)
+                    {
+                        newLine = true;
+                    }
+                    else
+                    {
+                        if (Options.WordWrap && SkipTrailingSpace(node, length, maxWidth) && atLeastOneNodeCosumedOnLine)
+                        {
+                            newLine = true;
+                        }
+                        else if (length + node.ModifiedLength <= maxWidth || !atLeastOneNodeCosumedOnLine)
+                        {
+                            atLeastOneNodeCosumedOnLine = true;
+
+                            if (!measureOnly)
+                                RenderWord(xOffset + length, yOffset, node);
+                            length += node.ModifiedLength;
+
+                            maxMeasuredWidth = Math.Max(length, maxMeasuredWidth);
+                        }
+                        else if (Options.WordWrap)
+                        {
+                            newLine = true;
+                            if (node.Previous != null)
+                                node = node.Previous;
+                        }
+                        else
+                            continue; // continue so we still read line breaks even if reached max width
+                    }
+
+                    if (newLine)
+                    {
+                        if (processedText.maxSize.Height > 0 &&
+                            yOffset + LineSpacing - yPos >= processedText.maxSize.Height)
+                            break;
+
+                        yOffset += LineSpacing;
+                        xOffset = xPos;
+                        length = 0f;
+                        atLeastOneNodeCosumedOnLine = false;
+
+                        if (node.Next != null)
+                        {
+                            if (alignment == QFontAlignment.Right)
+                                xOffset -= (float)Math.Ceiling(TextNodeLineLength(node.Next, maxWidth) - maxWidth);
+                            else if (alignment == QFontAlignment.Centre)
+                                xOffset -= (float)Math.Ceiling(0.5f * TextNodeLineLength(node.Next, maxWidth));
+                            else if (alignment == QFontAlignment.Justify)
+                                JustifyLine(node.Next, maxWidth);
+                        }
+                    }
+                }
+            });
+
+            return new SizeF(maxMeasuredWidth, yOffset + LineSpacing - yPos);
+        }
+
         private void RenderWord(float x, float y, TextNode node)
         {
             if (node.Type != TextNodeType.Word)
@@ -1111,109 +1215,7 @@ void main(void)
 
 
 
-        private SizeF PrintOrMeasure(ProcessedText processedText, bool measureOnly)
-        {
-            // init values we'll return
-            float maxMeasuredWidth = 0f;
 
-            float xPos = 0f;
-            float yPos = 0f;
-
-            float xOffset = xPos;
-            float yOffset = yPos;
-
-            // determine what capacities we need
-            var caps = new EnableCap[] {};
-
-            //make sure fontdata font's options are synced with the actual options
-            if (fontData.dropShadow != null && fontData.dropShadow.Options != Options)
-            {
-                fontData.dropShadow.Options = Options;
-            }
-
-            Helper.SafeGLEnable(caps, () =>
-            {
-                float maxWidth = processedText.maxSize.Width;
-                var alignment = processedText.alignment;
-
-
-                //TODO - use these instead of translate when rendering by position (at some point)
-
-                var nodeList = processedText.textNodeList;
-                for (TextNode node = nodeList.Head; node != null; node = node.Next)
-                    node.LengthTweak = 0f; //reset tweaks
-
-
-                if (alignment == QFontAlignment.Right)
-                    xOffset -= (float) Math.Ceiling(TextNodeLineLength(nodeList.Head, maxWidth) - maxWidth);
-                else if (alignment == QFontAlignment.Centre)
-                    xOffset -= (float) Math.Ceiling(0.5f*TextNodeLineLength(nodeList.Head, maxWidth));
-                else if (alignment == QFontAlignment.Justify)
-                    JustifyLine(nodeList.Head, maxWidth);
-
-
-                bool atLeastOneNodeCosumedOnLine = false;
-                float length = 0f;
-                for (TextNode node = nodeList.Head; node != null; node = node.Next)
-                {
-                    bool newLine = false;
-
-                    if (node.Type == TextNodeType.LineBreak)
-                    {
-                        newLine = true;
-                    }
-                    else
-                    {
-                        if (Options.WordWrap && SkipTrailingSpace(node, length, maxWidth) && atLeastOneNodeCosumedOnLine)
-                        {
-                            newLine = true;
-                        }
-                        else if (length + node.ModifiedLength <= maxWidth || !atLeastOneNodeCosumedOnLine)
-                        {
-                            atLeastOneNodeCosumedOnLine = true;
-
-                            if (!measureOnly)
-                                RenderWord(xOffset + length, yOffset, node);
-                            length += node.ModifiedLength;
-
-                            maxMeasuredWidth = Math.Max(length, maxMeasuredWidth);
-                        }
-                        else if (Options.WordWrap)
-                        {
-                            newLine = true;
-                            if (node.Previous != null)
-                                node = node.Previous;
-                        }
-                        else
-                            continue; // continue so we still read line breaks even if reached max width
-                    }
-
-                    if (newLine)
-                    {
-                        if (processedText.maxSize.Height > 0 &&
-                            yOffset + LineSpacing - yPos >= processedText.maxSize.Height)
-                            break;
-
-                        yOffset += LineSpacing;
-                        xOffset = xPos;
-                        length = 0f;
-                        atLeastOneNodeCosumedOnLine = false;
-
-                        if (node.Next != null)
-                        {
-                            if (alignment == QFontAlignment.Right)
-                                xOffset -= (float) Math.Ceiling(TextNodeLineLength(node.Next, maxWidth) - maxWidth);
-                            else if (alignment == QFontAlignment.Centre)
-                                xOffset -= (float) Math.Ceiling(0.5f*TextNodeLineLength(node.Next, maxWidth));
-                            else if (alignment == QFontAlignment.Justify)
-                                JustifyLine(node.Next, maxWidth);
-                        }
-                    }
-                }
-            });
-
-            return new SizeF(maxMeasuredWidth, yOffset + LineSpacing - yPos);
-        }
 
         public void Begin()
         {
