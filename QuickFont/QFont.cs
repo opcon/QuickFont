@@ -309,7 +309,11 @@ void main(void)
                 if (QFontSharedState == null) InitialiseStaticState();
             }
             else
+            {
                 _instanceSharedState = state;
+                if (fontData.dropShadow != null)
+                    fontData.dropShadow._instanceSharedState = state;
+            }
         }
 
         public static void CreateTextureFontFiles(Font font, string newFontName, QFontBuilderConfiguration config)
@@ -1477,8 +1481,8 @@ void main(void)
                 VertexArrayObjects[i] = new QVertexArrayObject(QFontSharedState, textureID);
             }
 
-            //if (fontData.dropShadow != null)
-            //    fontData.dropShadow.InitVBOs();
+            if (fontData.dropShadow != null)
+                fontData.dropShadow.InitVBOs();
         }
 
         public void ResetVBOs()
@@ -1495,8 +1499,8 @@ void main(void)
             foreach (var buffer in VertexArrayObjects)
                 buffer.Load();
 
-            //if (fontData.dropShadow != null)
-            //    fontData.dropShadow.LoadVBOs();
+            if (fontData.dropShadow != null)
+                fontData.dropShadow.LoadVBOs();
         }
 
         public void DrawVBOs()
@@ -1507,8 +1511,8 @@ void main(void)
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindSampler(0, InstanceSharedState.SamplerID);
 
-            //if (fontData.dropShadow != null)
-            //    fontData.dropShadow.DrawVBOs();
+            if (fontData.dropShadow != null)
+                fontData.dropShadow.DrawVBOs();
 
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             //GL.Disable(EnableCap.Blend);
