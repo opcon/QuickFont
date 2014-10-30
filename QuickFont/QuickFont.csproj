@@ -48,7 +48,6 @@
   <ItemGroup>
     <Compile Include="Configuration\QFontConfiguration.cs" />
     <Compile Include="Configuration\QFontKerningConfiguration.cs" />
-    <Compile Include="Configuration\QFontLoaderConfiguration.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="KerningCalculator.cs" />
     <Compile Include="ProjectionStack.cs" />
