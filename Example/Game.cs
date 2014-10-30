@@ -23,6 +23,7 @@ namespace StarterKit
         private ProcessedText _introductionProcessedText;
         private Stopwatch _stopwatch;
         private QFont _benchmarkResults;
+        private Matrix4 _projectionMatrix;
         //QFont codeText;
         //QFont controlsText;
         //QFont monoSpaced;
@@ -297,9 +298,9 @@ namespace StarterKit
 
             GL.Viewport(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
 
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, Width / (float)Height, 1.0f, 64.0f);
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadMatrix(ref projection);
+            //_projectionMatrix = Matrix4.CreateOrthographicOffCenter(X, Width, Y, Height, -1.0f, 1.0f);
+            _projectionMatrix = Matrix4.CreateOrthographicOffCenter(ClientRectangle.X, ClientRectangle.Width, ClientRectangle.Y, ClientRectangle.Height, -1.0f, 1.0f);
+            _projectionMatrix = Matrix4.Mult(Matrix4.CreateScale(1, -1.0f, 1), _projectionMatrix);
         }
 
         double cnt;
@@ -454,6 +455,11 @@ namespace StarterKit
             Matrix4 modelview = Matrix4.LookAt(Vector3.Zero, Vector3.UnitZ, Vector3.UnitY);
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref modelview);
+
+            heading1.ProjectionMatrix = _projectionMatrix;
+            mainText.ProjectionMatrix = _projectionMatrix;
+            heading2.ProjectionMatrix = _projectionMatrix;
+            _benchmarkResults.ProjectionMatrix = _projectionMatrix;
 
             frameCount++;
 

@@ -97,10 +97,16 @@ void main(void)
         public static SharedState QFontSharedState { get { return _QFontSharedState; } }
 
         private SharedState _instanceSharedState;
-
         public SharedState InstanceSharedState
         {
             get { return _instanceSharedState ?? QFontSharedState; }
+        }
+
+        private Matrix4 _projectionMatrix;
+        public Matrix4 ProjectionMatrix
+        {
+            get { return _projectionMatrix; }
+            set { _projectionMatrix = value; }
         }
 
         #region Constructors and font builders
@@ -128,12 +134,14 @@ void main(void)
         private void InitialiseQFont(Font font, QFontBuilderConfiguration config, QFontData data = null)
         {
             ProjectionStack = ProjectionStack.DefaultStack;
+            ProjectionMatrix = Matrix4.Identity;
 
             fontData = data ?? BuildFont(font, config, null);
 
             if (config.ShadowConfig != null)
                 Options.DropShadowActive = true;
 
+            //NOTE This should be the only usage of InitialiseState() (I think).
             //TODO allow instance render states
             InitialiseState();
 
@@ -1325,14 +1333,10 @@ void main(void)
 
         public void Begin()
         {
-
             //ProjectionStack.DefaultStack.Begin();
             GL.UseProgram(InstanceSharedState.ShaderVariables.ShaderProgram);
-            //GL.Disable(EnableCap.CullFace);
-            var mat = ProjectionStack.DefaultStack.GetOrtho();
-            //mat = Matrix4.Identity;
             GL.Enable(EnableCap.Blend);
-            GL.UniformMatrix4(InstanceSharedState.ShaderVariables.MVPUniformLocation, false, ref mat);
+            GL.UniformMatrix4(InstanceSharedState.ShaderVariables.MVPUniformLocation, false, ref _projectionMatrix);
         }
 
         public void End()
