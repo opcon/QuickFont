@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using OpenTK;
 using OpenTK.Graphics;
@@ -119,5 +120,13 @@ namespace QuickFont
             GL.DeleteBuffers(1, ref VBOID);
             GL.DeleteVertexArrays(1, ref VAOID);
         }
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    struct QVertex
+    {
+        public Vector3 Position;
+        public Vector2 TextureCoord;
+        public Vector4 VertexColor;
     }
 }
