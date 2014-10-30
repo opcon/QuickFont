@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Drawing;
 using System.Drawing.Text;
@@ -520,6 +521,7 @@ void main(void)
 
             float X, Y;
 
+            Debug.Assert(v1 != null, "v1 != null");
             X = (input.X - v2.Value.X)*((float) v1.Value.Width/v2.Value.Width);
             Y = (input.Y - v2.Value.Y)*((float) v1.Value.Height/v2.Value.Height);
 
@@ -535,6 +537,7 @@ void main(void)
             }
             var v1 = ViewportHelper.CurrentViewport;
 
+            Debug.Assert(v1 != null, "v1 != null");
             return input*((float) v1.Value.Width/v2.Value.Width);
         }
 
@@ -549,6 +552,7 @@ void main(void)
 
             float X, Y;
 
+            Debug.Assert(v1 != null, "v1 != null");
             X = input.Width*((float) v2.Value.Width/v1.Value.Width);
             Y = input.Height*((float) v2.Value.Height/v1.Value.Height);
 
@@ -566,137 +570,47 @@ void main(void)
             return input;
         }
 
-        public void Print(ProcessedText processedText, Vector2 position)
+        private Vector3 TransformToViewport(Vector3 input)
         {
-            position = TransformPositionToViewport(position);
-            position = LockToPixel(position);
-
-            //no immediate mode
-            //TODO Fix positioning
-
-            //GL.PushMatrix();
-            //GL.Translate(position.X, position.Y, 0f);
-            //Print(processedText);
-            //GL.PopMatrix();
+            return new Vector3(LockToPixel(TransformPositionToViewport(input.Xy))){Z=input.Z};
         }
 
-        public void Print(string text, float maxWidth, QFontAlignment alignment, Vector2 position)
+        public void PrintToVBO(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment)
         {
-            Print(text, new SizeF(maxWidth, -1), alignment, position);
+            var processedText = ProcessText(text, maxSize, alignment);
+            PrintToVBO(processedText, TransformToViewport(position));
         }
 
-        public void Print(string text, float maxWidth, QFontAlignment alignment)
+        public void PrintToVBO(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color colour)
         {
-            Print(text, new SizeF(maxWidth, -1), alignment);
-        }
-
-        public void Print(string text, SizeF maxSize, QFontAlignment alignment, Vector2 position)
-        {
-            position = TransformPositionToViewport(position);
-            position = LockToPixel(position);
-
-            //no immediate mode
-            //TODO Fix positioning
-
-            //GL.PushMatrix();
-            //GL.Translate(position.X, position.Y, 0f);
-            //Print(text, maxSize, alignment);
-            //GL.PopMatrix();
-        }
-
-        public void Print(string text, Vector2 position, QFontAlignment alignment = QFontAlignment.Left)
-        {
-            position = TransformPositionToViewport(position);
-            position = LockToPixel(position);
-
-            //no immediate mode
-            //TODO Fix positioning
-
-            //GL.PushMatrix();
-            //GL.Translate(position.X, position.Y, 0f);
-            //Print(text, alignment);
-            //GL.PopMatrix();
-        }
-
-        public void Print(string text, QFontAlignment alignment = QFontAlignment.Left)
-        {
-            PrintOrMeasure(text, alignment, false);
-        }
-
-
-        public void Print(string text, Vector3 position, Color color, QFontAlignment alignment = QFontAlignment.Left)
-        {
-            var position2 = new Vector2(position.X, position.Y);
-            position2 = TransformPositionToViewport(position2);
-            position2 = LockToPixel(position2);
-
-            //no immediate mode
-            //TODO Fix positioning
-
-            Options.Colour = color;
-            //GL.PushMatrix();
-            //GL.Translate(position.X, position.Y, 0f);
-            //PrintOrMeasure(text, alignment, false);
-            //GL.PopMatrix();
-        }
-
-
-        public void PrintToVBO(string text, SizeF maxSize, QFontAlignment alignment, Vector2 position)
-        {
-            PrintOffset = new Vector3(position.X, position.Y, 0f);
-            Print(text, maxSize, alignment);
-        }
-
-        public void PrintToVBO(string text, Vector2 position, QFontAlignment alignment = QFontAlignment.Left)
-        {
-            PrintOffset = new Vector3(position.X, position.Y, 0f);
-            PrintOrMeasure(text, alignment, false);
-        }
-
-        public void PrintToVBO(string text, Vector2 position, Color color,
-            QFontAlignment alignment = QFontAlignment.Left)
-        {
-            Options.Colour = color;
-            PrintOffset = new Vector3(position.X, position.Y, 0f);
-            PrintOrMeasure(text, alignment, false);
+            var processedText = ProcessText(text, maxSize, alignment);
+            PrintToVBO(processedText, TransformToViewport(position), colour);
         }
 
         public void PrintToVBO(ProcessedText processedText, Vector3 position)
         {
-            PrintOffset = position;
+            PrintOffset = TransformToViewport(position);
             PrintOrMeasure(processedText, false);
         }
 
-        public void PrintToVBO(string text, Vector3 position, Color color,
-            QFontAlignment alignment = QFontAlignment.Left)
+        public void PrintToVBO(ProcessedText processedText, Vector3 position, Color colour)
+        {
+            Options.Colour = colour;
+            PrintOffset = TransformToViewport(position);
+            PrintOrMeasure(processedText, false);
+        }
+
+        public void PrintToVBO(string text, Vector3 position, QFontAlignment alignment)
+        {
+            PrintOffset = TransformToViewport(position);
+            PrintOrMeasure(text, alignment, false);
+        }
+
+        public void PrintToVBO(string text, Vector3 position, QFontAlignment alignment, Color color)
         {
             Options.Colour = color;
             PrintOffset = position;
             PrintOrMeasure(text, alignment, false);
-            //var vao = VertexArrayObjects[0];
-            //var positions = new[]
-            //{
-            //    new Vector3(128.0f, 128.0f, 0.0f), new Vector3(-128.0f, 128.0f, 0.0f), new Vector3(-128.0f, -128.0f, 0.0f),
-            //    new Vector3(128.0f, -128.0f, 0.0f)
-            //};
-            //var textures = new[] { new Vector2(1.0f, 0.0f), new Vector2(0.0f, 0.0f), new Vector2(0.0f, 1.0f), new Vector2(1.0f, 1.0f) };
-
-            //Vector4 colour = Helper.ToVector4(Color.Black);
-
-            //for (int i = 0; i < 6; i++)
-            //{
-            //    if (i > 2)
-            //        vao.AddVertex(positions[(i - 1) % 4] + new Vector3(300, -300, 0), textures[(i - 1) % 4], colour);
-            //    else
-            //        vao.AddVertex(positions[i] + new Vector3(300, -300, 0), textures[i], colour);
-            //}
-        }
-
-        public void PrintToVBO(string text, QFontAlignment alignment, Vector3 position, Color color, SizeF maxSize)
-        {
-            Options.Colour = color;
-            PrintOffset = position;
-            Print(text, maxSize, alignment);
         }
 
         public SizeF Measure(string text, QFontAlignment alignment = QFontAlignment.Left)
@@ -1153,17 +1067,7 @@ void main(void)
         }
 
 
-        /// <summary>
-        /// Prints text inside the given bounds.
-        /// </summary>
-        /// <param name="text"></param>
-        /// <param name="bounds"></param>
-        /// <param name="alignment"></param>
-        public void Print(string text, SizeF maxSize, QFontAlignment alignment)
-        {
-            var processedText = ProcessText(text, maxSize, alignment);
-            Print(processedText);
-        }
+
 
 
         /// <summary>
@@ -1204,14 +1108,7 @@ void main(void)
         }
 
 
-        /// <summary>
-        /// Prints text as previously processed with a boundary and alignment.
-        /// </summary>
-        /// <param name="processedText"></param>
-        public void Print(ProcessedText processedText)
-        {
-            PrintOrMeasure(processedText, false);
-        }
+
 
 
         private SizeF PrintOrMeasure(ProcessedText processedText, bool measureOnly)

@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using OpenTK;
 using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
 using OpenTK.Input;
@@ -329,55 +329,55 @@ namespace StarterKit
         }
 
 
-        private void PrintWithBounds(QFont font, string text, RectangleF bounds, QFontAlignment alignment, ref float yOffset)
-        {
+        //private void PrintWithBounds(QFont font, string text, RectangleF bounds, QFontAlignment alignment, ref float yOffset)
+        //{
 
-            GL.Disable(EnableCap.Texture2D);
-            GL.Color4(1.0f, 0f, 0f, 1.0f);
-
-
-            float maxWidth = bounds.Width;
-
-            float height = font.Measure(text, new SizeF(maxWidth, float.MaxValue), alignment).Height;
-
-            GL.Begin(BeginMode.LineLoop);
-                GL.Vertex3(bounds.X, bounds.Y, 0f);
-                GL.Vertex3(bounds.X + bounds.Width, bounds.Y, 0f);
-                GL.Vertex3(bounds.X + bounds.Width, bounds.Y + height, 0f);
-                GL.Vertex3(bounds.X, bounds.Y + height, 0f);
-            GL.End();
+        //    GL.Disable(EnableCap.Texture2D);
+        //    GL.Color4(1.0f, 0f, 0f, 1.0f);
 
 
-            font.Print(text, new SizeF(maxWidth, float.MaxValue), alignment, new Vector2(bounds.X, bounds.Y));
-            yOffset += height;
+        //    float maxWidth = bounds.Width;
 
-        }
+        //    float height = font.Measure(text, new SizeF(maxWidth, float.MaxValue), alignment).Height;
 
-        private void PrintWithBoundsVBO(QFont font, string text, RectangleF bounds, QFontAlignment alignment, ref float yOffset)
-        {
+        //    GL.Begin(BeginMode.LineLoop);
+        //        GL.Vertex3(bounds.X, bounds.Y, 0f);
+        //        GL.Vertex3(bounds.X + bounds.Width, bounds.Y, 0f);
+        //        GL.Vertex3(bounds.X + bounds.Width, bounds.Y + height, 0f);
+        //        GL.Vertex3(bounds.X, bounds.Y + height, 0f);
+        //    GL.End();
 
-            GL.Disable(EnableCap.Texture2D);
-            GL.Color4(1.0f, 0f, 0f, 1.0f);
+
+        //    font.Print(text, new SizeF(maxWidth, float.MaxValue), alignment, new Vector2(bounds.X, bounds.Y));
+        //    yOffset += height;
+
+        //}
+
+        //private void PrintWithBoundsVBO(QFont font, string text, RectangleF bounds, QFontAlignment alignment, ref float yOffset)
+        //{
+
+        //    GL.Disable(EnableCap.Texture2D);
+        //    GL.Color4(1.0f, 0f, 0f, 1.0f);
 
 
-            float maxWidth = bounds.Width;
+        //    float maxWidth = bounds.Width;
 
-            float height = font.Measure(text, new SizeF(maxWidth, float.MaxValue), alignment).Height;
+        //    float height = font.Measure(text, new SizeF(maxWidth, float.MaxValue), alignment).Height;
 
-            GL.Begin(BeginMode.LineLoop);
-            GL.Vertex3(bounds.X, bounds.Y, 0f);
-            GL.Vertex3(bounds.X + bounds.Width, bounds.Y, 0f);
-            GL.Vertex3(bounds.X + bounds.Width, bounds.Y + height, 0f);
-            GL.Vertex3(bounds.X, bounds.Y + height, 0f);
-            GL.End();
+        //    GL.Begin(BeginMode.LineLoop);
+        //    GL.Vertex3(bounds.X, bounds.Y, 0f);
+        //    GL.Vertex3(bounds.X + bounds.Width, bounds.Y, 0f);
+        //    GL.Vertex3(bounds.X + bounds.Width, bounds.Y + height, 0f);
+        //    GL.Vertex3(bounds.X, bounds.Y + height, 0f);
+        //    GL.End();
 
-            font.ResetVBOs();
-            font.PrintToVBO(text, new SizeF(maxWidth, float.MaxValue), alignment, new Vector2(bounds.X, bounds.Y));
-            font.LoadVBOs();
-            font.DrawVBOs();
-            yOffset += height;
+        //    font.ResetVBOs();
+        //    font.PrintToVBO(text, new Vector3(bounds.X, bounds.Y, 0), new SizeF(maxWidth, float.MaxValue), alignment);
+        //    font.LoadVBOs();
+        //    font.DrawVBOs();
+        //    yOffset += height;
 
-        }       
+        //}       
        //some helpers
 
 
@@ -387,16 +387,16 @@ namespace StarterKit
             //PrintComment(mainText, comment, QFontAlignment.Justify, ref yOffset);
         }
 
-        private void PrintComment(QFont font, string comment,QFontAlignment alignment, ref float yOffset){
+        //private void PrintComment(QFont font, string comment,QFontAlignment alignment, ref float yOffset){
 
-            GL.PushMatrix();
-                yOffset += 20;
-                GL.Translate(30f, yOffset, 0f);
-                font.Print(comment, new SizeF(Width - 60, float.MaxValue), alignment);
-                yOffset += font.Measure(comment, new SizeF(Width - 60, float.MaxValue), alignment).Height;
-            GL.PopMatrix();
+        //    GL.PushMatrix();
+        //        yOffset += 20;
+        //        GL.Translate(30f, yOffset, 0f);
+        //        font.Print(comment, new SizeF(Width - 60, float.MaxValue), alignment);
+        //        yOffset += font.Measure(comment, new SizeF(Width - 60, float.MaxValue), alignment).Height;
+        //    GL.PopMatrix();
 
-        }
+        //}
 
 
 
@@ -405,28 +405,28 @@ namespace StarterKit
             //PrintCommentWithLine(mainText, comment, alignment, xOffset, ref yOffset);
         }
 
-        private void PrintCommentWithLine(QFont font, string comment, QFontAlignment alignment, float xOffset, ref float yOffset)
-        {
+        //private void PrintCommentWithLine(QFont font, string comment, QFontAlignment alignment, float xOffset, ref float yOffset)
+        //{
 
 
-            GL.PushMatrix();
-            yOffset += 20;
-            GL.Translate((int)xOffset, yOffset, 0f);
-            font.Print(comment, alignment);
-            var bounds = font.Measure(comment, new SizeF(Width - 60, float.MaxValue), alignment);
+        //    GL.PushMatrix();
+        //    yOffset += 20;
+        //    GL.Translate((int)xOffset, yOffset, 0f);
+        //    font.Print(comment, alignment);
+        //    var bounds = font.Measure(comment, new SizeF(Width - 60, float.MaxValue), alignment);
 
 
-            GL.Disable(EnableCap.Texture2D);
-            GL.Begin(BeginMode.Lines);
-                GL.Color4(1.0f, 0f, 0f, 1f); GL.Vertex2(0f, 0f);
-                GL.Color4(1.0f, 0f, 0f, 1f); GL.Vertex2(0f, bounds.Height + 20f);
-            GL.End();
+        //    GL.Disable(EnableCap.Texture2D);
+        //    GL.Begin(BeginMode.Lines);
+        //        GL.Color4(1.0f, 0f, 0f, 1f); GL.Vertex2(0f, 0f);
+        //        GL.Color4(1.0f, 0f, 0f, 1f); GL.Vertex2(0f, bounds.Height + 20f);
+        //    GL.End();
 
-            yOffset += bounds.Height;
+        //    yOffset += bounds.Height;
 
-            GL.PopMatrix();
+        //    GL.PopMatrix();
 
-        }
+        //}
 
         
         private void PrintCode(string code, ref float yOffset){
@@ -452,9 +452,9 @@ namespace StarterKit
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            Matrix4 modelview = Matrix4.LookAt(Vector3.Zero, Vector3.UnitZ, Vector3.UnitY);
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadMatrix(ref modelview);
+            //Matrix4 modelview = Matrix4.LookAt(Vector3.Zero, Vector3.UnitZ, Vector3.UnitY);
+            //GL.MatrixMode(MatrixMode.Modelview);
+            //GL.LoadMatrix(ref modelview);
 
             heading1.ProjectionMatrix = _projectionMatrix;
             mainText.ProjectionMatrix = _projectionMatrix;
@@ -490,8 +490,7 @@ namespace StarterKit
                         //mainText.Begin();
                         heading1.Begin();
                                 heading1.ResetVBOs();
-                                heading1.PrintToVBO("QuickFont", new Vector3((float)Width /2, -Height, 0),
-                                    heading1.Options.Colour, QFontAlignment.Centre);
+                                heading1.PrintToVBO("QuickFont", new Vector3((float)Width /2, -Height, 0), QFontAlignment.Centre, heading1.Options.Colour);
                                 yOffset += heading1.Measure("QuickFont").Height;
                                 heading1.LoadVBOs();
                                 heading1.DrawVBOs();
@@ -507,7 +506,7 @@ namespace StarterKit
 
                         heading2.Begin();
                         heading2.ResetVBOs();
-                        heading2.PrintToVBO("Introduction", new Vector3(20, -Height + yOffset*0.8f, 0), heading2.Options.Colour);
+                        heading2.PrintToVBO("Introduction", new Vector3(20, -Height + yOffset*0.8f, 0), QFontAlignment.Left, heading2.Options.Colour);
                         yOffset += heading2.Measure("Introduction").Height;
                         heading2.LoadVBOs();
                         heading2.DrawVBOs();
@@ -547,7 +546,7 @@ namespace StarterKit
 
                         _benchmarkResults.Begin();
                         _benchmarkResults.ResetVBOs();
-                        _benchmarkResults.PrintToVBO(_benchResult, new Vector3(Width * 0.5f, -50, 0), Color.White, QFontAlignment.Centre);
+                        _benchmarkResults.PrintToVBO(_benchResult, new Vector3(Width * 0.5f, -50, 0), QFontAlignment.Centre, Color.White);
                         _benchmarkResults.LoadVBOs();
                         _benchmarkResults.DrawVBOs();
                         _benchmarkResults.End();
