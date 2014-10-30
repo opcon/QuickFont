@@ -247,12 +247,12 @@ void main(void)
             GL.DeleteShader(vert);
             GL.DeleteShader(frag);
 
-            int mvpLoc, samplerLoc, posLoc, tcLoc, colLoc;
-            mvpLoc = GL.GetUniformLocation(prog, "proj_matrix");
-            samplerLoc = GL.GetUniformLocation(prog, "tex_object");
-            posLoc = GL.GetAttribLocation(prog, "in_position");
-            tcLoc = GL.GetAttribLocation(prog, "in_tc");
-            colLoc = GL.GetAttribLocation(prog, "in_colour");
+            //Retrieve shader attribute and uniform locations
+            int mvpLoc = GL.GetUniformLocation(prog, "proj_matrix");
+            int samplerLoc = GL.GetUniformLocation(prog, "tex_object");
+            int posLoc = GL.GetAttribLocation(prog, "in_position");
+            int tcLoc = GL.GetAttribLocation(prog, "in_tc");
+            int colLoc = GL.GetAttribLocation(prog, "in_colour");
 
             int sampler = GL.GenSampler();
             GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
