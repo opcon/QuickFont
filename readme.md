@@ -1,7 +1,9 @@
 ###Todo
-- [ ] Implement Vertex Array support
-- [ ] Implement Shader support
-- [ ] Remove legacy OpenGL render code and switch to a fully programmable pipeline forward compatible with OpenGL 4.4
+- [x] Implement Vertex Array support
+- [x] Implement Shader support
+- [x] Remove legacy OpenGL render code and switch to a fully programmable pipeline forward compatible with OpenGL 4.4
+- [ ] Remove option to pass in a null Configuration object - this only adds to visual complexity
+- [ ] Finish refactoring library
 
 
 ###Using Vertex Buffers
@@ -9,7 +11,6 @@ Initialize your vertex buffer
 ```C#
 var config = new QFontBuilderConfiguration() 
 { 
-  UseVertexBuffer = true,
   TextGenerationRenderHint = TextGenerationRenderHint.SystemDefault 
 };
 
