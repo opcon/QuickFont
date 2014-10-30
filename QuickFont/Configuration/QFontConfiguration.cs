@@ -14,5 +14,15 @@ namespace QuickFont
         /// </summary>
         public bool TransformToCurrentOrthogProjection;
 
+        public QFontConfiguration() { }
+
+        public QFontConfiguration(bool addDropShadow, bool transformToOrthogProjection = false)
+        {
+            if (addDropShadow)
+                this.ShadowConfig = new QFontShadowConfiguration();
+
+            this.TransformToCurrentOrthogProjection = transformToOrthogProjection;
+        }
+
     }
 }

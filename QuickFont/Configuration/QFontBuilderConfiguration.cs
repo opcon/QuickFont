@@ -76,16 +76,20 @@ namespace QuickFont
         /// </summary>
         public TextGenerationRenderHint TextGenerationRenderHint = TextGenerationRenderHint.SizeDependent;
 
-        public bool UseVertexBuffer = false;
-
-
         public QFontBuilderConfiguration() { }
-        public QFontBuilderConfiguration(bool addDropShadow) : this(addDropShadow, false) { }
-        public QFontBuilderConfiguration(bool addDropShadow, bool TransformToOrthogProjection)
+
+        public QFontBuilderConfiguration(bool addDropShadow, bool TransformToOrthogProjection = false) : base(addDropShadow, TransformToOrthogProjection)
         {
-            if (addDropShadow)
-                this.ShadowConfig = new QFontShadowConfiguration();
-            this.TransformToCurrentOrthogProjection = TransformToOrthogProjection;
+            //if (addDropShadow)
+            //    this.ShadowConfig = new QFontShadowConfiguration();
+            //this.TransformToCurrentOrthogProjection = TransformToOrthogProjection;
+        }
+
+        public QFontBuilderConfiguration(QFontConfiguration fontConfiguration)
+        {
+            this.ShadowConfig = fontConfiguration.ShadowConfig;
+            this.KerningConfig = fontConfiguration.KerningConfig;
+            this.TransformToCurrentOrthogProjection = fontConfiguration.TransformToCurrentOrthogProjection;
         }
     }
 }

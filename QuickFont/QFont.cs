@@ -109,32 +109,34 @@ void main(void)
 
         #region Constructors and font builders
 
-        private QFont()
-        {
-            ProjectionStack = ProjectionStack.DefaultStack;
-            UsingVertexBuffers = true;
-
-        }
-
+        /// <summary>
+        /// Used for creating a dropshadow QFont object
+        /// </summary>
+        /// <param name="fontData"></param>
         internal QFont(QFontData fontData)
         {
             ProjectionStack = ProjectionStack.DefaultStack;
             this.fontData = fontData;
         }
 
+        /// <summary>
+        /// Initialise QFont from a System.Drawing.Font object 
+        /// </summary>
+        /// <param name="font"></param>
+        /// <param name="config"></param>
         public QFont(Font font, QFontBuilderConfiguration config = null)
         {
             InitialiseQFont(font, config);
         }
 
-        private void InitialiseQFont(Font font, QFontBuilderConfiguration config)
+        private void InitialiseQFont(Font font, QFontBuilderConfiguration config = null, QFontData data = null)
         {
             ProjectionStack = ProjectionStack.DefaultStack;
 
             if (config == null)
                 config = new QFontBuilderConfiguration();
 
-            fontData = BuildFont(font, config, null);
+            fontData = data ?? BuildFont(font, config, null);
 
             if (config.ShadowConfig != null)
                 Options.DropShadowActive = true;
@@ -147,7 +149,14 @@ void main(void)
         }
 
 
-        public QFont(string fileName, float size, QFontBuilderConfiguration config = null,
+        /// <summary>
+        /// Initialise QFont from a font file
+        /// </summary>
+        /// <param name="fontPath">The font file to load</param>
+        /// <param name="size"></param>
+        /// <param name="config"></param>
+        /// <param name="style"></param>
+        public QFont(string fontPath, float size, QFontBuilderConfiguration config = null,
             FontStyle style = FontStyle.Regular)
         {
             TransformViewport? transToVp = null;
@@ -158,42 +167,65 @@ void main(void)
                     transToVp = OrthogonalTransform(out fontScale);
             }
 
-            using (var font = GetFont(fileName, size, fontScale, style, config == null ? 1 : config.SuperSampleLevels))
+            using (var font = GetFont(fontPath, size, style, config == null ? 1 : config.SuperSampleLevels, fontScale))
             {
                 InitialiseQFont(font, config);
             }
 
             if (transToVp != null)
                 Options.TransformToViewport = transToVp;
-
-            /* ProjectionStack = ProjectionStack.DefaultStack; */
-
-            /* if (config == null)
-                config = new QFontBuilderConfiguration(); */
-
-            /* fontData = BuildFont(font, config, null); */
-
-            /* if (config.ShadowConfig != null)
-               Options.DropShadowActive = true; */
-
-            /* InitialiseState(); */
-
-            /* if (config.UseVertexBuffer)
-                InitVBOs(); */
         }
 
-        private Font GetFont(string fileName, float size, float scale, FontStyle style, int superSampleLevels = 1)
+        /// <summary>
+        /// Initialise QFont from a .qfont file
+        /// </summary>
+        /// <param name="qfontPath">The .qfont file to load</param>
+        /// <param name="downSampleFactor"></param>
+        /// <param name="loaderConfig"></param>
+        /// <param name="proj"></param>
+        public QFont(string qfontPath, float downSampleFactor = 1.0f, QFontConfiguration loaderConfig = null, ProjectionStack proj = null)
+        {
+            if (loaderConfig == null)
+                loaderConfig = new QFontConfiguration();
+
+            if (proj != null)
+                ProjectionStack = proj;
+
+            TransformViewport? transToVp = null;
+            float fontScale = 1f;
+            if (loaderConfig.TransformToCurrentOrthogProjection)
+                transToVp = OrthogonalTransform(out fontScale);
+
+            InitialiseQFont(null, new QFontBuilderConfiguration(loaderConfig), Builder.LoadQFontDataFromFile(qfontPath, downSampleFactor*fontScale, loaderConfig));
+
+            if (transToVp != null)
+                Options.TransformToViewport = transToVp;
+        }
+
+        /// <summary>
+        /// Returns a System.Drawing.Font object created from the specified font file
+        /// </summary>
+        /// <param name="fontPath">The path to the font file</param>
+        /// <param name="size"></param>
+        /// <param name="style"></param>
+        /// <param name="superSampleLevels"></param>
+        /// <param name="scale"></param>
+        /// <returns></returns>
+        private static Font GetFont(string fontPath, float size, FontStyle style, int superSampleLevels = 1, float scale = 1.0f)
         {
             PrivateFontCollection pfc = new PrivateFontCollection();
-            pfc.AddFontFile(fileName);
+            pfc.AddFontFile(fontPath);
             var fontFamily = pfc.Families[0];
 
             if (!fontFamily.IsStyleAvailable(style))
-                throw new ArgumentException("Font file: " + fileName + " does not support style: " + style);
+                throw new ArgumentException("Font file: " + fontPath + " does not support style: " + style);
 
             return new Font(fontFamily, size*scale*superSampleLevels, style);
         }
 
+        /// <summary>
+        /// Initialises the static shared render state
+        /// </summary>
         private static void InitialiseStaticState()
         {
             //Create vertex and fragment shaders
@@ -267,14 +299,18 @@ void main(void)
             _QFontSharedState = sharedState;
         }
 
-        private void InitialiseState(SharedState instanceState = null)
+        /// <summary>
+        /// Initialises the instance render state
+        /// </summary>
+        /// <param name="state">If state is null, this method will instead initialise the static state, which is returned when no instance state is set</param>
+        private void InitialiseState(SharedState state = null)
         {
-            if (instanceState == null)
+            if (state == null)
             {
                 if (QFontSharedState == null) InitialiseStaticState();
             }
             else
-                _instanceSharedState = instanceState;
+                _instanceSharedState = state;
         }
 
         public static void CreateTextureFontFiles(Font font, string newFontName, QFontBuilderConfiguration config)
@@ -286,53 +322,61 @@ void main(void)
         public static void CreateTextureFontFiles(string fileName, float size, string newFontName,
             FontStyle style = FontStyle.Regular, QFontBuilderConfiguration config = null)
         {
-            PrivateFontCollection pfc = new PrivateFontCollection();
-            pfc.AddFontFile(fileName);
+            /* PrivateFontCollection pfc = new PrivateFontCollection();
+            pfc.AddFontFile(fontPath);
             var fontFamily = pfc.Families[0];
 
             if (!fontFamily.IsStyleAvailable(style))
-                throw new ArgumentException("Font file: " + fileName + " does not support style: " + style);
+                throw new ArgumentException("Font file: " + fontPath + " does not support style: " + style); */
 
-            QFontData fontData = null;
+            /*
             if (config == null)
                 config = new QFontBuilderConfiguration();
+            */
 
 
+            /*
             using (var font = new Font(fontFamily, size*config.SuperSampleLevels, style))
             {
                 fontData = BuildFont(font, config, newFontName);
             }
+            */
 
-            Builder.SaveQFontDataToFile(fontData, newFontName);
+            using (var font = GetFont(fileName, size, style, config == null ? 1 : config.SuperSampleLevels))
+            {
+                CreateTextureFontFiles(font, newFontName, config);
+            }
+
+            /* Builder.SaveQFontDataToFile(fontData, newFontName); */
         }
 
-        public static QFont FromQFontFile(string filePath, float downSampleFactor = 1.0f,
-            QFontLoaderConfiguration loaderConfig = null, ProjectionStack proj = null)
-        {
-            if (loaderConfig == null)
-                loaderConfig = new QFontLoaderConfiguration();
+        //public static QFont FromQFontFile(string filePath, float downSampleFactor = 1.0f,
+        //    QFontLoaderConfiguration loaderConfig = null, ProjectionStack proj = null)
+        //{
+        //    if (loaderConfig == null)
+        //        loaderConfig = new QFontLoaderConfiguration();
 
-            QFont qfont = new QFont();
-            if (proj != null)
-                qfont.ProjectionStack = proj;
+        //    QFont qfont = new QFont();
+        //    if (proj != null)
+        //        qfont.ProjectionStack = proj;
 
-            TransformViewport? transToVp = null;
-            float fontScale = 1f;
-            if (loaderConfig.TransformToCurrentOrthogProjection)
-                transToVp = qfont.OrthogonalTransform(out fontScale);
+        //    TransformViewport? transToVp = null;
+        //    float fontScale = 1f;
+        //    if (loaderConfig.TransformToCurrentOrthogProjection)
+        //        transToVp = qfont.OrthogonalTransform(out fontScale);
 
-            qfont.fontData = Builder.LoadQFontDataFromFile(filePath, downSampleFactor*fontScale, loaderConfig);
+        //    qfont.fontData = Builder.LoadQFontDataFromFile(filePath, downSampleFactor*fontScale, loaderConfig);
 
-            if (loaderConfig.ShadowConfig != null)
-                qfont.Options.DropShadowActive = true;
-            if (transToVp != null)
-                qfont.Options.TransformToViewport = transToVp;
+        //    if (loaderConfig.ShadowConfig != null)
+        //        qfont.Options.DropShadowActive = true;
+        //    if (transToVp != null)
+        //        qfont.Options.TransformToViewport = transToVp;
 
-            qfont.InitialiseState();
-            qfont.InitVBOs();
+        //    qfont.InitialiseState();
+        //    qfont.InitVBOs();
 
-            return qfont;
-        }
+        //    return qfont;
+        //}
 
         private static QFontData BuildFont(Font font, QFontBuilderConfiguration config, string saveName)
         {

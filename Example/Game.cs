@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -230,14 +231,14 @@ namespace StarterKit
             */
 
 
-            heading2 = QFont.FromQFontFile("woodenFont.qfont", 1.0f, new QFontLoaderConfiguration(true));
+            //heading2 = QFont.FromQFontFile("woodenFont.qfont", 1.0f, new QFontLoaderConfiguration(true));
+            heading2 = new QFont("woodenFont.qfont", 1.0f, new QFontConfiguration(true));
 
             var builderConfig = new QFontBuilderConfiguration(true);
             builderConfig.ShadowConfig.blurRadius = 2; //reduce blur radius because font is very small
             builderConfig.ShadowConfig.blurPasses = 1;
             builderConfig.ShadowConfig.Type = ShadowType.Blurred;
             builderConfig.TextGenerationRenderHint = TextGenerationRenderHint.ClearTypeGridFit; //best render hint for this font
-            builderConfig.UseVertexBuffer = true;
             mainText = new QFont("Fonts/times.ttf", 14, builderConfig);
             mainText.Options.DropShadowActive = false;
             //mainText.Options.DropShadowOffset = new Vector2(0, 0);
@@ -248,10 +249,7 @@ namespace StarterKit
 
 
 
-            heading1 = new QFont("Fonts/HappySans.ttf", 72, new QFontBuilderConfiguration(true)
-            {
-                UseVertexBuffer = true
-            });
+            heading1 = new QFont("Fonts/HappySans.ttf", 72, new QFontBuilderConfiguration(true));
             heading1.Options.DropShadowActive = false;
           
 

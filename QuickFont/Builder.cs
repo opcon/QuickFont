@@ -694,7 +694,7 @@ namespace QuickFont
         }
 
 
-        public static QFontData LoadQFontDataFromFile(string filePath, float downSampleFactor, QFontLoaderConfiguration loaderConfig)
+        public static QFontData LoadQFontDataFromFile(string filePath, float downSampleFactor, QFontConfiguration loaderConfig)
         {
             var lines = new List<String>();
             StreamReader reader = new StreamReader(filePath);
