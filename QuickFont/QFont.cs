@@ -128,12 +128,9 @@ void main(void)
             InitialiseQFont(font, config);
         }
 
-        private void InitialiseQFont(Font font, QFontBuilderConfiguration config = null, QFontData data = null)
+        private void InitialiseQFont(Font font, QFontBuilderConfiguration config, QFontData data = null)
         {
             ProjectionStack = ProjectionStack.DefaultStack;
-
-            if (config == null)
-                config = new QFontBuilderConfiguration();
 
             fontData = data ?? BuildFont(font, config, null);
 
@@ -155,16 +152,13 @@ void main(void)
         /// <param name="size"></param>
         /// <param name="config"></param>
         /// <param name="style"></param>
-        public QFont(string fontPath, float size, QFontBuilderConfiguration config = null,
+        public QFont(string fontPath, float size, QFontBuilderConfiguration config,
             FontStyle style = FontStyle.Regular)
         {
             TransformViewport? transToVp = null;
             float fontScale = 1f;
-            if (config != null)
-            {
-                if (config.TransformToCurrentOrthogProjection)
-                    transToVp = OrthogonalTransform(out fontScale);
-            }
+            if (config.TransformToCurrentOrthogProjection)
+                transToVp = OrthogonalTransform(out fontScale);
 
             using (var font = GetFont(fontPath, size, style, config == null ? 1 : config.SuperSampleLevels, fontScale))
             {
@@ -179,17 +173,11 @@ void main(void)
         /// Initialise QFont from a .qfont file
         /// </summary>
         /// <param name="qfontPath">The .qfont file to load</param>
-        /// <param name="downSampleFactor"></param>
         /// <param name="loaderConfig"></param>
+        /// <param name="downSampleFactor"></param>
         /// <param name="proj"></param>
-        public QFont(string qfontPath, float downSampleFactor = 1.0f, QFontConfiguration loaderConfig = null, ProjectionStack proj = null)
+        public QFont(string qfontPath, QFontConfiguration loaderConfig, float downSampleFactor = 1.0f)
         {
-            if (loaderConfig == null)
-                loaderConfig = new QFontConfiguration();
-
-            if (proj != null)
-                ProjectionStack = proj;
-
             TransformViewport? transToVp = null;
             float fontScale = 1f;
             if (loaderConfig.TransformToCurrentOrthogProjection)
@@ -322,8 +310,7 @@ void main(void)
             Builder.SaveQFontDataToFile(fontData, newFontName);
         }
 
-        public static void CreateTextureFontFiles(string fileName, float size, string newFontName,
-            FontStyle style = FontStyle.Regular, QFontBuilderConfiguration config = null)
+        public static void CreateTextureFontFiles(string fileName, float size, string newFontName, QFontBuilderConfiguration config, FontStyle style = FontStyle.Regular)
         {
             /* PrivateFontCollection pfc = new PrivateFontCollection();
             pfc.AddFontFile(fontPath);

@@ -232,7 +232,7 @@ namespace StarterKit
 
 
             //heading2 = QFont.FromQFontFile("woodenFont.qfont", 1.0f, new QFontLoaderConfiguration(true));
-            heading2 = new QFont("woodenFont.qfont", 1.0f, new QFontConfiguration(true));
+            heading2 = new QFont("woodenFont.qfont", new QFontConfiguration(true), 1.0f);
 
             var builderConfig = new QFontBuilderConfiguration(true);
             builderConfig.ShadowConfig.blurRadius = 2; //reduce blur radius because font is very small
