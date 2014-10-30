@@ -94,8 +94,18 @@ void main(void)
 //    gl_Position = vec4(0.,0.,0.,1.);
 }";
 
-        public ShaderVariables ShaderVariables;
-        private int sampler;
+        //public ShaderVariables ShaderVariables;
+        //private int sampler;
+
+        private static SharedState _QFontSharedState;
+        public static SharedState QFontSharedState { get { return _QFontSharedState; } }
+
+        private SharedState _instanceSharedState;
+
+        public SharedState InstanceSharedState
+        {
+            get { return _instanceSharedState ?? QFontSharedState; }
+        }
 
         #region Constructors and font builders
 
@@ -162,48 +172,94 @@ void main(void)
             if (transToVp != null)
                 Options.TransformToViewport = transToVp;
 
-            InitialiseShaders();
-
+            //TODO allow instance render states
+            InitialiseState();
 
             if (config.UseVertexBuffer)
                 InitVBOs();
         }
 
-        private void InitialiseShaders()
+        private static void InitialiseStaticState()
         {
+            //Create vertex and fragment shaders
             int vert = GL.CreateShader(ShaderType.VertexShader);
             int frag = GL.CreateShader(ShaderType.FragmentShader);
 
-            ShaderVariables = new ShaderVariables();
+            //Check shaders were created succesfully
+            if (vert == -1 || frag == -1)
+                throw new Exception(string.Format("Error creating shader name for {0}", vert == -1 ? (frag == -1 ? "vert and frag shaders" : "vert shader") : "frag shader"));
 
-            if (vert != -1 && frag != -1)
+            //Compile default (simple) shaders
+            int vertCompileStatus;
+            int fragCompileStatus;
+            
+            GL.ShaderSource(vert, vertShaderSource);
+            GL.CompileShader(vert);
+            GL.ShaderSource(frag, fragShaderSource);
+            GL.CompileShader(frag);
+
+            GL.GetShader(vert, ShaderParameter.CompileStatus, out vertCompileStatus);
+            GL.GetShader(frag, ShaderParameter.CompileStatus, out fragCompileStatus);
+
+            //Check shaders were compiled correctly
+            //TODO Worth doing this rather than just checking the total program error log?
+            if (vertCompileStatus == 0 || fragCompileStatus == 0)
             {
-                GL.ShaderSource(vert, vertShaderSource);
-                GL.CompileShader(vert);
-
-                GL.ShaderSource(frag, fragShaderSource);
-                GL.CompileShader(frag);
-
-                ShaderVariables.ShaderProgram = GL.CreateProgram();
-                GL.AttachShader(ShaderVariables.ShaderProgram, vert);
-                GL.AttachShader(ShaderVariables.ShaderProgram, frag);
-                GL.LinkProgram(ShaderVariables.ShaderProgram);
-                var programInfoLog = GL.GetProgramInfoLog(ShaderVariables.ShaderProgram);
-
-                GL.DeleteShader(vert);
-                GL.DeleteShader(frag);
-
-                ShaderVariables.MVPUniformLocation = GL.GetUniformLocation(ShaderVariables.ShaderProgram, "proj_matrix");
-                ShaderVariables.SamplerLocation = GL.GetUniformLocation(ShaderVariables.ShaderProgram, "tex_object");
-                ShaderVariables.PositionCoordAttribLocation = GL.GetAttribLocation(ShaderVariables.ShaderProgram,
-                    "in_position");
-                ShaderVariables.TextureCoordAttribLocation = GL.GetAttribLocation(ShaderVariables.ShaderProgram,
-                    "in_tc");
-                ShaderVariables.ColorCoordAttribLocation = GL.GetAttribLocation(ShaderVariables.ShaderProgram,
-                    "in_colour");
+                var vertInfo = GL.GetShaderInfoLog(vert);
+                var fragInfo = GL.GetShaderInfoLog(frag);
+                throw new Exception(String.Format("Shaders were not compiled correctly. Info logs are\nVert:\n{0}\nFrag:\n{1}", vertInfo, fragInfo));
             }
 
-            sampler = GL.GenSampler();
+            int prog;
+            int progLinkStatus;
+
+            prog = GL.CreateProgram();
+            GL.AttachShader(prog, vert);
+            GL.AttachShader(prog, frag);
+            GL.LinkProgram(prog);
+
+            //Check program was linked without errors 
+            GL.GetProgram(prog, GetProgramParameterName.LinkStatus, out progLinkStatus);
+            if (progLinkStatus == 0)
+            {
+                var programInfoLog = GL.GetProgramInfoLog(prog);
+                throw new Exception(String.Format("Program was not linked correctly. Info log is\n{0}", programInfoLog));
+            }
+
+            //Detach then delete unneeded shaders
+            GL.DetachShader(prog, vert);
+            GL.DetachShader(prog, frag);
+            GL.DeleteShader(vert);
+            GL.DeleteShader(frag);
+
+            int mvpLoc, samplerLoc, posLoc, tcLoc, colLoc;
+            mvpLoc = GL.GetUniformLocation(prog, "proj_matrix");
+            samplerLoc = GL.GetUniformLocation(prog, "tex_object");
+            posLoc = GL.GetAttribLocation(prog, "in_position");
+            tcLoc = GL.GetAttribLocation(prog, "in_tc");
+            colLoc = GL.GetAttribLocation(prog, "in_colour");
+
+            int sampler = GL.GenSampler();
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+
+            //Now we have all the information, time to create the immutable shared state object
+            var shaderVariables = new ShaderVariables(prog, mvpLoc, tcLoc, posLoc, samplerLoc, colLoc);
+            var sharedState = new SharedState(TextureUnit.Texture0, shaderVariables, sampler);
+
+            _QFontSharedState = sharedState;
+        }
+
+        private void InitialiseState(SharedState instanceState = null)
+        {
+            if (instanceState == null)
+            {
+                if (QFontSharedState == null) InitialiseStaticState();
+            }
+            else
+                _instanceSharedState = instanceState;
         }
 
         public static void CreateTextureFontFiles(Font font, string newFontName, QFontBuilderConfiguration config)
@@ -257,7 +313,7 @@ void main(void)
             if (transToVp != null)
                 qfont.Options.TransformToViewport = transToVp;
 
-            qfont.InitialiseShaders();
+            qfont.InitialiseState();
             qfont.InitVBOs();
 
             return qfont;
@@ -1305,12 +1361,12 @@ void main(void)
         {
 
             //ProjectionStack.DefaultStack.Begin();
-            GL.UseProgram(ShaderVariables.ShaderProgram);
+            GL.UseProgram(InstanceSharedState.ShaderVariables.ShaderProgram);
             //GL.Disable(EnableCap.CullFace);
             var mat = ProjectionStack.DefaultStack.GetOrtho();
             //mat = Matrix4.Identity;
             GL.Enable(EnableCap.Blend);
-            GL.UniformMatrix4(ShaderVariables.MVPUniformLocation, false, ref mat);
+            GL.UniformMatrix4(InstanceSharedState.ShaderVariables.MVPUniformLocation, false, ref mat);
         }
 
         public void End()
@@ -1338,7 +1394,7 @@ void main(void)
             for (int i = 0; i < VertexArrayObjects.Length; i++)
             {
                 int textureID = fontData.Pages[i].GLTexID;
-                VertexArrayObjects[i] = new QVertexArrayObject(ref ShaderVariables, textureID);
+                VertexArrayObjects[i] = new QVertexArrayObject(QFontSharedState, textureID);
             }
 
             //if (fontData.dropShadow != null)
@@ -1365,15 +1421,12 @@ void main(void)
 
         public void DrawVBOs()
         {
-            GL.UseProgram(ShaderVariables.ShaderProgram);
-            GL.Uniform1(ShaderVariables.SamplerLocation, 0);
+            GL.UseProgram(InstanceSharedState.ShaderVariables.ShaderProgram);
+            GL.Uniform1(InstanceSharedState.ShaderVariables.SamplerLocation, 0);
             GL.PointSize(8);
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindSampler(0, sampler);
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapS, (int)TextureWrapMode.Clamp);
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapT, (int)TextureWrapMode.Clamp);
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.BindSampler(0, InstanceSharedState.SamplerID);
+
             //if (fontData.dropShadow != null)
             //    fontData.dropShadow.DrawVBOs();
 
@@ -1433,13 +1486,38 @@ void main(void)
 
     }
 
-    public struct ShaderVariables
+    public class ShaderVariables
     {
-        public int ShaderProgram;
-        public int MVPUniformLocation;
-        public int TextureCoordAttribLocation;
-        public int PositionCoordAttribLocation;
-        public int SamplerLocation;
-        public int ColorCoordAttribLocation;
+        public int ShaderProgram { get; private set; }
+        public int MVPUniformLocation { get; private set; }
+        public int TextureCoordAttribLocation { get; private set; }
+        public int PositionCoordAttribLocation { get; private set; }
+        public int SamplerLocation { get; private set; }
+        public int ColorCoordAttribLocation { get; private set; }
+
+        public ShaderVariables(int shaderProgram, int mvpUniformLocation, int textureCoordAttribLocation, int positionCoordAttribLocation, int samplerLocation, int colorCoordAttribLocation)
+        {
+            ColorCoordAttribLocation = colorCoordAttribLocation;
+            SamplerLocation = samplerLocation;
+            PositionCoordAttribLocation = positionCoordAttribLocation;
+            TextureCoordAttribLocation = textureCoordAttribLocation;
+            MVPUniformLocation = mvpUniformLocation;
+            ShaderProgram = shaderProgram;
+        }
+
+    }
+
+    public class SharedState
+    {
+        public TextureUnit DefaultTextureUnit { get; private set; }
+        public ShaderVariables ShaderVariables { get; private set; }
+        public int SamplerID { get; private set; }
+
+        public SharedState(TextureUnit defaultTextureUnit, ShaderVariables shaderVariables, int samplerId)
+        {
+            DefaultTextureUnit = defaultTextureUnit;
+            ShaderVariables = shaderVariables;
+            SamplerID = samplerId;
+        }
     }
 }
