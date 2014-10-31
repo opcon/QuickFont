@@ -395,31 +395,23 @@ namespace StarterKit
 
         private void PrintCommentWithLine(string comment, QFontAlignment alignment, float xOffset, ref float yOffset)
         {
-            //PrintCommentWithLine(mainText, comment, alignment, xOffset, ref yOffset);
+            PrintCommentWithLine(mainText, comment, alignment, xOffset, ref yOffset);
         }
 
-        //private void PrintCommentWithLine(QFont font, string comment, QFontAlignment alignment, float xOffset, ref float yOffset)
-        //{
+        private void PrintCommentWithLine(QFont font, string comment, QFontAlignment alignment, float xOffset, ref float yOffset)
+        {
+            yOffset += 20;
+            font.PrintToVBO(comment, new Vector3(xOffset, -Height + yOffset, 0f), new SizeF(Width - 60, -1), alignment);
+            var bounds = font.Measure(comment, new SizeF(Width - 60, float.MaxValue), alignment);
 
+            //GL.Disable(EnableCap.Texture2D);
+            //GL.Begin(BeginMode.Lines);
+            //GL.Color4(1.0f, 0f, 0f, 1f); GL.Vertex2(0f, 0f);
+            //GL.Color4(1.0f, 0f, 0f, 1f); GL.Vertex2(0f, bounds.Height + 20f);
+            //GL.End();
 
-        //    GL.PushMatrix();
-        //    yOffset += 20;
-        //    GL.Translate((int)xOffset, yOffset, 0f);
-        //    font.Print(comment, alignment);
-        //    var bounds = font.Measure(comment, new SizeF(Width - 60, float.MaxValue), alignment);
-
-
-        //    GL.Disable(EnableCap.Texture2D);
-        //    GL.Begin(BeginMode.Lines);
-        //        GL.Color4(1.0f, 0f, 0f, 1f); GL.Vertex2(0f, 0f);
-        //        GL.Color4(1.0f, 0f, 0f, 1f); GL.Vertex2(0f, bounds.Height + 20f);
-        //    GL.End();
-
-        //    yOffset += bounds.Height;
-
-        //    GL.PopMatrix();
-
-        //}
+            yOffset += bounds.Height;
+        }
 
         
         private void PrintCode(string code, ref float yOffset)
@@ -579,33 +571,32 @@ namespace StarterKit
                     }
                     break;
 
-                //case 3:
-                //    {
+                case 3:
+                    {
+                        float yOffset = 20;
 
-                //        float yOffset = 20;
+                        heading2.ResetVBOs();
+                        heading2.PrintToVBO("Alignment", new Vector3(20f, -Height + yOffset, 0f), QFontAlignment.Left);
+                        heading2.Draw();
 
-                //        mainText.Begin();
+                        yOffset += heading2.Measure("Easy as ABC!").Height;
 
+                        mainText.ResetVBOs();
+                        codeText.ResetVBOs();
 
-                //        GL.PushMatrix();
-                //        GL.Translate(20f, yOffset, 0f);
-                //        heading2.Print("Alignment", QFontAlignment.Left);
-                //        yOffset += heading2.Measure("Easy as ABC!").Height;
-                //        GL.PopMatrix();
-
-                //        PrintCommentWithLine(whenPrintingText, QFontAlignment.Left, Width * 0.5f, ref yOffset);
-                //        PrintCode(printWithFont2, ref yOffset);
+                        PrintCommentWithLine(whenPrintingText, QFontAlignment.Left, Width * 0.5f, ref yOffset);
+                        PrintCode(printWithFont2, ref yOffset);
 
 
-                //        PrintCommentWithLine(righAlignedText, QFontAlignment.Right, Width * 0.5f, ref yOffset);
-                //        yOffset += 10f;
+                        PrintCommentWithLine(righAlignedText, QFontAlignment.Right, Width * 0, ref yOffset);
+                        yOffset += 10f;
 
-                //        PrintCommentWithLine(centredTextAsYou, QFontAlignment.Centre, Width * 0.5f, ref yOffset);
-   
-                //        mainText.End();
+                        PrintCommentWithLine(centredTextAsYou, QFontAlignment.Centre, Width * 0.5f, ref yOffset);
 
-                //    }
-                //    break;
+                        mainText.Draw();
+                        codeText.Draw();
+                    }
+                    break;
 
 
 
