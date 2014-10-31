@@ -84,14 +84,11 @@ namespace QuickFont
                     _bufferMaxVertexCount += InitialSize;
                     _bufferSize = _bufferMaxVertexCount*BlittableValueType.StrideOf(default(QVertex));
                 }
-                GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(VertexCount * BlittableValueType.StrideOf(default(QVertex))), VertexArray,
-                    BufferUsageHint.StreamDraw);
+
+                //reinitialise buffer with new _bufferSize
+                GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr) _bufferSize, IntPtr.Zero, BufferUsageHint.StreamDraw);
             }
-            else
-            {
-                GL.BindBuffer(BufferTarget.ArrayBuffer, VBOID);
-                GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, (IntPtr) (VertexCount * BlittableValueType.StrideOf(default(QVertex))), VertexArray);
-            }
+            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, (IntPtr) (VertexCount*BlittableValueType.StrideOf(default(QVertex))), VertexArray);
         }
 
         public void Reset()
