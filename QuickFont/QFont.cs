@@ -1207,6 +1207,18 @@ void main(void)
             GL.UniformMatrix4(InstanceSharedState.ShaderVariables.MVPUniformLocation, false, ref _projectionMatrix);
         }
 
+        /// <summary>
+        /// Helper method to reduce lines of code related to simple font drawing.
+        /// Calls Begin(), then LoadVBOs(), then DrawVBOs(), then End()
+        /// </summary>
+        public void Draw()
+        {
+            Begin();
+            LoadVBOs();
+            DrawVBOs();
+            End();
+        }
+
         public void End()
         {
         }
