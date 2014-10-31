@@ -607,7 +607,7 @@ void main(void)
         public void PrintToVBO(string text, Vector3 position, QFontAlignment alignment, Color color)
         {
             Options.Colour = color;
-            PrintOffset = position;
+            PrintOffset = TransformToViewport(position);
             PrintOrMeasure(text, alignment, false);
         }
 
