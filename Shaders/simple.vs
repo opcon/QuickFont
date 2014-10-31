@@ -18,4 +18,3 @@ void main(void)
 	vs_out.colour = in_colour;
 	gl_Position = proj_matrix * vec4(in_position, 1.); 
 //    gl_Position = vec4(0.,0.,0.,1.);
-}
