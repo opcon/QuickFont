@@ -283,16 +283,9 @@ void main(void)
             int tcLoc = GL.GetAttribLocation(prog, "in_tc");
             int colLoc = GL.GetAttribLocation(prog, "in_colour");
 
-//            int sampler = GL.GenSampler();
-//            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapS, (int) TextureWrapMode.ClampToBorder);
-//            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapT, (int) TextureWrapMode.ClampToBorder);
-//            GL.SamplerParameter(sampler, SamplerParameterName.TextureMinFilter, (int) TextureMinFilter.Linear);
-//            GL.SamplerParameter(sampler, SamplerParameterName.TextureMagFilter, (int) TextureMagFilter.Linear);
-            int sampler = 0;
-
             //Now we have all the information, time to create the immutable shared state object
             var shaderVariables = new ShaderVariables(prog, mvpLoc, tcLoc, posLoc, samplerLoc, colLoc);
-            var sharedState = new SharedState(TextureUnit.Texture0, shaderVariables, sampler);
+            var sharedState = new SharedState(TextureUnit.Texture0, shaderVariables);
 
             _QFontSharedState = sharedState;
         }
@@ -1264,7 +1257,6 @@ void main(void)
             GL.UseProgram(InstanceSharedState.ShaderVariables.ShaderProgram);
             GL.Uniform1(InstanceSharedState.ShaderVariables.SamplerLocation, 0);
             GL.ActiveTexture(InstanceSharedState.DefaultTextureUnit);
-//            GL.BindSampler(0, InstanceSharedState.SamplerID);
 
             if (fontData.dropShadow != null)
                 fontData.dropShadow.DrawVBOs();
@@ -1343,15 +1335,13 @@ void main(void)
 
     public class SharedState
     {
-        public SharedState(TextureUnit defaultTextureUnit, ShaderVariables shaderVariables, int samplerId)
+        public SharedState(TextureUnit defaultTextureUnit, ShaderVariables shaderVariables)
         {
             DefaultTextureUnit = defaultTextureUnit;
             ShaderVariables = shaderVariables;
-            SamplerID = samplerId;
         }
 
         public TextureUnit DefaultTextureUnit { get; private set; }
         public ShaderVariables ShaderVariables { get; private set; }
-        public int SamplerID { get; private set; }
     }
 }
