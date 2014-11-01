@@ -283,11 +283,12 @@ void main(void)
             int tcLoc = GL.GetAttribLocation(prog, "in_tc");
             int colLoc = GL.GetAttribLocation(prog, "in_colour");
 
-            int sampler = GL.GenSampler();
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapS, (int) TextureWrapMode.ClampToBorder);
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapT, (int) TextureWrapMode.ClampToBorder);
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureMinFilter, (int) TextureMinFilter.Linear);
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureMagFilter, (int) TextureMagFilter.Linear);
+//            int sampler = GL.GenSampler();
+//            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapS, (int) TextureWrapMode.ClampToBorder);
+//            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapT, (int) TextureWrapMode.ClampToBorder);
+//            GL.SamplerParameter(sampler, SamplerParameterName.TextureMinFilter, (int) TextureMinFilter.Linear);
+//            GL.SamplerParameter(sampler, SamplerParameterName.TextureMagFilter, (int) TextureMagFilter.Linear);
+            int sampler = 0;
 
             //Now we have all the information, time to create the immutable shared state object
             var shaderVariables = new ShaderVariables(prog, mvpLoc, tcLoc, posLoc, samplerLoc, colLoc);
@@ -1263,7 +1264,7 @@ void main(void)
             GL.UseProgram(InstanceSharedState.ShaderVariables.ShaderProgram);
             GL.Uniform1(InstanceSharedState.ShaderVariables.SamplerLocation, 0);
             GL.ActiveTexture(InstanceSharedState.DefaultTextureUnit);
-            GL.BindSampler(0, InstanceSharedState.SamplerID);
+//            GL.BindSampler(0, InstanceSharedState.SamplerID);
 
             if (fontData.dropShadow != null)
                 fontData.dropShadow.DrawVBOs();
