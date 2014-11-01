@@ -184,7 +184,7 @@ void main(void)
 
         private void InitialiseQFont(Font font, QFontBuilderConfiguration config, QFontData data = null)
         {
-            ProjectionMatrix = Matrix4.Identity;
+            if (ProjectionMatrix == Matrix4.Zero) ProjectionMatrix = Matrix4.Identity;
 
             fontData = data ?? BuildFont(font, config, null);
 
