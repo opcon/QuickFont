@@ -1,17 +1,13 @@
-#version 430 core
+#version 130
 
 uniform sampler2D tex_object;
 
-in VS_OUT
-{
-	vec2 tc;
-	vec4 colour;
-} fs_in;
+in vec2 tc;
+in vec4 colour;
 
-out vec4 colour;
+out vec4 fragColour;
 
 void main(void)
 {
-	colour = texture(tex_object, fs_in.tc.st) * vec4(fs_in.colour);
-    //colour = vec4(0., 0.5, 0., 1.0);
+	fragColour = texture(tex_object, tc) * vec4(colour);
 }

@@ -11,24 +11,20 @@ namespace QuickFont
     public class QFont
     {
         //private QFontRenderOptions options = new QFontRenderOptions();
-        private const string fragShaderSource = @"#version 430 core
+        private const string fragShaderSource = @"#version 130
 
 uniform sampler2D tex_object;
 
-in VS_OUT
-{
-	vec2 tc;
-	vec4 colour;
-} fs_in;
+in vec2 tc;
+in vec4 colour;
 
-out vec4 colour;
+out vec4 fragColour;
 
 void main(void)
 {
-	colour = texture(tex_object, fs_in.tc.st) * vec4(fs_in.colour);
-    //colour = vec4(0., 0.5, 0., 1.0);
+	fragColour = texture(tex_object, tc) * vec4(colour);
 }";
-        private const string vertShaderSource = @"#version 430 core
+        private const string vertShaderSource = @"#version 130
 
 uniform mat4 proj_matrix;
 
@@ -36,18 +32,14 @@ in vec3 in_position;
 in vec2 in_tc;
 in vec4 in_colour;
 
-out VS_OUT
-{
-	vec2 tc;
-	vec4 colour;
-} vs_out;
+out vec2 tc;
+out vec4 colour;
 
 void main(void)
 {
-	vs_out.tc = in_tc;
-	vs_out.colour = in_colour;
+	tc = in_tc;
+	colour = in_colour;
 	gl_Position = proj_matrix * vec4(in_position, 1.); 
-//    gl_Position = vec4(0.,0.,0.,1.);
 }";
 
         private static SharedState _QFontSharedState;
