@@ -415,6 +415,8 @@ void main(void)
             else
                 RenderDropShadow(x, y, c, glyph);
 
+            y = -y;
+
             TexturePage sheet = fontData.Pages[glyph.page];
 
             float tx1 = (float) (glyph.rect.X)/sheet.Width;
@@ -427,10 +429,10 @@ void main(void)
             var tv3 = new Vector2(tx2, ty2);
             var tv4 = new Vector2(tx2, ty1);
 
-            Vector3 v1 = PrintOffset + new Vector3(x, y + glyph.yOffset, 0);
-            Vector3 v2 = PrintOffset + new Vector3(x, y + glyph.yOffset + glyph.rect.Height, 0);
-            Vector3 v3 = PrintOffset + new Vector3(x + glyph.rect.Width, y + glyph.yOffset + glyph.rect.Height, 0);
-            Vector3 v4 = PrintOffset + new Vector3(x + glyph.rect.Width, y + glyph.yOffset, 0);
+            Vector3 v1 = PrintOffset + new Vector3(x, y - glyph.yOffset, 0);
+            Vector3 v2 = PrintOffset + new Vector3(x, y - glyph.yOffset - glyph.rect.Height, 0);
+            Vector3 v3 = PrintOffset + new Vector3(x + glyph.rect.Width, y - glyph.yOffset - glyph.rect.Height, 0);
+            Vector3 v4 = PrintOffset + new Vector3(x + glyph.rect.Width, y - glyph.yOffset, 0);
 
             Color color;
             if (fontData.isDropShadow)
