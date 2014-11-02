@@ -561,42 +561,42 @@ void main(void)
             return new Vector3(LockToPixel(TransformPositionToViewport(input.Xy))) {Z = input.Z};
         }
 
-        public void Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment)
+        public SizeF Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment)
         {
             ProcessedText processedText = ProcessText(text, maxSize, alignment);
-            Print(processedText, TransformToViewport(position));
+            return Print(processedText, TransformToViewport(position));
         }
 
-        public void Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color colour)
+        public SizeF Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color colour)
         {
             ProcessedText processedText = ProcessText(text, maxSize, alignment);
-            Print(processedText, TransformToViewport(position), colour);
+            return Print(processedText, TransformToViewport(position), colour);
         }
 
-        public void Print(ProcessedText processedText, Vector3 position)
+        public SizeF Print(ProcessedText processedText, Vector3 position)
         {
             PrintOffset = TransformToViewport(position);
-            PrintOrMeasure(processedText, false);
+            return PrintOrMeasure(processedText, false);
         }
 
-        public void Print(ProcessedText processedText, Vector3 position, Color colour)
+        public SizeF Print(ProcessedText processedText, Vector3 position, Color colour)
         {
             Options.Colour = colour;
             PrintOffset = TransformToViewport(position);
-            PrintOrMeasure(processedText, false);
+            return PrintOrMeasure(processedText, false);
         }
 
-        public void Print(string text, Vector3 position, QFontAlignment alignment)
+        public SizeF Print(string text, Vector3 position, QFontAlignment alignment)
         {
             PrintOffset = TransformToViewport(position);
-            PrintOrMeasure(text, alignment, false);
+            return PrintOrMeasure(text, alignment, false);
         }
 
-        public void Print(string text, Vector3 position, QFontAlignment alignment, Color color)
+        public SizeF Print(string text, Vector3 position, QFontAlignment alignment, Color color)
         {
             Options.Colour = color;
             PrintOffset = TransformToViewport(position);
-            PrintOrMeasure(text, alignment, false);
+            return PrintOrMeasure(text, alignment, false);
         }
 
         public SizeF Measure(string text, QFontAlignment alignment = QFontAlignment.Left)
