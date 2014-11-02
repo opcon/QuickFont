@@ -561,38 +561,38 @@ void main(void)
             return new Vector3(LockToPixel(TransformPositionToViewport(input.Xy))) {Z = input.Z};
         }
 
-        public void PrintToVBO(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment)
+        public void Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment)
         {
             ProcessedText processedText = ProcessText(text, maxSize, alignment);
-            PrintToVBO(processedText, TransformToViewport(position));
+            Print(processedText, TransformToViewport(position));
         }
 
-        public void PrintToVBO(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color colour)
+        public void Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color colour)
         {
             ProcessedText processedText = ProcessText(text, maxSize, alignment);
-            PrintToVBO(processedText, TransformToViewport(position), colour);
+            Print(processedText, TransformToViewport(position), colour);
         }
 
-        public void PrintToVBO(ProcessedText processedText, Vector3 position)
+        public void Print(ProcessedText processedText, Vector3 position)
         {
             PrintOffset = TransformToViewport(position);
             PrintOrMeasure(processedText, false);
         }
 
-        public void PrintToVBO(ProcessedText processedText, Vector3 position, Color colour)
+        public void Print(ProcessedText processedText, Vector3 position, Color colour)
         {
             Options.Colour = colour;
             PrintOffset = TransformToViewport(position);
             PrintOrMeasure(processedText, false);
         }
 
-        public void PrintToVBO(string text, Vector3 position, QFontAlignment alignment)
+        public void Print(string text, Vector3 position, QFontAlignment alignment)
         {
             PrintOffset = TransformToViewport(position);
             PrintOrMeasure(text, alignment, false);
         }
 
-        public void PrintToVBO(string text, Vector3 position, QFontAlignment alignment, Color color)
+        public void Print(string text, Vector3 position, QFontAlignment alignment, Color color)
         {
             Options.Colour = color;
             PrintOffset = TransformToViewport(position);
