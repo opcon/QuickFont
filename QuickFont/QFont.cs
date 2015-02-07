@@ -11,24 +11,20 @@ namespace QuickFont
     public class QFont
     {
         //private QFontRenderOptions options = new QFontRenderOptions();
-        private const string fragShaderSource = @"#version 430 core
+        private const string fragShaderSource = @"#version 130
 
 uniform sampler2D tex_object;
 
-in VS_OUT
-{
-	vec2 tc;
-	vec4 colour;
-} fs_in;
+in vec2 tc;
+in vec4 colour;
 
-out vec4 colour;
+out vec4 fragColour;
 
 void main(void)
 {
-	colour = texture(tex_object, fs_in.tc.st) * vec4(fs_in.colour);
-    //colour = vec4(0., 0.5, 0., 1.0);
+	fragColour = texture(tex_object, tc) * vec4(colour);
 }";
-        private const string vertShaderSource = @"#version 430 core
+        private const string vertShaderSource = @"#version 130
 
 uniform mat4 proj_matrix;
 
@@ -36,18 +32,14 @@ in vec3 in_position;
 in vec2 in_tc;
 in vec4 in_colour;
 
-out VS_OUT
-{
-	vec2 tc;
-	vec4 colour;
-} vs_out;
+out vec2 tc;
+out vec4 colour;
 
 void main(void)
 {
-	vs_out.tc = in_tc;
-	vs_out.colour = in_colour;
+	tc = in_tc;
+	colour = in_colour;
 	gl_Position = proj_matrix * vec4(in_position, 1.); 
-//    gl_Position = vec4(0.,0.,0.,1.);
 }";
 
         private static SharedState _QFontSharedState;
@@ -192,7 +184,7 @@ void main(void)
 
         private void InitialiseQFont(Font font, QFontBuilderConfiguration config, QFontData data = null)
         {
-            ProjectionMatrix = Matrix4.Identity;
+            if (ProjectionMatrix == Matrix4.Zero) ProjectionMatrix = Matrix4.Identity;
 
             fontData = data ?? BuildFont(font, config, null);
 
@@ -291,15 +283,9 @@ void main(void)
             int tcLoc = GL.GetAttribLocation(prog, "in_tc");
             int colLoc = GL.GetAttribLocation(prog, "in_colour");
 
-            int sampler = GL.GenSampler();
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapS, (int) TextureWrapMode.ClampToBorder);
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapT, (int) TextureWrapMode.ClampToBorder);
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureMinFilter, (int) TextureMinFilter.Linear);
-            GL.SamplerParameter(sampler, SamplerParameterName.TextureMagFilter, (int) TextureMagFilter.Linear);
-
             //Now we have all the information, time to create the immutable shared state object
             var shaderVariables = new ShaderVariables(prog, mvpLoc, tcLoc, posLoc, samplerLoc, colLoc);
-            var sharedState = new SharedState(TextureUnit.Texture0, shaderVariables, sampler);
+            var sharedState = new SharedState(TextureUnit.Texture0, shaderVariables);
 
             _QFontSharedState = sharedState;
         }
@@ -429,6 +415,8 @@ void main(void)
             else
                 RenderDropShadow(x, y, c, glyph);
 
+            y = -y;
+
             TexturePage sheet = fontData.Pages[glyph.page];
 
             float tx1 = (float) (glyph.rect.X)/sheet.Width;
@@ -441,10 +429,10 @@ void main(void)
             var tv3 = new Vector2(tx2, ty2);
             var tv4 = new Vector2(tx2, ty1);
 
-            Vector3 v1 = PrintOffset + new Vector3(x, y + glyph.yOffset, 0);
-            Vector3 v2 = PrintOffset + new Vector3(x, y + glyph.yOffset + glyph.rect.Height, 0);
-            Vector3 v3 = PrintOffset + new Vector3(x + glyph.rect.Width, y + glyph.yOffset + glyph.rect.Height, 0);
-            Vector3 v4 = PrintOffset + new Vector3(x + glyph.rect.Width, y + glyph.yOffset, 0);
+            Vector3 v1 = PrintOffset + new Vector3(x, y - glyph.yOffset, 0);
+            Vector3 v2 = PrintOffset + new Vector3(x, y - glyph.yOffset - glyph.rect.Height, 0);
+            Vector3 v3 = PrintOffset + new Vector3(x + glyph.rect.Width, y - glyph.yOffset - glyph.rect.Height, 0);
+            Vector3 v4 = PrintOffset + new Vector3(x + glyph.rect.Width, y - glyph.yOffset, 0);
 
             Color color;
             if (fontData.isDropShadow)
@@ -573,42 +561,42 @@ void main(void)
             return new Vector3(LockToPixel(TransformPositionToViewport(input.Xy))) {Z = input.Z};
         }
 
-        public void PrintToVBO(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment)
+        public SizeF Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment)
         {
             ProcessedText processedText = ProcessText(text, maxSize, alignment);
-            PrintToVBO(processedText, TransformToViewport(position));
+            return Print(processedText, TransformToViewport(position));
         }
 
-        public void PrintToVBO(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color colour)
+        public SizeF Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color colour)
         {
             ProcessedText processedText = ProcessText(text, maxSize, alignment);
-            PrintToVBO(processedText, TransformToViewport(position), colour);
+            return Print(processedText, TransformToViewport(position), colour);
         }
 
-        public void PrintToVBO(ProcessedText processedText, Vector3 position)
+        public SizeF Print(ProcessedText processedText, Vector3 position)
         {
             PrintOffset = TransformToViewport(position);
-            PrintOrMeasure(processedText, false);
+            return PrintOrMeasure(processedText, false);
         }
 
-        public void PrintToVBO(ProcessedText processedText, Vector3 position, Color colour)
+        public SizeF Print(ProcessedText processedText, Vector3 position, Color colour)
         {
             Options.Colour = colour;
             PrintOffset = TransformToViewport(position);
-            PrintOrMeasure(processedText, false);
+            return PrintOrMeasure(processedText, false);
         }
 
-        public void PrintToVBO(string text, Vector3 position, QFontAlignment alignment)
+        public SizeF Print(string text, Vector3 position, QFontAlignment alignment)
         {
             PrintOffset = TransformToViewport(position);
-            PrintOrMeasure(text, alignment, false);
+            return PrintOrMeasure(text, alignment, false);
         }
 
-        public void PrintToVBO(string text, Vector3 position, QFontAlignment alignment, Color color)
+        public SizeF Print(string text, Vector3 position, QFontAlignment alignment, Color color)
         {
             Options.Colour = color;
             PrintOffset = TransformToViewport(position);
-            PrintOrMeasure(text, alignment, false);
+            return PrintOrMeasure(text, alignment, false);
         }
 
         public SizeF Measure(string text, QFontAlignment alignment = QFontAlignment.Left)
@@ -1271,7 +1259,6 @@ void main(void)
             GL.UseProgram(InstanceSharedState.ShaderVariables.ShaderProgram);
             GL.Uniform1(InstanceSharedState.ShaderVariables.SamplerLocation, 0);
             GL.ActiveTexture(InstanceSharedState.DefaultTextureUnit);
-            GL.BindSampler(0, InstanceSharedState.SamplerID);
 
             if (fontData.dropShadow != null)
                 fontData.dropShadow.DrawVBOs();
@@ -1350,15 +1337,13 @@ void main(void)
 
     public class SharedState
     {
-        public SharedState(TextureUnit defaultTextureUnit, ShaderVariables shaderVariables, int samplerId)
+        public SharedState(TextureUnit defaultTextureUnit, ShaderVariables shaderVariables)
         {
             DefaultTextureUnit = defaultTextureUnit;
             ShaderVariables = shaderVariables;
-            SamplerID = samplerId;
         }
 
         public TextureUnit DefaultTextureUnit { get; private set; }
         public ShaderVariables ShaderVariables { get; private set; }
-        public int SamplerID { get; private set; }
     }
 }
