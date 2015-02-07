@@ -25,8 +25,8 @@ qfont.ProjectionMatrix = projectionMatrix;
 
 Print to the vertex buffer
 ```C#
-qfont.PrintToVBO("i love", new Vector3(0, 0, 0), Color.Red);
-qfont.PrintToVBO("quickfont", new Vector3(0, 10, 0), Color.Blue);
+qfont.Print("i love", new Vector3(0, 0, 0), Color.Red);
+qfont.Print("quickfont", new Vector3(0, 10, 0), Color.Blue);
 ```
 
 When you've printed everything call Load 
