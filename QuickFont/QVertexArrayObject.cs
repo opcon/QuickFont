@@ -26,6 +26,13 @@ namespace QuickFont
         private List<QVertex> Vertices;
         private QVertex[] VertexArray;
 
+        private static readonly int QVertexStride;
+
+        static QVertexArrayObject()
+        {
+            QVertexStride = BlittableValueType.StrideOf(default(QVertex));
+        }
+
         public QVertexArrayObject(SharedState state, int textureID)
         {
             QFontSharedState = state;
@@ -33,7 +40,7 @@ namespace QuickFont
 
             Vertices = new List<QVertex>(InitialSize);
             _bufferMaxVertexCount = InitialSize;
-            _bufferSize = _bufferMaxVertexCount * BlittableValueType.StrideOf(default(QVertex));
+            _bufferSize = _bufferMaxVertexCount * QVertexStride;
 
             VAOID = GL.GenVertexArray();
 
@@ -43,7 +50,7 @@ namespace QuickFont
             GL.GenBuffers(1, out VBOID);
             GL.BindBuffer(BufferTarget.ArrayBuffer, VBOID);
 
-            int stride = BlittableValueType.StrideOf(default(QVertex));
+            int stride = QVertexStride;
             GL.EnableVertexAttribArray(QFontSharedState.ShaderVariables.PositionCoordAttribLocation);
             GL.EnableVertexAttribArray(QFontSharedState.ShaderVariables.TextureCoordAttribLocation);
             GL.EnableVertexAttribArray(QFontSharedState.ShaderVariables.ColorCoordAttribLocation);
@@ -82,13 +89,13 @@ namespace QuickFont
                 while (VertexCount > _bufferMaxVertexCount)
                 {
                     _bufferMaxVertexCount += InitialSize;
-                    _bufferSize = _bufferMaxVertexCount*BlittableValueType.StrideOf(default(QVertex));
+                    _bufferSize = _bufferMaxVertexCount*QVertexStride;
                 }
 
                 //reinitialise buffer with new _bufferSize
                 GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr) _bufferSize, IntPtr.Zero, BufferUsageHint.StreamDraw);
             }
-            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, (IntPtr) (VertexCount*BlittableValueType.StrideOf(default(QVertex))), VertexArray);
+            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, (IntPtr) (VertexCount*QVertexStride), VertexArray);
         }
 
         public void Reset()
