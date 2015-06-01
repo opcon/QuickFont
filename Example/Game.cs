@@ -628,8 +628,7 @@ namespace StarterKit
                 controlsText.Print("<- Press [Left]", pos, QFontAlignment.Left, col);
             }
             controlsText.LoadVBOs();
-            controlsText.DrawVBOs();
-            controlsText.End();
+            controlsText.GlFont.DrawVBOs();
 
             SwapBuffers();
         }

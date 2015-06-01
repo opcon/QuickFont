@@ -50,7 +50,6 @@ void main(void)
 
         private Vector3 _printOffset;
         private Matrix4 _projectionMatrix;
-        internal QFontData fontData;
 
         public Vector3 PrintOffset
         {
@@ -58,8 +57,8 @@ void main(void)
             set
             {
                 _printOffset = value;
-                if (fontData.dropShadow != null)
-                    fontData.dropShadow.PrintOffset = value;
+                if (GlFont.FontData.dropShadow != null)
+                    GlFont.FontData.dropShadow.PrintOffset = value;
             }
         }
 
@@ -84,7 +83,7 @@ void main(void)
 
         public static SharedState QFontSharedState
         {
-            get { return _QFontSharedState; }
+            get { return QFont._QFontSharedState; }
         }
 
         public SharedState InstanceSharedState
@@ -100,18 +99,23 @@ void main(void)
 
         public float LineSpacing
         {
-            get { return (float) Math.Ceiling(fontData.maxGlyphHeight*Options.LineSpacing); }
+            get { return (float) Math.Ceiling(GlFont.FontData.maxGlyphHeight*Options.LineSpacing); }
         }
 
         public bool IsMonospacingActive
         {
-            get { return fontData.IsMonospacingActive(Options); }
+            get { return GlFont.FontData.IsMonospacingActive(Options); }
         }
 
 
         public float MonoSpaceWidth
         {
-            get { return fontData.GetMonoSpaceWidth(Options); }
+            get { return GlFont.FontData.GetMonoSpaceWidth(Options); }
+        }
+
+        public GlFont GlFont
+        {
+            get { return _glFont; }
         }
 
         #region Constructors and font builders
@@ -122,17 +126,7 @@ void main(void)
         /// <param name="fontData"></param>
         internal QFont(QFontData fontData)
         {
-            this.fontData = fontData;
-        }
-
-        /// <summary>
-        ///     Initialise QFont from a System.Drawing.Font object
-        /// </summary>
-        /// <param name="font"></param>
-        /// <param name="config"></param>
-        public QFont(Font font, QFontBuilderConfiguration config = null)
-        {
-            InitialiseQFont(font, config);
+            _glFont = new GlFont(fontData);
         }
 
         /// <summary>
@@ -151,9 +145,9 @@ void main(void)
             if (config.TransformToCurrentOrthogProjection)
                 transToVp = OrthogonalTransform(out fontScale);
 
-            using (Font font = GetFont(fontPath, size, style, config == null ? 1 : config.SuperSampleLevels, fontScale))
+            using (Font font = QuickFont.GlFont.GetFont(fontPath, size, style, config == null ? 1 : config.SuperSampleLevels, fontScale))
             {
-                InitialiseQFont(font, config);
+                _glFont = new GlFont(font, config);
             }
 
             if (transToVp != null)
@@ -169,55 +163,18 @@ void main(void)
         /// <param name="proj"></param>
         public QFont(string qfontPath, QFontConfiguration loaderConfig, float downSampleFactor = 1.0f, Matrix4 projectionMatrix = default(Matrix4))
         {
+            _glFont = new GlFont(this);
             _projectionMatrix = projectionMatrix;
             Viewport? transToVp = null;
             float fontScale = 1f;
             if (loaderConfig.TransformToCurrentOrthogProjection)
                 transToVp = OrthogonalTransform(out fontScale);
 
-            InitialiseQFont(null, new QFontBuilderConfiguration(loaderConfig), Builder.LoadQFontDataFromFile(qfontPath, downSampleFactor*fontScale, loaderConfig));
+            GlFont.InitialiseQFont(null, new QFontBuilderConfiguration(loaderConfig), Builder.LoadQFontDataFromFile(qfontPath, downSampleFactor*fontScale, loaderConfig));
             ViewportHelper.CurrentViewport.ToString();
 
             if (transToVp != null)
                 Options.TransformToViewport = transToVp;
-        }
-
-        private void InitialiseQFont(Font font, QFontBuilderConfiguration config, QFontData data = null)
-        {
-            if (ProjectionMatrix == Matrix4.Zero) ProjectionMatrix = Matrix4.Identity;
-
-            fontData = data ?? BuildFont(font, config, null);
-
-            if (config.ShadowConfig != null)
-                Options.DropShadowActive = true;
-
-            //NOTE This should be the only usage of InitialiseState() (I think).
-            //TODO allow instance render states
-            InitialiseState();
-
-            //Always use VBOs
-            InitVBOs();
-        }
-
-        /// <summary>
-        ///     Returns a System.Drawing.Font object created from the specified font file
-        /// </summary>
-        /// <param name="fontPath">The path to the font file</param>
-        /// <param name="size"></param>
-        /// <param name="style"></param>
-        /// <param name="superSampleLevels"></param>
-        /// <param name="scale"></param>
-        /// <returns></returns>
-        private static Font GetFont(string fontPath, float size, FontStyle style, int superSampleLevels = 1, float scale = 1.0f)
-        {
-            var pfc = new PrivateFontCollection();
-            pfc.AddFontFile(fontPath);
-            FontFamily fontFamily = pfc.Families[0];
-
-            if (!fontFamily.IsStyleAvailable(style))
-                throw new ArgumentException("Font file: " + fontPath + " does not support style: " + style);
-
-            return new Font(fontFamily, size*scale*superSampleLevels, style);
         }
 
         /// <summary>
@@ -306,29 +263,9 @@ void main(void)
             else
             {
                 _instanceSharedState = state;
-                if (fontData.dropShadow != null)
-                    fontData.dropShadow._instanceSharedState = state;
+                if (GlFont.FontData.dropShadow != null)
+                    GlFont.FontData.dropShadow._instanceSharedState = state;
             }
-        }
-
-        public static void CreateTextureFontFiles(Font font, string newFontName, QFontBuilderConfiguration config)
-        {
-            QFontData fontData = BuildFont(font, config, newFontName);
-            Builder.SaveQFontDataToFile(fontData, newFontName);
-        }
-
-        public static void CreateTextureFontFiles(string fileName, float size, string newFontName, QFontBuilderConfiguration config, FontStyle style = FontStyle.Regular)
-        {
-            using (Font font = GetFont(fileName, size, style, config == null ? 1 : config.SuperSampleLevels))
-            {
-                CreateTextureFontFiles(font, newFontName, config);
-            }
-        }
-
-        private static QFontData BuildFont(Font font, QFontBuilderConfiguration config, string saveName)
-        {
-            var builder = new Builder(font, config);
-            return builder.BuildFontData(saveName);
         }
 
         #endregion
@@ -339,12 +276,9 @@ void main(void)
         /// </summary>
         /// <param name="fontScale"></param>
         /// <param name="viewportTransform"></param>
+         [Obsolete]
         private Viewport OrthogonalTransform(out float fontScale)
         {
-            //bool isOrthog;
-            //float left, right, bottom, top;
-            //ViewportHelper.GetCurrentOrthogProjection(out isOrthog, out left, out right, out bottom, out top);
-
             if (!ViewportHelper.IsOrthographicProjection(ref _projectionMatrix))
                 throw new ArgumentOutOfRangeException(
                     "Current projection matrix was not Orthogonal. Please ensure that you have set an orthogonal projection before attempting to create a font with the TransformToOrthogProjection flag set to true.",
@@ -390,24 +324,24 @@ void main(void)
         private void RenderDropShadow(float x, float y, char c, QFontGlyph nonShadowGlyph)
         {
             //note can cast drop shadow offset to int, but then you can't move the shadow smoothly...
-            if (fontData.dropShadow != null && Options.DropShadowActive)
+            if (GlFont.FontData.dropShadow != null && Options.DropShadowActive)
             {
-                fontData.dropShadow.RenderGlyph(
-                    x + (fontData.meanGlyphWidth*Options.DropShadowOffset.X + nonShadowGlyph.rect.Width*0.5f),
+                GlFont.FontData.dropShadow.RenderGlyph(
+                    x + (GlFont.FontData.meanGlyphWidth*Options.DropShadowOffset.X + nonShadowGlyph.rect.Width*0.5f),
                     y +
-                    (fontData.meanGlyphWidth*Options.DropShadowOffset.Y + nonShadowGlyph.rect.Height*0.5f +
+                    (GlFont.FontData.meanGlyphWidth*Options.DropShadowOffset.Y + nonShadowGlyph.rect.Height*0.5f +
                      nonShadowGlyph.yOffset), c);
             }
         }
 
         public void RenderGlyph(float x, float y, char c)
         {
-            QFontGlyph glyph = fontData.CharSetMapping[c];
+            QFontGlyph glyph = GlFont.FontData.CharSetMapping[c];
 
             //note: it's not immediately obvious, but this combined with the paramteters to 
             //RenderGlyph for the shadow mean that we render the shadow centrally (despite it being a different size)
             //under the glyph
-            if (fontData.isDropShadow)
+            if (GlFont.FontData.isDropShadow)
             {
                 x -= (int) (glyph.rect.Width*0.5f);
                 y -= (int) (glyph.rect.Height*0.5f + glyph.yOffset);
@@ -417,7 +351,7 @@ void main(void)
 
             y = -y;
 
-            TexturePage sheet = fontData.Pages[glyph.page];
+            TexturePage sheet = GlFont.FontData.Pages[glyph.page];
 
             float tx1 = (float) (glyph.rect.X)/sheet.Width;
             float ty1 = (float) (glyph.rect.Y)/sheet.Height;
@@ -435,7 +369,7 @@ void main(void)
             Vector3 v4 = PrintOffset + new Vector3(x + glyph.rect.Width, y - glyph.yOffset, 0);
 
             Color color;
-            if (fontData.isDropShadow)
+            if (GlFont.FontData.isDropShadow)
                 color = Options.DropShadowColour;
             else
                 color = Options.Colour;
@@ -480,16 +414,15 @@ void main(void)
                     //space
                     if (c == ' ')
                     {
-                        xOffset += (float) Math.Ceiling(fontData.meanGlyphWidth*Options.WordSpacing);
+                        xOffset += (float) Math.Ceiling(GlFont.FontData.meanGlyphWidth*Options.WordSpacing);
                     }
                         //normal character
-                    else if (fontData.CharSetMapping.ContainsKey(c))
+                    else if (GlFont.FontData.CharSetMapping.ContainsKey(c))
                     {
-                        QFontGlyph glyph = fontData.CharSetMapping[c];
+                        QFontGlyph glyph = GlFont.FontData.CharSetMapping[c];
                         xOffset +=
                             (float)
-                                Math.Ceiling(glyph.rect.Width + fontData.meanGlyphWidth*Options.CharacterSpacing +
-                                             fontData.GetKerningPairCorrection(i, text, null));
+                                Math.Ceiling(glyph.rect.Width + GlFont.FontData.meanGlyphWidth*Options.CharacterSpacing + GlFont.FontData.GetKerningPairCorrection(i, text, null));
                     }
                 }
             }
@@ -639,9 +572,9 @@ void main(void)
             float yOffset = 0f;
 
             //make sure fontdata font's options are synced with the actual options
-            if (fontData.dropShadow != null && fontData.dropShadow.Options != Options)
+            if (GlFont.FontData.dropShadow != null && GlFont.FontData.dropShadow.Options != Options)
             {
-                fontData.dropShadow.Options = Options;
+                GlFont.FontData.dropShadow.Options = Options;
             }
 
             float maxXpos = float.MinValue;
@@ -674,9 +607,9 @@ void main(void)
                     minXPos = Math.Min(xOffset, minXPos);
 
                     //normal character
-                    if (c != ' ' && fontData.CharSetMapping.ContainsKey(c))
+                    if (c != ' ' && GlFont.FontData.CharSetMapping.ContainsKey(c))
                     {
-                        QFontGlyph glyph = fontData.CharSetMapping[c];
+                        QFontGlyph glyph = GlFont.FontData.CharSetMapping[c];
                         if (!measureOnly)
                             RenderGlyph(xOffset, yOffset, c);
                     }
@@ -686,15 +619,14 @@ void main(void)
                     else
                     {
                         if (c == ' ')
-                            xOffset += (float) Math.Ceiling(fontData.meanGlyphWidth*Options.WordSpacing);
+                            xOffset += (float) Math.Ceiling(GlFont.FontData.meanGlyphWidth*Options.WordSpacing);
                             //normal character
-                        else if (fontData.CharSetMapping.ContainsKey(c))
+                        else if (GlFont.FontData.CharSetMapping.ContainsKey(c))
                         {
-                            QFontGlyph glyph = fontData.CharSetMapping[c];
+                            QFontGlyph glyph = GlFont.FontData.CharSetMapping[c];
                             xOffset +=
                                 (float)
-                                    Math.Ceiling(glyph.rect.Width + fontData.meanGlyphWidth*Options.CharacterSpacing +
-                                                 fontData.GetKerningPairCorrection(i, text, null));
+                                    Math.Ceiling(glyph.rect.Width + GlFont.FontData.meanGlyphWidth*Options.CharacterSpacing + GlFont.FontData.GetKerningPairCorrection(i, text, null));
                         }
                     }
 
@@ -720,9 +652,9 @@ void main(void)
             float yOffset = yPos;
 
             //make sure fontdata font's options are synced with the actual options
-            if (fontData.dropShadow != null && fontData.dropShadow.Options != Options)
+            if (GlFont.FontData.dropShadow != null && GlFont.FontData.dropShadow.Options != Options)
             {
-                fontData.dropShadow.Options = Options;
+                GlFont.FontData.dropShadow.Options = Options;
             }
 
             float maxWidth = processedText.maxSize.Width;
@@ -828,9 +760,9 @@ void main(void)
             for (int i = 0; i < node.Text.Length; i++)
             {
                 char c = node.Text[i];
-                if (fontData.CharSetMapping.ContainsKey(c))
+                if (GlFont.FontData.CharSetMapping.ContainsKey(c))
                 {
-                    QFontGlyph glyph = fontData.CharSetMapping[c];
+                    QFontGlyph glyph = GlFont.FontData.CharSetMapping[c];
 
                     RenderGlyph(x, y, c);
 
@@ -840,8 +772,7 @@ void main(void)
                     else
                         x +=
                             (int)
-                                Math.Ceiling(glyph.rect.Width + fontData.meanGlyphWidth*Options.CharacterSpacing +
-                                             fontData.GetKerningPairCorrection(i, node.Text, node));
+                                Math.Ceiling(glyph.rect.Width + GlFont.FontData.meanGlyphWidth*Options.CharacterSpacing + GlFont.FontData.GetKerningPairCorrection(i, node.Text, node));
 
                     x += pixelsPerGap;
                     if (leftOverPixels > 0)
@@ -1149,7 +1080,7 @@ void main(void)
             maxSize.Width = TransformWidthToViewport(maxSize.Width);
 
             var nodeList = new TextNodeList(text);
-            nodeList.MeasureNodes(fontData, Options);
+            nodeList.MeasureNodes(GlFont.FontData, Options);
 
             //we "crumble" words that are two long so that that can be split up
             var nodesToCrumble = new List<TextNode>();
@@ -1161,7 +1092,7 @@ void main(void)
                 nodeList.Crumble(node, 1);
 
             //need to measure crumbled words
-            nodeList.MeasureNodes(fontData, Options);
+            nodeList.MeasureNodes(GlFont.FontData, Options);
 
 
             var processedText = new ProcessedText();
@@ -1193,11 +1124,6 @@ void main(void)
             Begin();
             LoadVBOs();
             DrawVBOs();
-            End();
-        }
-
-        public void End()
-        {
         }
 
         /// <summary>
@@ -1213,16 +1139,16 @@ void main(void)
 
         private void InitVBOs()
         {
-            VertexArrayObjects = new QVertexArrayObject[fontData.Pages.Length];
+            VertexArrayObjects = new QVertexArrayObject[GlFont.FontData.Pages.Length];
 
             for (int i = 0; i < VertexArrayObjects.Length; i++)
             {
-                int textureID = fontData.Pages[i].GLTexID;
+                int textureID = GlFont.FontData.Pages[i].GLTexID;
                 VertexArrayObjects[i] = new QVertexArrayObject(QFontSharedState, textureID);
             }
 
-            if (fontData.dropShadow != null)
-                fontData.dropShadow.InitVBOs();
+            if (GlFont.FontData.dropShadow != null)
+                GlFont.FontData.dropShadow.InitVBOs();
         }
 
         public void ResetVBOs()
@@ -1230,8 +1156,8 @@ void main(void)
             foreach (QVertexArrayObject buffer in VertexArrayObjects)
                 buffer.Reset();
 
-            if (fontData.dropShadow != null)
-                fontData.dropShadow.ResetVBOs();
+            if (GlFont.FontData.dropShadow != null)
+                GlFont.FontData.dropShadow.ResetVBOs();
         }
 
         public void LoadVBOs()
@@ -1239,8 +1165,8 @@ void main(void)
             foreach (QVertexArrayObject buffer in VertexArrayObjects)
                 buffer.Load();
 
-            if (fontData.dropShadow != null)
-                fontData.dropShadow.LoadVBOs();
+            if (GlFont.FontData.dropShadow != null)
+                GlFont.FontData.dropShadow.LoadVBOs();
         }
 
         public void DrawVBOs()
@@ -1249,8 +1175,8 @@ void main(void)
             GL.Uniform1(InstanceSharedState.ShaderVariables.SamplerLocation, 0);
             GL.ActiveTexture(InstanceSharedState.DefaultTextureUnit);
 
-            if (fontData.dropShadow != null)
-                fontData.dropShadow.DrawVBOs();
+            if (GlFont.FontData.dropShadow != null)
+                GlFont.FontData.dropShadow.GlFont.DrawVBOs();
 
             foreach (QVertexArrayObject buffer in VertexArrayObjects)
                 buffer.Draw();
@@ -1260,10 +1186,12 @@ void main(void)
 
         // Track whether Dispose has been called.
         private bool disposed;
+        private readonly GlFont _glFont;
 
-        // Implement IDisposable.
-        // Do not make this method virtual.
-        // A derived class should not be able to override this method.
+        /// <summary>
+        /// Releases unmanaged and - optionally - managed resources.
+        /// Do not make this method virtual. A derived class should not be able to override this method
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
@@ -1291,7 +1219,7 @@ void main(void)
                 // and unmanaged resources.
                 if (disposing)
                 {
-                    fontData.Dispose();
+                    GlFont.FontData.Dispose();
                     foreach (QVertexArrayObject buffer in VertexArrayObjects)
                         buffer.Dispose();
                 }

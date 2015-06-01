@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Configuration\QFontConfiguration.cs" />
     <Compile Include="Configuration\QFontKerningConfiguration.cs" />
+    <Compile Include="GlFont.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="KerningCalculator.cs" />
     <Compile Include="ViewportHelper.cs" />
