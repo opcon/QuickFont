@@ -214,7 +214,7 @@ namespace StarterKit
 
             heading1.Options.Colour = Color.FromArgb(new Color4(0.2f, 0.2f, 0.2f, 1.0f).ToArgb());
             mainText.Options.Colour = Color.White;
-            _processedText = mainText.ProcessText(preProcessed, new SizeF(Width - 40, -1), QFontAlignment.Justify);
+            _processedText = mainText.GlFontDrawingPimitive.ProcessText(preProcessed, new SizeF(Width - 40, -1), QFontAlignment.Justify);
             codeText.Options.Colour = Color.FromArgb(new Color4(0.0f, 0.0f, 0.4f, 1.0f).ToArgb());
 
             monoSpaced = new QFont("Fonts/Anonymous.ttf", 10, new QFontBuilderConfiguration());
@@ -267,7 +267,7 @@ namespace StarterKit
         private void PrintWithBounds(QFont font, string text, RectangleF bounds, QFontAlignment alignment, ref float yOffset)
         {
             float maxWidth = bounds.Width;
-            float height = font.Measure(text, new SizeF(maxWidth, -1), alignment).Height;
+            float height = font.GlFontDrawingPimitive.Measure(text, new SizeF(maxWidth, -1), alignment).Height;
 
             //gl.begin(beginmode.lineloop);
             //gl.vertex3(bounds.x, bounds.y, 0f);
@@ -276,7 +276,7 @@ namespace StarterKit
             //gl.vertex3(bounds.x, bounds.y + height, 0f);
             //gl.end();
 
-            font.Print(text, new Vector3(bounds.X, Height - yOffset, 0), new SizeF(maxWidth, float.MaxValue), alignment);
+            font.GlFontDrawingPimitive.Print(text, new Vector3(bounds.X, Height - yOffset, 0), new SizeF(maxWidth, float.MaxValue), alignment);
 
             yOffset += height;
         }       
@@ -293,8 +293,8 @@ namespace StarterKit
         {
             yOffset += 20;
             var pos = new Vector3(30f, Height - yOffset, 0f);
-            font.Print(comment, pos, new SizeF(Width - 60, -1), alignment);
-            yOffset += font.Measure(comment, new SizeF(Width - 60, -1), alignment).Height;
+            font.GlFontDrawingPimitive.Print(comment, pos, new SizeF(Width - 60, -1), alignment);
+            yOffset += font.GlFontDrawingPimitive.Measure(comment, new SizeF(Width - 60, -1), alignment).Height;
         }
 
         private void PrintCommentWithLine(string comment, QFontAlignment alignment, float xOffset, ref float yOffset)
@@ -305,8 +305,8 @@ namespace StarterKit
         private void PrintCommentWithLine(QFont font, string comment, QFontAlignment alignment, float xOffset, ref float yOffset)
         {
             yOffset += 20;
-            font.Print(comment, new Vector3(xOffset, Height - yOffset, 0f), new SizeF(Width - 60, -1), alignment);
-            var bounds = font.Measure(comment, new SizeF(Width - 60, float.MaxValue), alignment);
+            font.GlFontDrawingPimitive.Print(comment, new Vector3(xOffset, Height - yOffset, 0f), new SizeF(Width - 60, -1), alignment);
+            var bounds = font.GlFontDrawingPimitive.Measure(comment, new SizeF(Width - 60, float.MaxValue), alignment);
 
             //GL.Disable(EnableCap.Texture2D);
             //GL.Begin(BeginMode.Lines);
@@ -322,8 +322,8 @@ namespace StarterKit
         {
             yOffset += 20;
             var pos = new Vector3(50f, Height - yOffset, 0f);
-            codeText.Print(code, pos, new SizeF(Width - 50, -1), QFontAlignment.Left);
-            yOffset += codeText.Measure(code, new SizeF(Width - 50, -1), QFontAlignment.Left).Height;
+            codeText.GlFontDrawingPimitive.Print(code, pos, new SizeF(Width - 50, -1), QFontAlignment.Left);
+            yOffset += codeText.GlFontDrawingPimitive.Measure(code, new SizeF(Width - 50, -1), QFontAlignment.Left).Height;
         }
 
         /// <summary>
@@ -367,12 +367,12 @@ namespace StarterKit
                     heading2.ResetVBOs();
                     mainText.ResetVBOs();
 
-                    yOffset += heading1.Print("QuickFont", new Vector3((float) Width/2, Height, 0), QFontAlignment.Centre, heading1.Options.Colour).Height;
+                    yOffset += heading1.GlFontDrawingPimitive.Print("QuickFont", new Vector3((float) Width/2, Height, 0), QFontAlignment.Centre, heading1.Options.Colour).Height;
 
-                    yOffset += heading2.Print("Introduction", new Vector3(20, Height - yOffset, 0), QFontAlignment.Left, heading2.Options.Colour).Height;
+                    yOffset += heading2.GlFontDrawingPimitive.Print("Introduction", new Vector3(20, Height - yOffset, 0), QFontAlignment.Left, heading2.Options.Colour).Height;
 
                     yOffset += 20f;
-                    mainText.Print(introduction, new Vector3(30, Height - yOffset, 0), new SizeF(Width - 60f, -1), QFontAlignment.Justify);
+                    mainText.GlFontDrawingPimitive.Print(introduction, new Vector3(30, Height - yOffset, 0), new SizeF(Width - 60f, -1), QFontAlignment.Justify);
 
                     heading1.Draw();
                     heading2.Draw();
@@ -386,7 +386,7 @@ namespace StarterKit
                     mainText.ResetVBOs();
                     codeText.ResetVBOs();
 
-                    yOffset += heading2.Print("Easy as ABC!", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
+                    yOffset += heading2.GlFontDrawingPimitive.Print("Easy as ABC!", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
 
                     PrintComment(usingQuickFontIsSuperEasy, ref yOffset);
                     PrintCode(loadingAFont1, ref yOffset);
@@ -413,7 +413,7 @@ namespace StarterKit
                     mainText.ResetVBOs();
                     codeText.ResetVBOs();
 
-                    yOffset += heading2.Print("Alignment", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
+                    yOffset += heading2.GlFontDrawingPimitive.Print("Alignment", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
 
                     PrintCommentWithLine(whenPrintingText, QFontAlignment.Left, 20f, ref yOffset);
                     PrintCode(printWithFont2, ref yOffset);
@@ -437,10 +437,10 @@ namespace StarterKit
                     mainText.ResetVBOs();
                     codeText.ResetVBOs();
 
-                    yOffset += heading2.Print("Bounds and Justify", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
+                    yOffset += heading2.GlFontDrawingPimitive.Print("Bounds and Justify", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
 
                     yOffset += 20;
-                    yOffset += controlsText.Print("Press [Up], [Down] or [Enter]!", new Vector3(Width*0.5f, Height - yOffset, 0f), QFontAlignment.Centre).Height;
+                    yOffset += controlsText.GlFontDrawingPimitive.Print("Press [Up], [Down] or [Enter]!", new Vector3(Width*0.5f, Height - yOffset, 0f), QFontAlignment.Centre).Height;
 
                     float boundShrink = (int) (350*(1 - Math.Cos(boundsAnimationCnt*Math.PI*2)));
 
@@ -465,7 +465,7 @@ namespace StarterKit
                     codeText.ResetVBOs();
                     mainText.ResetVBOs();
 
-                    yOffset += heading2.Print("Your own Texture Fonts", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
+                    yOffset += heading2.GlFontDrawingPimitive.Print("Your own Texture Fonts", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
 
                     PrintComment(anotherCoolFeature, ref yOffset);
                     PrintCode(textureFontCode1, ref yOffset);
@@ -484,7 +484,7 @@ namespace StarterKit
                     codeText.ResetVBOs();
                     mainText.ResetVBOs();
 
-                    yOffset += heading2.Print("Your own Texture Fonts", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
+                    yOffset += heading2.GlFontDrawingPimitive.Print("Your own Texture Fonts", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
 
                     PrintComment(ifYouDoIntend, ref yOffset);
                     PrintCode(textureFontCode2, ref yOffset);
@@ -506,7 +506,7 @@ namespace StarterKit
 
                     heading2.Options.DropShadowOffset = new Vector2(0.1f + 0.2f*(float) Math.Sin(cnt), 0.1f + 0.2f*(float) Math.Cos(cnt));
 
-                    yOffset += heading2.Print("Drop Shadows", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
+                    yOffset += heading2.GlFontDrawingPimitive.Print("Drop Shadows", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
 
                     heading2.Options.DropShadowOffset = new Vector2(0.16f, 0.16f); //back to default
 
@@ -538,7 +538,7 @@ namespace StarterKit
 
                     monoSpaced.Options.CharacterSpacing = 0.05f;
 
-                    yOffset += heading2.Print("Monospaced Fonts", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
+                    yOffset += heading2.GlFontDrawingPimitive.Print("Monospaced Fonts", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
 
                     PrintComment(monoSpaced, hereIsSomeMono, QFontAlignment.Left, ref yOffset);
                     PrintCode(monoCode1, ref yOffset);
@@ -568,16 +568,16 @@ namespace StarterKit
                     mainText.ResetVBOs();
                     _benchmarkResults.ResetVBOs();
 
-                    yOffset += heading2.Print("Preprocessed Text", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
+                    yOffset += heading2.GlFontDrawingPimitive.Print("Preprocessed Text", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
                     yOffset += 20f;
 
                     _stopwatch = Stopwatch.StartNew();
-                    yOffset += mainText.Print(_processedText, new Vector3(20, Height - yOffset, 0)).Height;
+                    yOffset += mainText.GlFontDrawingPimitive.Print(_processedText, new Vector3(20, Height - yOffset, 0)).Height;
                     _stopwatch.Stop();
                     long preprocessed = _stopwatch.Elapsed.Ticks;
 
                     _stopwatch = Stopwatch.StartNew();
-                    yOffset += mainText.Print(nonPreProcessed, new Vector3(20, Height - yOffset, 0), new SizeF(Width - 40f, -1), QFontAlignment.Justify).Height;
+                    yOffset += mainText.GlFontDrawingPimitive.Print(nonPreProcessed, new Vector3(20, Height - yOffset, 0), new SizeF(Width - 40f, -1), QFontAlignment.Justify).Height;
                     _stopwatch.Stop();
                     long notpreprocessed = _stopwatch.Elapsed.Ticks;
 
@@ -589,7 +589,7 @@ namespace StarterKit
                         frameCount = 0;
                     }
 
-                    _benchmarkResults.Print(_benchResult, new Vector3(Width * 0.5f, Height - yOffset, 0), QFontAlignment.Centre, Color.White);
+                    _benchmarkResults.GlFontDrawingPimitive.Print(_benchResult, new Vector3(Width * 0.5f, Height - yOffset, 0), QFontAlignment.Centre, Color.White);
 
                     heading2.Draw();
                     mainText.Draw();
@@ -602,7 +602,7 @@ namespace StarterKit
                     heading2.ResetVBOs();
                     mainText.ResetVBOs();
 
-                    yOffset += heading2.Print("In Conclusion", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
+                    yOffset += heading2.GlFontDrawingPimitive.Print("In Conclusion", new Vector3(20f, Height - yOffset, 0f), QFontAlignment.Left).Height;
 
                     PrintComment(thereAreActually, ref yOffset);
 
@@ -618,17 +618,17 @@ namespace StarterKit
             var col = Color.FromArgb(new Color4(0.8f, 0.1f, 0.1f, 1.0f).ToArgb());
             if (currentDemoPage != lastPage)
             {
-                Vector3 pos = new Vector3(Width - 10 - 16 * (float)(1 + Math.Sin(cnt * 4)), controlsText.Measure("P").Height + 10f, 0f);
-                controlsText.Print("Press [Right] ->", pos, QFontAlignment.Right, col);
+                Vector3 pos = new Vector3(Width - 10 - 16 * (float)(1 + Math.Sin(cnt * 4)), controlsText.GlFontDrawingPimitive.Measure("P").Height + 10f, 0f);
+                controlsText.GlFontDrawingPimitive.Print("Press [Right] ->", pos, QFontAlignment.Right, col);
             }
 
             if (currentDemoPage != 1)
             {
-                var pos = new Vector3(10 + 16*(float) (1 + Math.Sin(cnt*4)), controlsText.Measure("P").Height + 10f, 0f);
-                controlsText.Print("<- Press [Left]", pos, QFontAlignment.Left, col);
+                var pos = new Vector3(10 + 16*(float) (1 + Math.Sin(cnt*4)), controlsText.GlFontDrawingPimitive.Measure("P").Height + 10f, 0f);
+                controlsText.GlFontDrawingPimitive.Print("<- Press [Left]", pos, QFontAlignment.Left, col);
             }
             controlsText.LoadVBOs();
-            controlsText.GlFont.DrawVBOs();
+            controlsText.GlFontDrawingPimitive.GlFont.DrawVBOs();
 
             SwapBuffers();
         }

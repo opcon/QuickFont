@@ -6,6 +6,9 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace QuickFont
 {
+    /// <summary>
+    /// Meant to be the actual Font... a resource like <see cref="System.Drawing.Font"/>. Because it holds the textures (the fonts).
+    /// </summary>
     public class GlFont
     {
         internal QFontData fontData;
@@ -101,7 +104,7 @@ namespace QuickFont
         /// <param name="superSampleLevels"></param>
         /// <param name="scale"></param>
         /// <returns></returns>
-        private static Font GetFont(string fontPath, float size, FontStyle style, int superSampleLevels = 1, float scale = 1.0f)
+        internal static Font GetFont(string fontPath, float size, FontStyle style, int superSampleLevels = 1, float scale = 1.0f)
         {
             var pfc = new PrivateFontCollection();
             pfc.AddFontFile(fontPath);
