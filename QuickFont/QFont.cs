@@ -1,8 +1,238 @@
-﻿using System.Diagnostics;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Text;
+using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
 namespace QuickFont
 {
+    /// <summary>
+    /// Meant to be the actual Font... a resource like <see cref="System.Drawing.Font"/>. Because it holds the textures (the fonts).
+    /// </summary>
+    public class QFont : IDisposable
+    {
+        private QFontData _fontData;
+        private bool _disposed;
+
+        internal QFont(QFontData fontData)
+        {
+            this._fontData = fontData;
+        }
+
+        /// <summary>
+        ///     Initialise QFont from a System.Drawing.Font object
+        /// </summary>
+        /// <param name="font"></param>
+        /// <param name="config"></param>
+        public QFont(Font font, QFontBuilderConfiguration config = null)
+        {
+            InitialiseGlFont(font, config);
+        }
+
+        /// <summary>
+        /// Initialise QFont from a font file
+        /// </summary>
+        /// <param name="fontPath">The font file to load</param>
+        /// <param name="size">The size.</param>
+        /// <param name="config">The configuration.</param>
+        /// <param name="style">The style.</param>
+        /// <param name="currentProjectionMatrix">The current projection matrix to create a font pixel perfect, for.</param>
+        public QFont(string fontPath, float size, QFontBuilderConfiguration config,
+            FontStyle style = FontStyle.Regular, Matrix4 currentProjectionMatrix = default(Matrix4))
+        {
+            Viewport? transToVp = null;
+            float fontScale = 1f;
+            if (config.TransformToCurrentOrthogProjection)
+                transToVp = OrthogonalTransform(out fontScale, currentProjectionMatrix);
+
+            using (Font font = GetFont(fontPath, size, style, config == null ? 1 : config.SuperSampleLevels, fontScale))
+            {
+                InitialiseGlFont(font, config);
+            }
+            
+//if (transToVp != null)_fontData.Pages
+//    Options.TransformToViewport = transToVp;
+        }
+
+        /// <summary>
+        ///     Initialise QFont from a .qfont file
+        /// </summary>
+        /// <param name="qfontPath">The .qfont file to load</param>
+        /// <param name="loaderConfig"></param>
+        /// <param name="downSampleFactor"></param>
+        /// <param name="currentProjectionMatrix">The current projection matrix to create a font pixel perfect, for.</param>
+        public QFont(string qfontPath, QFontConfiguration loaderConfig, float downSampleFactor = 1.0f, Matrix4 currentProjectionMatrix = default(Matrix4))
+        {
+            Viewport? transToVp = null;
+            float fontScale = 1f;
+            if (loaderConfig.TransformToCurrentOrthogProjection)
+                transToVp = OrthogonalTransform(out fontScale, currentProjectionMatrix);
+
+            InitialiseGlFont(null, new QFontBuilderConfiguration(loaderConfig), Builder.LoadQFontDataFromFile(qfontPath, downSampleFactor*fontScale, loaderConfig));
+            ViewportHelper.CurrentViewport.ToString();
+
+//if (transToVp != null)
+//    Options.TransformToViewport = transToVp;
+        }
+
+        internal QFontData FontData
+        {
+            set { _fontData = value; }
+            get { return _fontData; }
+        }
+
+        private void InitialiseGlFont(Font font, QFontBuilderConfiguration config, QFontData data = null)
+        {
+           // if (_qFont.ProjectionMatrix == Matrix4.Zero) _qFont.ProjectionMatrix = Matrix4.Identity;
+
+            _fontData = data ?? BuildFont(font, config, null);
+
+            //if (config.ShadowConfig != null)
+            //    _qFont.Options.DropShadowActive = true;
+
+            //NOTE This should be the only usage of InitialiseState() (I think).
+            //TODO allow instance render states
+            //InitialiseState();
+
+        }
+
+        /// <summary>
+        ///     Returns a System.Drawing.Font object created from the specified font file
+        /// </summary>
+        /// <param name="fontPath">The path to the font file</param>
+        /// <param name="size"></param>
+        /// <param name="style"></param>
+        /// <param name="superSampleLevels"></param>
+        /// <param name="scale"></param>
+        /// <returns></returns>
+        internal static Font GetFont(string fontPath, float size, FontStyle style, int superSampleLevels = 1, float scale = 1.0f)
+        {
+            var pfc = new PrivateFontCollection();
+            pfc.AddFontFile(fontPath);
+            FontFamily fontFamily = pfc.Families[0];
+
+            if (!fontFamily.IsStyleAvailable(style))
+                throw new ArgumentException("Font file: " + fontPath + " does not support style: " + style);
+
+            return new Font(fontFamily, size*scale*superSampleLevels, style);
+        }
+
+        public static void CreateTextureFontFiles(Font font, string newFontName, QFontBuilderConfiguration config)
+        {
+            QFontData fontData = BuildFont(font, config, newFontName);
+            Builder.SaveQFontDataToFile(fontData, newFontName);
+        }
+
+        public static void CreateTextureFontFiles(string fileName, float size, string newFontName, QFontBuilderConfiguration config, FontStyle style = FontStyle.Regular)
+        {
+            using (Font font = GetFont(fileName, size, style, config == null ? 1 : config.SuperSampleLevels))
+            {
+                CreateTextureFontFiles(font, newFontName, config);
+            }
+        }
+
+        private static QFontData BuildFont(Font font, QFontBuilderConfiguration config, string saveName)
+        {
+            var builder = new Builder(font, config);
+            return builder.BuildFontData(saveName);
+        }
+
+        /// <summary>
+        ///     When TransformToOrthogProjection is enabled, we need to get the current orthogonal transformation,
+        ///     the font scale, and ensure that the projection is actually orthogonal
+        /// </summary>
+        /// <param name="fontScale"></param>
+        /// <param name="viewportTransform"></param>
+        private Viewport OrthogonalTransform(out float fontScale, Matrix4 orthoProjMatrix)
+        {
+            if (!ViewportHelper.IsOrthographicProjection(ref orthoProjMatrix))
+                throw new ArgumentOutOfRangeException(
+                    "orthoProjMatrix",
+                    "Current projection matrix was not Orthogonal. Please ensure that you have set an orthogonal projection before attempting to create a font with the TransformToOrthogProjection flag set to true.");
+
+            //var viewportTransform = new Viewport(left, top, right - left, bottom - top);
+            Viewport viewportTransform = ViewportHelper.GetViewportFromOrthographicProjection(ref orthoProjMatrix);
+            fontScale = Math.Abs(ViewportHelper.CurrentViewport.Value.Height / viewportTransform.Height);
+            return viewportTransform;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            // Check to see if Dispose has already been called.
+            if (!_disposed)
+            {
+                // If disposing equals true, dispose all managed
+                // and unmanaged resources.
+                if (disposing)
+                {
+                    //GlFontDrawingPimitive.Font.FontData.Dispose();
+                    FontData.Dispose();
+                }
+
+                // Note disposing has been done.
+                _disposed = true;
+            }
+        }
+
+        /// <summary>
+        /// Measures the specified text. Helper method delegating functionality.
+        /// </summary>
+        /// <param name="text">The text.</param>
+        /// <param name="maxSize">The maximum size.</param>
+        /// <param name="alignment">The alignment.</param>
+        /// <returns>Measured size</returns>
+        public SizeF Measure(string text, SizeF maxSize, QFontAlignment alignment)
+        {
+            var test = new GlFontDrawingPimitive(this);
+            return test.Measure(text, maxSize, alignment);
+        }
+
+        /// <summary>
+        /// Measures the specified text. Helper method delegating functionality.
+        /// </summary>
+        /// <param name="text">The text.</param>
+        /// <param name="maxWidth">The maximum width.</param>
+        /// <param name="alignment">The alignment.</param>
+        /// <returns>
+        /// Measured size.
+        /// </returns>
+        public SizeF Measure(string text, float maxWidth, QFontAlignment alignment)
+        {
+            var test = new GlFontDrawingPimitive(this);
+            return test.Measure(text, maxWidth, alignment);
+        }
+
+        /// <summary>
+        /// Measures the specified text. Helper method delegating functionality.
+        /// </summary>
+        /// <param name="processedText">The processed text.</param>
+        /// <returns>
+        /// Measured size.
+        /// </returns>
+        public SizeF Measure(ProcessedText processedText)
+        {
+            var test = new GlFontDrawingPimitive(this);
+            return test.Measure(processedText);
+        }
+
+        /// <summary>
+        /// Measures the specified text. Helper method delegating functionality.
+        /// </summary>
+        /// <param name="text">The text.</param>
+        /// <param name="alignment">The alignment.</param>
+        /// <returns>
+        /// Measured size.
+        /// </returns>
+        public SizeF Measure(string text, QFontAlignment alignment = QFontAlignment.Left)
+        {
+            var test = new GlFontDrawingPimitive(this);
+            return test.Measure(text, alignment);
+        }
+    }
 }

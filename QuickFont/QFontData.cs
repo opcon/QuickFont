@@ -35,7 +35,7 @@ namespace QuickFont
         /// <summary>
         /// Null if no dropShadowFont is available
         /// </summary>
-        public GlFont dropShadowFont;
+        public QFont dropShadowFont;
 
         /// <summary>
         /// true if this font is dropShadowFont

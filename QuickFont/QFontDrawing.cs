@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
@@ -238,7 +239,7 @@ void main(void)
             _vertexArrayObject.Load();
         }
 
-        public void DrawVBOs()
+        private void DrawVBOs()
         {
             GL.UseProgram(InstanceSharedState.ShaderVariables.ShaderProgram);
             GL.Uniform1(InstanceSharedState.ShaderVariables.SamplerLocation, 0);
@@ -255,19 +256,44 @@ void main(void)
                 // Use DrawArrays - first draw drop shadows, then draw actual font primitive
                 if (primitive.ShadowVertexRepr.Count > 0)
                 {
-                    //int index = primitive.GlFont.FontData.CalculateMaxHeight();
-                    GL.BindTexture(TextureTarget.Texture2D, primitive.GlFont.FontData.Pages[0].GLTexID);
+                    //int index = primitive.Font.FontData.CalculateMaxHeight();
+                    GL.BindTexture(TextureTarget.Texture2D, primitive.Font.FontData.Pages[0].GLTexID);
                     GL.DrawArrays(dpt, 0, primitive.ShadowVertexRepr.Count);
                     start += primitive.ShadowVertexRepr.Count;
                 }
 
-                GL.BindTexture(TextureTarget.Texture2D, primitive.GlFont.FontData.Pages[0].GLTexID);
+                GL.BindTexture(TextureTarget.Texture2D, primitive.Font.FontData.Pages[0].GLTexID);
                 GL.DrawArrays(dpt, 0, primitive.CurrentVertexRepr.Count);
                 start += primitive.CurrentVertexRepr.Count;
 
                 GL.BindVertexArray(0);
                 GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             }
+        }
+
+        public SizeF Print(QFont font, ProcessedText processedText, Vector3 position, Color? colour = null)
+        {
+            var dp = new GlFontDrawingPimitive(font);
+            if( colour.HasValue)
+                return dp.Print(processedText, position, colour.Value);
+            else
+                return dp.Print(processedText, position);
+        }
+
+        public SizeF Print(QFont font, string text, Vector3 position, QFontAlignment alignment, Color? color = null)
+        {
+            var dp = new GlFontDrawingPimitive(font);
+            if( color.HasValue )
+                return dp.Print(text, position, alignment, color.Value);
+            return dp.Print(text, position, alignment);
+        }
+
+        public SizeF Print(QFont font, string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color? colour = null)
+        {
+            var dp = new GlFontDrawingPimitive(font);
+            if (colour.HasValue)
+                return dp.Print(text, position, maxSize, alignment, colour.Value);
+            return dp.Print(text, position, maxSize, alignment);
         }
 
         #region IDisposable impl
@@ -306,7 +332,7 @@ void main(void)
                 // and unmanaged resources.
                 if (disposing)
                 {
-                    //GlFontDrawingPimitive.GlFont.FontData.Dispose();
+                    //GlFontDrawingPimitive.Font.FontData.Dispose();
                     _vertexArrayObject.Dispose();
                 }
 

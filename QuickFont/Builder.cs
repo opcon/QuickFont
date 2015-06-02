@@ -518,7 +518,7 @@ namespace QuickFont
             return fontData;
         }
 
-        private static GlFont BuildDropShadow(List<QBitmap> sourceFontSheets, QFontGlyph[] sourceFontGlyphs, QFontShadowConfiguration shadowConfig, char[] charSet, byte alphaTolerance)
+        private static QFont BuildDropShadow(List<QBitmap> sourceFontSheets, QFontGlyph[] sourceFontGlyphs, QFontShadowConfiguration shadowConfig, char[] charSet, byte alphaTolerance)
         {
             QFontGlyph[] newGlyphs;
 
@@ -564,7 +564,7 @@ namespace QuickFont
                 sheet.Free();
 
             fontData.isDropShadow = true;
-            return new GlFont(fontData);
+            return new QFont(fontData);
         }
 
         private static void ScaleSheetsAndGlyphs(List<QBitmap> pages, QFontGlyph[] glyphs, float scale)
