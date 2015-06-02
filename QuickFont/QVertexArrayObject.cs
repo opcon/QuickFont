@@ -19,7 +19,6 @@ namespace QuickFont
 
         private int VAOID;
         private int VBOID;
-        private int _textureID;
 
         public readonly SharedState QFontSharedState;
 
@@ -33,10 +32,9 @@ namespace QuickFont
             QVertexStride = BlittableValueType.StrideOf(default(QVertex));
         }
 
-        public QVertexArrayObject(SharedState state, int textureID)
+        public QVertexArrayObject(SharedState state)
         {
             QFontSharedState = state;
-            _textureID = textureID;
 
             Vertices = new List<QVertex>(InitialSize);
             _bufferMaxVertexCount = InitialSize;
@@ -63,6 +61,12 @@ namespace QuickFont
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
+        }
+
+        internal void AddVertexes(IList<QVertex> vertices)
+        {
+            VertexCount += vertices.Count;
+            Vertices.AddRange(vertices);
         }
 
         public void AddVertex(Vector3 position, Vector2 textureCoord, Vector4 colour)
@@ -104,19 +108,10 @@ namespace QuickFont
             VertexCount = 0;
         }
 
-        public void Draw()
+        public void Bind()
         {
             GL.BindVertexArray(VAOID);
-            var dpt = PrimitiveType.Triangles;
-            GL.Enable(EnableCap.Texture2D);
-            GL.ActiveTexture(QFontSharedState.DefaultTextureUnit);
-            GL.BindTexture(TextureTarget.Texture2D, _textureID);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, VBOID);
-
-            GL.DrawArrays(dpt, 0, VertexCount);
-
-            GL.BindVertexArray(0);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, VAOID);
         }
 
         public void Dispose()

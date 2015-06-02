@@ -10,6 +10,8 @@ namespace QuickFont
     {
         private Vector3 _printOffset;
         private readonly GlFont _glFont;
+        private readonly IList<QVertex> _currentVertexRepr = new List<QVertex>();
+        private readonly IList<QVertex> _shadowVertexRepr = new List<QVertex>();
 
         public GlFontDrawingPimitive(GlFont glFont)
         {
@@ -23,8 +25,8 @@ namespace QuickFont
             set
             {
                 _printOffset = value;
-                if (GlFont.FontData.dropShadow != null)
-                    GlFont.FontData.dropShadow.GlFontDrawingPimitive.PrintOffset = value;
+    //if (GlFont.FontData.dropShadowFont != null)
+    //    GlFont.FontData.dropShadowFont.PrintOffset = value;
             }
         }
 
@@ -50,42 +52,52 @@ namespace QuickFont
 
         public QFontRenderOptions Options { get; private set; }
 
-        private void RenderDropShadow(float x, float y, char c, QFontGlyph nonShadowGlyph)
+        internal IList<QVertex> CurrentVertexRepr
+        {
+            get { return _currentVertexRepr; }
+        }
+
+        internal IList<QVertex> ShadowVertexRepr { get { return _shadowVertexRepr; } }
+
+        private void RenderDropShadow(float x, float y, char c, QFontGlyph nonShadowGlyph, GlFont shadowFont)
         {
             //note can cast drop shadow offset to int, but then you can't move the shadow smoothly...
-            if (_glFont.FontData.dropShadow != null && this.Options.DropShadowActive)
+            if (shadowFont != null && this.Options.DropShadowActive)
             {
-                _glFont.FontData.dropShadow.GlFontDrawingPimitive.RenderGlyph(
+                this.RenderGlyphFinal(
                     x + (_glFont.FontData.meanGlyphWidth * this.Options.DropShadowOffset.X + nonShadowGlyph.rect.Width * 0.5f),
                     y +
                     (_glFont.FontData.meanGlyphWidth * this.Options.DropShadowOffset.Y + nonShadowGlyph.rect.Height * 0.5f +
-                     nonShadowGlyph.yOffset), c);
+                     nonShadowGlyph.yOffset), c, shadowFont, this.ShadowVertexRepr);
             }
         }
 
-        public void RenderGlyph(float x, float y, char c)
+
+        private void RenderGlyphFinal(float x, float y, char c, GlFont font, IList<QVertex> store)
         {
-            QFontGlyph glyph = _glFont.FontData.CharSetMapping[c];
+            QFontGlyph glyph = font.FontData.CharSetMapping[c];
 
             //note: it's not immediately obvious, but this combined with the paramteters to 
             //RenderGlyph for the shadow mean that we render the shadow centrally (despite it being a different size)
             //under the glyph
-            if (_glFont.FontData.isDropShadow)
+            if (font.FontData.isDropShadow)
             {
                 x -= (int) (glyph.rect.Width*0.5f);
                 y -= (int) (glyph.rect.Height*0.5f + glyph.yOffset);
             }
             else
-                RenderDropShadow(x, y, c, glyph);
+            {
+                RenderDropShadow(x, y, c, glyph, font.FontData.dropShadowFont);
+            }
 
             y = -y;
 
-            TexturePage sheet = _glFont.FontData.Pages[glyph.page];
+            TexturePage sheet = font.FontData.Pages[glyph.page];
 
-            float tx1 = (float) (glyph.rect.X)/sheet.Width;
-            float ty1 = (float) (glyph.rect.Y)/sheet.Height;
-            float tx2 = (float) (glyph.rect.X + glyph.rect.Width)/sheet.Width;
-            float ty2 = (float) (glyph.rect.Y + glyph.rect.Height)/sheet.Height;
+            float tx1 = (float)(glyph.rect.X) / sheet.Width;
+            float ty1 = (float)(glyph.rect.Y) / sheet.Height;
+            float tx2 = (float)(glyph.rect.X + glyph.rect.Width) / sheet.Width;
+            float ty2 = (float)(glyph.rect.Y + glyph.rect.Height) / sheet.Height;
 
             var tv1 = new Vector2(tx1, ty1);
             var tv2 = new Vector2(tx1, ty2);
@@ -98,26 +110,34 @@ namespace QuickFont
             Vector3 v4 = PrintOffset + new Vector3(x + glyph.rect.Width, y - glyph.yOffset, 0);
 
             Color color;
-            if (_glFont.FontData.isDropShadow)
+            if (font.FontData.isDropShadow)
                 color = this.Options.DropShadowColour;
             else
                 color = this.Options.Colour;
 
-            var normal = new Vector3(0, 0, -1);
-
-            int argb = Helper.ToRgba(color);
-
-            QVertexArrayObject vbo = _qFont.VertexArrayObjects[glyph.page];
-
             Vector4 colour = Helper.ToVector4(color);
 
-            vbo.AddVertex(v1, tv1, colour);
-            vbo.AddVertex(v2, tv2, colour);
-            vbo.AddVertex(v3, tv3, colour);
+            store.Add(new QVertex() { Position = v1, TextureCoord = tv1, VertexColor = colour });
+            store.Add(new QVertex() { Position = v2, TextureCoord = tv2, VertexColor = colour });
+            store.Add(new QVertex() { Position = v3, TextureCoord = tv3, VertexColor = colour });
 
-            vbo.AddVertex(v1, tv1, colour);
-            vbo.AddVertex(v3, tv3, colour);
-            vbo.AddVertex(v4, tv4, colour);
+            store.Add(new QVertex() { Position = v1, TextureCoord = tv1, VertexColor = colour });
+            store.Add(new QVertex() { Position = v3, TextureCoord = tv3, VertexColor = colour });
+            store.Add(new QVertex() { Position = v4, TextureCoord = tv4, VertexColor = colour });
+
+        }
+
+        /// <summary>
+        /// Renders the glyph at the position given. Adds a drop shadow if configured.
+        /// </summary>
+        /// <param name="x">The x.</param>
+        /// <param name="y">The y.</param>
+        /// <param name="c">The character to print.</param>
+        public void RenderGlyph(float x, float y, char c)
+        {
+            //if (_glFont.FontData.dropShadowFont != null)
+            //    RenderGlyphFinal(x, y, c, _glFont.FontData.dropShadowFont, ShadowVertexRepr);
+            RenderGlyphFinal(x, y, c, _glFont, CurrentVertexRepr);
         }
 
         private float MeasureNextlineLength(string text)
@@ -143,15 +163,16 @@ namespace QuickFont
                     //space
                     if (c == ' ')
                     {
-                        xOffset += (float) Math.Ceiling(QuickFont.GlFont.FontData.meanGlyphWidth*this.Options.WordSpacing);
+                        xOffset += (float) Math.Ceiling(_glFont.FontData.meanGlyphWidth*this.Options.WordSpacing);
                     }
                         //normal character
-                    else if (QuickFont.GlFont.FontData.CharSetMapping.ContainsKey(c))
+                    else if (_glFont.FontData.CharSetMapping.ContainsKey(c))
                     {
-                        QFontGlyph glyph = QuickFont.GlFont.FontData.CharSetMapping[c];
+                        QFontGlyph glyph = _glFont.FontData.CharSetMapping[c];
                         xOffset +=
                             (float)
-                            Math.Ceiling(glyph.rect.Width + QuickFont.GlFont.FontData.meanGlyphWidth*this.Options.CharacterSpacing + QuickFont.GlFont.FontData.GetKerningPairCorrection(i, text, null));
+                            Math.Ceiling(glyph.rect.Width + _glFont.FontData.meanGlyphWidth * this.Options.CharacterSpacing + 
+                                _glFont.FontData.GetKerningPairCorrection(i, text, null));
                     }
                 }
             }
@@ -300,11 +321,11 @@ namespace QuickFont
             float xOffset = 0f;
             float yOffset = 0f;
 
-            //make sure fontdata font's options are synced with the actual options
-            if (_glFont.FontData.dropShadow != null && _glFont.FontData.dropShadow.Options != this.Options)
-            {
-                _glFont.FontData.dropShadow.Options = this.Options;
-            }
+//////make sure fontdata font's options are synced with the actual options
+////if (_glFont.FontData.dropShadowFont != null && _glFont.FontData.dropShadowFont.Options != this.Options)
+////{
+////    _glFont.FontData.dropShadowFont.Options = this.Options;
+////}
 
             float maxXpos = float.MinValue;
             float minXPos = float.MaxValue;
@@ -354,7 +375,7 @@ namespace QuickFont
                             QFontGlyph glyph = _glFont.FontData.CharSetMapping[c];
                             xOffset +=
                                 (float)
-                                Math.Ceiling(glyph.rect.Width + _glFont.FontData.meanGlyphWidth * this.Options.CharacterSpacing + QuickFont.GlFont.FontData.GetKerningPairCorrection(i, text, null));
+                                Math.Ceiling(glyph.rect.Width + _glFont.FontData.meanGlyphWidth * this.Options.CharacterSpacing + _glFont.FontData.GetKerningPairCorrection(i, text, null));
                         }
                     }
 
@@ -380,10 +401,10 @@ namespace QuickFont
             float yOffset = yPos;
 
             //make sure fontdata font's options are synced with the actual options
-            if (_glFont.FontData.dropShadow != null && _glFont.FontData.dropShadow.Options != this.Options)
-            {
-                _glFont.FontData.dropShadow.Options = this.Options;
-            }
+    ////if (_glFont.FontData.dropShadowFont != null && _glFont.FontData.dropShadowFont.Options != this.Options)
+    ////{
+    ////    _glFont.FontData.dropShadowFont.Options = this.Options;
+    ////}
 
             float maxWidth = processedText.maxSize.Width;
             QFontAlignment alignment = processedText.alignment;
@@ -830,5 +851,6 @@ namespace QuickFont
 
             return processedText;
         }
+
     }
 }

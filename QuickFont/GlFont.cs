@@ -9,13 +9,14 @@ namespace QuickFont
     /// <summary>
     /// Meant to be the actual Font... a resource like <see cref="System.Drawing.Font"/>. Because it holds the textures (the fonts).
     /// </summary>
-    public class GlFont
+    public class GlFont : IDisposable
     {
-        internal QFontData fontData;
+        private QFontData _fontData;
+        private bool _disposed;
 
         internal GlFont(QFontData fontData)
         {
-            this.fontData = fontData;
+            this._fontData = fontData;
         }
 
         /// <summary>
@@ -48,9 +49,9 @@ namespace QuickFont
             {
                 InitialiseGlFont(font, config);
             }
-
-            if (transToVp != null)
-                Options.TransformToViewport = transToVp;
+            
+//if (transToVp != null)_fontData.Pages
+//    Options.TransformToViewport = transToVp;
         }
 
         /// <summary>
@@ -70,21 +71,21 @@ namespace QuickFont
             InitialiseGlFont(null, new QFontBuilderConfiguration(loaderConfig), Builder.LoadQFontDataFromFile(qfontPath, downSampleFactor*fontScale, loaderConfig));
             ViewportHelper.CurrentViewport.ToString();
 
-            if (transToVp != null)
-                Options.TransformToViewport = transToVp;
+//if (transToVp != null)
+//    Options.TransformToViewport = transToVp;
         }
 
         internal QFontData FontData
         {
-            set { fontData = value; }
-            get { return fontData; }
+            set { _fontData = value; }
+            get { return _fontData; }
         }
 
         private void InitialiseGlFont(Font font, QFontBuilderConfiguration config, QFontData data = null)
         {
            // if (_qFont.ProjectionMatrix == Matrix4.Zero) _qFont.ProjectionMatrix = Matrix4.Identity;
 
-            fontData = data ?? BuildFont(font, config, null);
+            _fontData = data ?? BuildFont(font, config, null);
 
             //if (config.ShadowConfig != null)
             //    _qFont.Options.DropShadowActive = true;
@@ -146,13 +147,37 @@ namespace QuickFont
         {
             if (!ViewportHelper.IsOrthographicProjection(ref orthoProjMatrix))
                 throw new ArgumentOutOfRangeException(
-                    "Current projection matrix was not Orthogonal. Please ensure that you have set an orthogonal projection before attempting to create a font with the TransformToOrthogProjection flag set to true.",
-                    "projectionMatrix");
+                    "orthoProjMatrix",
+                    "Current projection matrix was not Orthogonal. Please ensure that you have set an orthogonal projection before attempting to create a font with the TransformToOrthogProjection flag set to true.");
 
             //var viewportTransform = new Viewport(left, top, right - left, bottom - top);
             Viewport viewportTransform = ViewportHelper.GetViewportFromOrthographicProjection(ref orthoProjMatrix);
             fontScale = Math.Abs(ViewportHelper.CurrentViewport.Value.Height / viewportTransform.Height);
             return viewportTransform;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            // Check to see if Dispose has already been called.
+            if (!_disposed)
+            {
+                // If disposing equals true, dispose all managed
+                // and unmanaged resources.
+                if (disposing)
+                {
+                    //GlFontDrawingPimitive.GlFont.FontData.Dispose();
+                    FontData.Dispose();
+                }
+
+                // Note disposing has been done.
+                _disposed = true;
+            }
         }
 
     }

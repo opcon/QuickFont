@@ -505,7 +505,7 @@ namespace QuickFont
             }
 
             if (config.ShadowConfig != null)
-                fontData.dropShadow = BuildDropShadow(bitmapPages, glyphs, config.ShadowConfig, charSet.ToCharArray(),config.KerningConfig.alphaEmptyPixelTolerance);
+                fontData.dropShadowFont = BuildDropShadow(bitmapPages, glyphs, config.ShadowConfig, charSet.ToCharArray(),config.KerningConfig.alphaEmptyPixelTolerance);
 
             foreach (var page in bitmapPages)
                 page.Free();
@@ -518,7 +518,7 @@ namespace QuickFont
             return fontData;
         }
 
-        private static QFont BuildDropShadow(List<QBitmap> sourceFontSheets, QFontGlyph[] sourceFontGlyphs, QFontShadowConfiguration shadowConfig, char[] charSet, byte alphaTolerance)
+        private static GlFont BuildDropShadow(List<QBitmap> sourceFontSheets, QFontGlyph[] sourceFontGlyphs, QFontShadowConfiguration shadowConfig, char[] charSet, byte alphaTolerance)
         {
             QFontGlyph[] newGlyphs;
 
@@ -564,7 +564,7 @@ namespace QuickFont
                 sheet.Free();
 
             fontData.isDropShadow = true;
-            return new QFont(fontData);
+            return new GlFont(fontData);
         }
 
         private static void ScaleSheetsAndGlyphs(List<QBitmap> pages, QFontGlyph[] glyphs, float scale)
@@ -720,7 +720,7 @@ namespace QuickFont
                 glyphList.Add(data.CharSetMapping[c]);
 
             if (loaderConfig.ShadowConfig != null)
-                data.dropShadow = BuildDropShadow(bitmapPages, glyphList.ToArray(), loaderConfig.ShadowConfig, Helper.ToArray(charSet),loaderConfig.KerningConfig.alphaEmptyPixelTolerance);
+                data.dropShadowFont = BuildDropShadow(bitmapPages, glyphList.ToArray(), loaderConfig.ShadowConfig, Helper.ToArray(charSet),loaderConfig.KerningConfig.alphaEmptyPixelTolerance);
 
             data.KerningPairs = KerningCalculator.CalculateKerning(Helper.ToArray(charSet), glyphList.ToArray(), bitmapPages, loaderConfig.KerningConfig);
             

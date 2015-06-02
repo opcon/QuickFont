@@ -54,6 +54,7 @@
     <Compile Include="GlFontDrawingPimitive.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="KerningCalculator.cs" />
+    <Compile Include="QFontDrawing.cs" />
     <Compile Include="ViewportHelper.cs" />
     <Compile Include="QBitmap.cs" />
     <Compile Include="QFont.cs" />

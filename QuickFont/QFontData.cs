@@ -33,12 +33,12 @@ namespace QuickFont
         public int maxGlyphHeight;
 
         /// <summary>
-        /// Null if no dropShadow is available
+        /// Null if no dropShadowFont is available
         /// </summary>
-        public QFont dropShadow;
+        public GlFont dropShadowFont;
 
         /// <summary>
-        /// true if this font is dropShadow
+        /// true if this font is dropShadowFont
         /// </summary>
         public bool isDropShadow;
 
