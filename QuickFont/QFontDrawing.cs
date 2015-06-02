@@ -198,8 +198,33 @@ void main(void)
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             }
             GL.UniformMatrix4(InstanceSharedState.ShaderVariables.MVPUniformLocation, false, ref _projectionMatrix);
-            LoadVBOs();
-            DrawVBOs();
+
+            GL.Uniform1(InstanceSharedState.ShaderVariables.SamplerLocation, 0);
+            GL.ActiveTexture(InstanceSharedState.DefaultTextureUnit);
+
+            int start = 0;
+            _vertexArrayObject.Bind();
+            foreach (var primitive in _glFontDrawingPimitives)
+            {
+                var dpt = PrimitiveType.Triangles;
+                GL.ActiveTexture(QFontSharedState.DefaultTextureUnit);
+
+                // Use DrawArrays - first draw drop shadows, then draw actual font primitive
+                if (primitive.ShadowVertexRepr.Count > 0)
+                {
+                    //int index = primitive.Font.FontData.CalculateMaxHeight();
+                    GL.BindTexture(TextureTarget.Texture2D, primitive.Font.FontData.dropShadowFont.FontData.Pages[0].GLTexID);
+                    GL.DrawArrays(dpt, start, primitive.ShadowVertexRepr.Count);
+                    start += primitive.ShadowVertexRepr.Count;
+                }
+
+                GL.BindTexture(TextureTarget.Texture2D, primitive.Font.FontData.Pages[0].GLTexID);
+                GL.DrawArrays(dpt, start, primitive.CurrentVertexRepr.Count);
+                start += primitive.CurrentVertexRepr.Count;
+
+                GL.BindVertexArray(0);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            }
         }
 
         /// <summary>
@@ -231,58 +256,30 @@ void main(void)
                 _vertexArrayObject.AddVertexes(primitive.ShadowVertexRepr);
                 _vertexArrayObject.AddVertexes(primitive.CurrentVertexRepr);
             }
-            LoadVBOs();
-        }
-
-        private void LoadVBOs()
-        {
             _vertexArrayObject.Load();
-        }
-
-        private void DrawVBOs()
-        {
-            GL.UseProgram(InstanceSharedState.ShaderVariables.ShaderProgram);
-            GL.Uniform1(InstanceSharedState.ShaderVariables.SamplerLocation, 0);
-            GL.ActiveTexture(InstanceSharedState.DefaultTextureUnit);
-
-            int start = 0;
-            _vertexArrayObject.Bind();
-            foreach (var primitive in _glFontDrawingPimitives)
-            {
-                var dpt = PrimitiveType.Triangles;
-                GL.ActiveTexture(QFontSharedState.DefaultTextureUnit);
-
-
-                // Use DrawArrays - first draw drop shadows, then draw actual font primitive
-                if (primitive.ShadowVertexRepr.Count > 0)
-                {
-                    //int index = primitive.Font.FontData.CalculateMaxHeight();
-                    GL.BindTexture(TextureTarget.Texture2D, primitive.Font.FontData.Pages[0].GLTexID);
-                    GL.DrawArrays(dpt, 0, primitive.ShadowVertexRepr.Count);
-                    start += primitive.ShadowVertexRepr.Count;
-                }
-
-                GL.BindTexture(TextureTarget.Texture2D, primitive.Font.FontData.Pages[0].GLTexID);
-                GL.DrawArrays(dpt, 0, primitive.CurrentVertexRepr.Count);
-                start += primitive.CurrentVertexRepr.Count;
-
-                GL.BindVertexArray(0);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            }
         }
 
         public SizeF Print(QFont font, ProcessedText processedText, Vector3 position, Color? colour = null)
         {
             var dp = new GlFontDrawingPimitive(font);
-            if( colour.HasValue)
+            DrawingPimitiveses.Add(dp);
+            if (colour.HasValue)
                 return dp.Print(processedText, position, colour.Value);
             else
                 return dp.Print(processedText, position);
         }
 
+        public SizeF Print(QFont font, string text, Vector3 position, QFontAlignment alignment, QFontRenderOptions opt)
+        {
+            var dp = new GlFontDrawingPimitive(font, opt);
+            DrawingPimitiveses.Add(dp);
+            return dp.Print(text, position, alignment);
+        }
+
         public SizeF Print(QFont font, string text, Vector3 position, QFontAlignment alignment, Color? color = null)
         {
             var dp = new GlFontDrawingPimitive(font);
+            DrawingPimitiveses.Add(dp);
             if( color.HasValue )
                 return dp.Print(text, position, alignment, color.Value);
             return dp.Print(text, position, alignment);
@@ -291,6 +288,7 @@ void main(void)
         public SizeF Print(QFont font, string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color? colour = null)
         {
             var dp = new GlFontDrawingPimitive(font);
+            DrawingPimitiveses.Add(dp);
             if (colour.HasValue)
                 return dp.Print(text, position, maxSize, alignment, colour.Value);
             return dp.Print(text, position, maxSize, alignment);

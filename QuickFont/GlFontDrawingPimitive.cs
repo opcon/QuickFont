@@ -13,6 +13,12 @@ namespace QuickFont
         private readonly IList<QVertex> _currentVertexRepr = new List<QVertex>();
         private readonly IList<QVertex> _shadowVertexRepr = new List<QVertex>();
 
+        public GlFontDrawingPimitive(QFont font, QFontRenderOptions options)
+        {
+            _font = font;
+            Options = options;
+        }
+
         public GlFontDrawingPimitive(QFont font)
         {
             _font = font;
@@ -197,9 +203,9 @@ namespace QuickFont
             return new Vector2(X, Y);
         }
 
-        private float TransformWidthToViewport(float input)
+        private static float TransformWidthToViewport(float input, QFontRenderOptions options)
         {
-            Viewport? v2 = this.Options.TransformToViewport;
+            Viewport? v2 = options.TransformToViewport;
             if (v2 == null)
             {
                 return input;
@@ -246,13 +252,13 @@ namespace QuickFont
 
         public SizeF Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment)
         {
-            ProcessedText processedText = ProcessText(text, maxSize, alignment);
+            ProcessedText processedText = ProcessText(_font, Options, text, maxSize, alignment);
             return Print(processedText, TransformToViewport(position));
         }
 
         public SizeF Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color colour)
         {
-            ProcessedText processedText = ProcessText(text, maxSize, alignment);
+            ProcessedText processedText = ProcessText(_font, Options, text, maxSize, alignment);
             return Print(processedText, TransformToViewport(position), colour);
         }
 
@@ -301,7 +307,7 @@ namespace QuickFont
         /// <returns></returns>
         public SizeF Measure(string text, SizeF maxSize, QFontAlignment alignment)
         {
-            ProcessedText processedText = ProcessText(text, maxSize, alignment);
+            ProcessedText processedText = ProcessText(_font, Options, text, maxSize, alignment);
             return Measure(processedText);
         }
 
@@ -401,10 +407,10 @@ namespace QuickFont
             float yOffset = yPos;
 
             //make sure fontdata font's options are synced with the actual options
-    ////if (_font.FontData.dropShadowFont != null && _font.FontData.dropShadowFont.Options != this.Options)
-    ////{
-    ////    _font.FontData.dropShadowFont.Options = this.Options;
-    ////}
+            ////if (_font.FontData.dropShadowFont != null && _font.FontData.dropShadowFont.Options != this.Options)
+            ////{
+            ////    _font.FontData.dropShadowFont.Options = this.Options;
+            ////}
 
             float maxWidth = processedText.maxSize.Width;
             QFontAlignment alignment = processedText.alignment;
@@ -821,26 +827,26 @@ namespace QuickFont
         /// <param name="text"></param>
         /// <param name="bounds"></param>
         /// <returns></returns>
-        public ProcessedText ProcessText(string text, SizeF maxSize, QFontAlignment alignment)
+        public static ProcessedText ProcessText(QFont font, QFontRenderOptions options, string text, SizeF maxSize, QFontAlignment alignment)
         {
             //TODO: bring justify and alignment calculations in here
 
-            maxSize.Width = TransformWidthToViewport(maxSize.Width);
+            maxSize.Width = TransformWidthToViewport(maxSize.Width, options);
 
             var nodeList = new TextNodeList(text);
-            nodeList.MeasureNodes(_font.FontData, this.Options);
+            nodeList.MeasureNodes(font.FontData, options);
 
             //we "crumble" words that are two long so that that can be split up
             var nodesToCrumble = new List<TextNode>();
             foreach (TextNode node in nodeList)
-                if ((!this.Options.WordWrap || node.Length >= maxSize.Width) && node.Type == TextNodeType.Word)
+                if ((!options.WordWrap || node.Length >= maxSize.Width) && node.Type == TextNodeType.Word)
                     nodesToCrumble.Add(node);
 
             foreach (TextNode node in nodesToCrumble)
                 nodeList.Crumble(node, 1);
 
             //need to measure crumbled words
-            nodeList.MeasureNodes(_font.FontData, this.Options);
+            nodeList.MeasureNodes(font.FontData, options);
 
 
             var processedText = new ProcessedText();

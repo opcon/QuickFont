@@ -23,7 +23,7 @@ namespace StarterKit
         QFont controlsText;
         QFont monoSpaced;
         private QFontDrawing drawing;
-        private QFontDrawing controlDrawing;
+        private QFontDrawing controlsDrawing;
 
         private Stopwatch _stopwatch;
         private ProcessedText _processedText;
@@ -195,7 +195,7 @@ namespace StarterKit
 
             this.Keyboard.KeyDown += KeyDown;
             drawing = new QFontDrawing();
-            controlDrawing = new QFontDrawing();
+            controlsDrawing = new QFontDrawing();
 
             heading2 = new QFont("woodenFont.qfont", new QFontConfiguration(true), 1.0f);
 
@@ -205,11 +205,11 @@ namespace StarterKit
             builderConfig.ShadowConfig.Type = ShadowType.Blurred;
             builderConfig.TextGenerationRenderHint = TextGenerationRenderHint.ClearTypeGridFit; //best render hint for this font
             mainText = new QFont("Fonts/times.ttf", 14, builderConfig);
-            mainText.Options.DropShadowActive = false;
-            mainText.Options.WordSpacing = 0.5f;
+//controlsDrawing.Options.DropShadowActive = false;
+//mainText.Options.WordSpacing = 0.5f;
 
             _benchmarkResults = new QFont("Fonts/times.ttf", 14, builderConfig);
-            _benchmarkResults.Options.DropShadowActive = false;
+ //_benchmarkResults.Options.DropShadowActive = false;
 
             heading1 = new QFont("Fonts/HappySans.ttf", 72, new QFontBuilderConfiguration(true));
 
@@ -219,7 +219,8 @@ namespace StarterKit
 
             heading1_Options_Colour = Color.FromArgb(new Color4(0.2f, 0.2f, 0.2f, 1.0f).ToArgb());
             mainText_Options_Colour = Color.White;
-            _processedText = mainText.ProcessText(preProcessed, new SizeF(Width - 40, -1), QFontAlignment.Justify);
+            var options = new QFontRenderOptions();
+            _processedText = GlFontDrawingPimitive.ProcessText(mainText, options, preProcessed, new SizeF(Width - 40, -1), QFontAlignment.Justify);
             codeText_Options_Colour = Color.FromArgb(new Color4(0.0f, 0.0f, 0.4f, 1.0f).ToArgb());
 
             monoSpaced = new QFont("Fonts/Anonymous.ttf", 10, new QFontBuilderConfiguration());
@@ -254,6 +255,7 @@ namespace StarterKit
         private Color mainText_Options_Colour;
         private Color heading1_Options_Colour;
         private Color heading2_Options_Colour;
+        private int _previousPage = -1;
 
         /// <summary>
         /// Called when it is time to setup the next frame. Add you game logic here.
@@ -357,13 +359,6 @@ namespace StarterKit
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            //heading1.ProjectionMatrix = _projectionMatrix;
-            //mainText.ProjectionMatrix = _projectionMatrix;
-            //heading2.ProjectionMatrix = _projectionMatrix;
-            //_benchmarkResults.ProjectionMatrix = _projectionMatrix;
-            //controlsText.ProjectionMatrix = _projectionMatrix;
-            //codeText.ProjectionMatrix = _projectionMatrix;
-            //monoSpaced.ProjectionMatrix = _projectionMatrix;
             drawing.ProjectionMatrix = _projectionMatrix;
 
             frameCount++;
@@ -380,9 +375,9 @@ namespace StarterKit
   
             //GL.End();
             //mainText.End();
-
-            if (currentDemoPage != lastPage)
+            if (currentDemoPage != _previousPage)
             {
+                _previousPage = currentDemoPage;
                 // we have to rebuild the stuff
                 drawing.DrawingPimitiveses.Clear();
                             
@@ -392,8 +387,8 @@ namespace StarterKit
                         {
                             yOffset += drawing.Print(heading1, "QuickFont",
                                                                      new Vector3((float) Width/2, Height, 0),
-                                                                     QFontAlignment.Centre, heading1_Options_Colour)
-                                        .Height;
+                                                                     QFontAlignment.Centre, new QFontRenderOptions()
+                                                                     {Colour = heading1_Options_Colour, DropShadowActive = true}).Height;
 
                             yOffset += drawing.Print(heading2, "Introduction",
                                                                      new Vector3(20, Height - yOffset, 0),
@@ -499,20 +494,27 @@ namespace StarterKit
 
                     case 7:
                         {
-                            heading2.Options.DropShadowOffset = new Vector2(0.1f + 0.2f*(float) Math.Sin(cnt),
+                            // in this stage force redraw and recreation of VBO every time: just divert last page
+                            _previousPage = -1;
+
+                            // store this primitive to remember
+                            GlFontDrawingPimitive dp = new GlFontDrawingPimitive(heading2);
+                            dp.Options.DropShadowActive = true;
+                            dp.Options.DropShadowOffset = new Vector2(0.1f + 0.2f*(float) Math.Sin(cnt),
                                                                             0.1f + 0.2f*(float) Math.Cos(cnt));
 
-                            yOffset +=
-                                heading2.GlFontDrawingPimitive.Print("Drop Shadows",
+                            yOffset += dp.Print("Drop Shadows",
                                                                      new Vector3(20f, Height - yOffset, 0f),
                                                                      QFontAlignment.Left).Height;
+                            drawing.DrawingPimitiveses.Add(dp);
+                            
 
-                            heading2.Options.DropShadowOffset = new Vector2(0.16f, 0.16f); //back to default
-
-                            mainText.Options.DropShadowActive = true;
-                            mainText.Options.DropShadowColour = Color.FromArgb((byte) (0.7*255), Color.White);
-                            mainText.Options.DropShadowOffset = new Vector2(0.1f + 0.2f*(float) Math.Sin(cnt),
-                                                                            0.1f + 0.2f*(float) Math.Cos(cnt));
+                            //dp = new GlFontDrawingPimitive(mainText);
+                            //dp.Options.DropShadowActive = true;
+                            //dp.Options.DropShadowColour = Color.FromArgb((byte) (0.7*255), Color.White);
+                            //dp.Options.DropShadowOffset = new Vector2(0.1f + 0.2f*(float) Math.Sin(cnt),
+                            //                                                0.1f + 0.2f*(float) Math.Cos(cnt));
+                            //drawing.DrawingPimitiveses.Add(dp);
 
                             PrintComment(asIhaveleant, ref yOffset);
                             PrintCode(dropShadowCode1, ref yOffset);
@@ -520,19 +522,13 @@ namespace StarterKit
                             PrintCode(dropShadowCode2, ref yOffset);
                             PrintComment(onceAFont, ref yOffset);
 
-                            mainText.Options.DropShadowActive = false;
-
-                            heading2.Draw();
-                            mainText.Draw();
-                            codeText.Draw();
-
+                            //mainText.Options.DropShadowActive = false;
                             break;
                         }
 
                     case 8:
                         {
-                            yOffset +=
-                                heading2.GlFontDrawingPimitive.Print("Monospaced Fonts",
+                            yOffset += drawing.Print(heading2, "Monospaced Fonts",
                                                                      new Vector3(20f, Height - yOffset, 0f),
                                                                      QFontAlignment.Left).Height;
 
@@ -547,16 +543,11 @@ namespace StarterKit
                             PrintCommentWithLine(monoSpaced, mono, QFontAlignment.Centre, Width*0.5f, ref yOffset, true);
                             yOffset += 2f;
 
-                            monoSpaced.Options.CharacterSpacing = 0.5f;
                             PrintComment(monoSpaced,
                                          "As usual, you can adjust character spacing with myFont.Options.CharacterSpacing.",
-                                         QFontAlignment.Left, ref yOffset);
+                                         QFontAlignment.Left, ref yOffset, true);
 
-                            heading2.Draw();
-                            mainText.Draw();
-                            codeText.Draw();
-                            monoSpaced.Draw();
-
+                            
                             break;
                         }
 
@@ -611,23 +602,26 @@ namespace StarterKit
 
             }
 
-            // Make control drawing
-            controlDrawing.DrawingPimitiveses.Clear();
+            // Create controlsDrawing every time.. would be also good to vary ProjectionMatrix with * Matrix4.CreateTranslation() !
+            // this would save buffer work for OpenGL
+            controlsDrawing.DrawingPimitiveses.Clear();
+            controlsDrawing.ProjectionMatrix = _projectionMatrix;
+
             var col = Color.FromArgb(new Color4(0.8f, 0.1f, 0.1f, 1.0f).ToArgb());
             if (currentDemoPage != lastPage)
             {
                 Vector3 pos = new Vector3(Width - 10 - 16 * (float)(1 + Math.Sin(cnt * 4)), 
                     controlsText.Measure("P").Height + 10f, 0f);
-                controlDrawing.Print(controlsText, "Press [Right] ->", pos, QFontAlignment.Right, col);
+                controlsDrawing.Print(controlsText, "Press [Right] ->", pos, QFontAlignment.Right, col);
             }
 
             if (currentDemoPage != 1)
             {
                 var pos = new Vector3(10 + 16*(float) (1 + Math.Sin(cnt*4)), controlsText.Measure("P").Height + 10f, 0f);
-                controlDrawing.Print(controlsText, "<- Press [Left]", pos, QFontAlignment.Left, col);
+                controlsDrawing.Print(controlsText, "<- Press [Left]", pos, QFontAlignment.Left, col);
             }
-            controlDrawing.RefreshBuffers();
-            controlDrawing.Draw();
+            controlsDrawing.RefreshBuffers();
+            controlsDrawing.Draw();
 
             drawing.Draw();
             SwapBuffers();
