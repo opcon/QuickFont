@@ -51,7 +51,7 @@
     <Compile Include="Configuration\QFontConfiguration.cs" />
     <Compile Include="Configuration\QFontKerningConfiguration.cs" />
     <Compile Include="QFont.cs" />
-    <Compile Include="GlFontDrawingPimitive.cs" />
+    <Compile Include="QFontDrawingPimitive.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="KerningCalculator.cs" />
     <Compile Include="QFontDrawing.cs" />

@@ -197,7 +197,8 @@ namespace StarterKit
             drawing = new QFontDrawing();
             controlsDrawing = new QFontDrawing();
 
-            heading2 = new QFont("woodenFont.qfont", new QFontConfiguration(true), 1.0f);
+            heading2 = new QFont("woodenFont.qfont", new QFontConfiguration(addDropShadow: true), 1.0f);
+            heading2Options = new QFontRenderOptions() { Colour = Color.White, DropShadowActive = true};
 
             var builderConfig = new QFontBuilderConfiguration(addDropShadow: true);
             builderConfig.ShadowConfig.blurRadius = 2; //reduce blur radius because font is very small
@@ -205,11 +206,12 @@ namespace StarterKit
             builderConfig.ShadowConfig.Type = ShadowType.Blurred;
             builderConfig.TextGenerationRenderHint = TextGenerationRenderHint.ClearTypeGridFit; //best render hint for this font
             mainText = new QFont("Fonts/times.ttf", 14, builderConfig);
+            mainTextOptions = new QFontRenderOptions() { DropShadowActive = true, Colour = Color.White, WordSpacing = 0.5f};
+ 
 //controlsDrawing.Options.DropShadowActive = false;
-//mainText.Options.WordSpacing = 0.5f;
 
             _benchmarkResults = new QFont("Fonts/times.ttf", 14, builderConfig);
- //_benchmarkResults.Options.DropShadowActive = false;
+           // ben_benchmarkResults.Options.DropShadowActive = false;
 
             heading1 = new QFont("Fonts/HappySans.ttf", 72, new QFontBuilderConfiguration(true));
 
@@ -217,17 +219,15 @@ namespace StarterKit
 
             codeText = new QFont("Fonts/Comfortaa-Regular.ttf", 12, new QFontBuilderConfiguration());
 
-            heading1_Options_Colour = Color.FromArgb(new Color4(0.2f, 0.2f, 0.2f, 1.0f).ToArgb());
-            mainText_Options_Colour = Color.White;
+            heading1Options = new QFontRenderOptions() { Colour = Color.FromArgb(new Color4(0.2f, 0.2f, 0.2f, 1.0f).ToArgb()), DropShadowActive = true};
             var options = new QFontRenderOptions();
-            _processedText = GlFontDrawingPimitive.ProcessText(mainText, options, preProcessed, new SizeF(Width - 40, -1), QFontAlignment.Justify);
-            codeText_Options_Colour = Color.FromArgb(new Color4(0.0f, 0.0f, 0.4f, 1.0f).ToArgb());
+            _processedText = QFontDrawingPimitive.ProcessText(mainText, mainTextOptions, preProcessed, new SizeF(Width - 40, -1), QFontAlignment.Justify);
+            codeTextOptions = new QFontRenderOptions() { Colour = Color.FromArgb(new Color4(0.0f, 0.0f, 0.4f, 1.0f).ToArgb()) };
 
             monoSpaced = new QFont("Fonts/Anonymous.ttf", 10, new QFontBuilderConfiguration());
-            monoSpaced_Options_Colour = Color.FromArgb(new Color4(0.1f, 0.1f, 0.1f, 1.0f).ToArgb());
+            monoSpacedOptions = new QFontRenderOptions() { Colour = Color.FromArgb(new Color4(0.1f, 0.1f, 0.1f, 1.0f).ToArgb()), DropShadowActive = true};
 
             GL.ClearColor(Color4.CornflowerBlue);
-            //GL.Disable(EnableCap.DepthTest);
         }
 
         /// <summary>
@@ -250,11 +250,11 @@ namespace StarterKit
 
         double cnt;
         double boundsAnimationCnt = 1.0f;
-        private Color monoSpaced_Options_Colour;
-        private Color codeText_Options_Colour;
-        private Color mainText_Options_Colour;
-        private Color heading1_Options_Colour;
-        private Color heading2_Options_Colour;
+        private QFontRenderOptions monoSpacedOptions;
+        private QFontRenderOptions codeTextOptions;
+        private QFontRenderOptions mainTextOptions;
+        private QFontRenderOptions heading1Options;
+        private QFontRenderOptions heading2Options;
         private int _previousPage = -1;
 
         /// <summary>
@@ -289,7 +289,7 @@ namespace StarterKit
             //gl.vertex3(bounds.x, bounds.y + height, 0f);
             //gl.end();
 
-            var dp = new GlFontDrawingPimitive(font);
+            var dp = new QFontDrawingPimitive(font);
             dp.Print(text, new Vector3(bounds.X, Height - yOffset, 0), new SizeF(maxWidth, float.MaxValue), alignment);
             drawing.DrawingPimitiveses.Add(dp);
 
@@ -301,16 +301,14 @@ namespace StarterKit
 
         private void PrintComment(string comment, ref float yOffset)
         {
-            PrintComment(mainText, comment, QFontAlignment.Justify, ref yOffset);
+            PrintComment(mainText, comment, QFontAlignment.Justify, ref yOffset, mainTextOptions);
         }
 
-        private void PrintComment(QFont font, string comment, QFontAlignment alignment, ref float yOffset, bool doSpacing=false)
+        private void PrintComment(QFont font, string comment, QFontAlignment alignment, ref float yOffset, QFontRenderOptions opts )
         {
             yOffset += 20;
             var pos = new Vector3(30f, Height - yOffset, 0f);
-            var dp = new GlFontDrawingPimitive(font);
-            if (doSpacing)
-                dp.Options.CharacterSpacing = 0.05f;
+            var dp = new QFontDrawingPimitive(font, opts ?? new QFontRenderOptions());
             dp.Print(comment, pos, new SizeF(Width - 60, -1), alignment);
             yOffset += dp.Measure(comment, new SizeF(Width - 60, -1), alignment).Height;
             drawing.DrawingPimitiveses.Add(dp);
@@ -318,15 +316,15 @@ namespace StarterKit
 
         private void PrintCommentWithLine(string comment, QFontAlignment alignment, float xOffset, ref float yOffset)
         {
-            PrintCommentWithLine(mainText, comment, alignment, xOffset, ref yOffset);
+            PrintCommentWithLine(mainText, comment, alignment, xOffset, ref yOffset, mainTextOptions);
         }
 
-        private void PrintCommentWithLine(QFont font, string comment, QFontAlignment alignment, float xOffset, ref float yOffset, bool doSpacing=false)
+        private void PrintCommentWithLine(QFont font, string comment, QFontAlignment alignment, float xOffset, ref float yOffset, QFontRenderOptions opts)
         {
             yOffset += 20;
-            var dp = new GlFontDrawingPimitive(font);
-            if (doSpacing)
-                dp.Options.CharacterSpacing = 0.05f;
+            var dp = new QFontDrawingPimitive(font, opts);
+            //if (doSpacing)
+            //    dp.Options.CharacterSpacing = 0.05f;
             dp.Print(comment, new Vector3(xOffset, Height - yOffset, 0f), new SizeF(Width - 60, -1), alignment);
             drawing.DrawingPimitiveses.Add(dp);
             var bounds = font.Measure(comment, new SizeF(Width - 60, float.MaxValue), alignment);
@@ -387,12 +385,11 @@ namespace StarterKit
                         {
                             yOffset += drawing.Print(heading1, "QuickFont",
                                                                      new Vector3((float) Width/2, Height, 0),
-                                                                     QFontAlignment.Centre, new QFontRenderOptions()
-                                                                     {Colour = heading1_Options_Colour, DropShadowActive = true}).Height;
+                                                                     QFontAlignment.Centre, heading1Options).Height;
 
                             yOffset += drawing.Print(heading2, "Introduction",
                                                                      new Vector3(20, Height - yOffset, 0),
-                                                                     QFontAlignment.Left, heading2_Options_Colour)
+                                                                     QFontAlignment.Left, heading2Options)
                                         .Height;
 
                             yOffset += 20f;
@@ -406,7 +403,7 @@ namespace StarterKit
                         {
                             yOffset += drawing.Print( heading2, "Easy as ABC!",
                                                                      new Vector3(20f, Height - yOffset, 0f),
-                                                                     QFontAlignment.Left).Height;
+                                                                     QFontAlignment.Left, heading2Options).Height;
 
                             PrintComment(usingQuickFontIsSuperEasy, ref yOffset);
                             PrintCode(loadingAFont1, ref yOffset);
@@ -426,7 +423,7 @@ namespace StarterKit
                     case 3:
                         {
                             yOffset +=  drawing.Print(heading2 ,"Alignment", new Vector3(20f, Height - yOffset, 0f),
-                                                                     QFontAlignment.Left).Height;
+                                                                     QFontAlignment.Left, heading2Options).Height;
 
                             PrintCommentWithLine(whenPrintingText, QFontAlignment.Left, 20f, ref yOffset);
                             PrintCode(printWithFont2, ref yOffset);
@@ -443,7 +440,7 @@ namespace StarterKit
                         {
                             yOffset +=  drawing.Print( heading2, "Bounds and Justify",
                                                                      new Vector3(20f, Height - yOffset, 0f),
-                                                                     QFontAlignment.Left).Height;
+                                                                     QFontAlignment.Left, heading2Options).Height;
 
                             yOffset += 20;
                             yOffset +=  drawing.Print( controlsText, "Press [Up], [Down] or [Enter]!",
@@ -469,7 +466,7 @@ namespace StarterKit
                         {
                             yOffset +=  drawing.Print(heading2, "Your own Texture Fonts",
                                                                      new Vector3(20f, Height - yOffset, 0f),
-                                                                     QFontAlignment.Left).Height;
+                                                                     QFontAlignment.Left, heading2Options).Height;
 
                             PrintComment(anotherCoolFeature, ref yOffset);
                             PrintCode(textureFontCode1, ref yOffset);
@@ -482,7 +479,7 @@ namespace StarterKit
                         {
                             yOffset +=  drawing.Print(heading2, "Your own Texture Fonts",
                                                                      new Vector3(20f, Height - yOffset, 0f),
-                                                                     QFontAlignment.Left).Height;
+                                                                     QFontAlignment.Left, heading2Options).Height;
 
                             PrintComment(ifYouDoIntend, ref yOffset);
                             PrintCode(textureFontCode2, ref yOffset);
@@ -498,7 +495,7 @@ namespace StarterKit
                             _previousPage = -1;
 
                             // store this primitive to remember
-                            GlFontDrawingPimitive dp = new GlFontDrawingPimitive(heading2);
+                            QFontDrawingPimitive dp = new QFontDrawingPimitive(heading2);
                             dp.Options.DropShadowActive = true;
                             dp.Options.DropShadowOffset = new Vector2(0.1f + 0.2f*(float) Math.Sin(cnt),
                                                                             0.1f + 0.2f*(float) Math.Cos(cnt));
@@ -509,7 +506,7 @@ namespace StarterKit
                             drawing.DrawingPimitiveses.Add(dp);
                             
 
-                            //dp = new GlFontDrawingPimitive(mainText);
+                            //dp = new QFontDrawingPimitive(mainText);
                             //dp.Options.DropShadowActive = true;
                             //dp.Options.DropShadowColour = Color.FromArgb((byte) (0.7*255), Color.White);
                             //dp.Options.DropShadowOffset = new Vector2(0.1f + 0.2f*(float) Math.Sin(cnt),
@@ -530,22 +527,24 @@ namespace StarterKit
                         {
                             yOffset += drawing.Print(heading2, "Monospaced Fonts",
                                                                      new Vector3(20f, Height - yOffset, 0f),
-                                                                     QFontAlignment.Left).Height;
+                                                                     QFontAlignment.Left, monoSpacedOptions).Height;
 
-                            PrintComment(monoSpaced, hereIsSomeMono, QFontAlignment.Left, ref yOffset, true);
+                            QFontRenderOptions monoSpaceCondensed = monoSpacedOptions.CreateClone();
+                            monoSpaceCondensed.CharacterSpacing = 0.05f;
+                            PrintComment(monoSpaced, hereIsSomeMono, QFontAlignment.Left, ref yOffset, monoSpaceCondensed);
                             PrintCode(monoCode1, ref yOffset);
-                            PrintComment(monoSpaced, theDefaultMono, QFontAlignment.Left, ref yOffset, true);
+                            PrintComment(monoSpaced, theDefaultMono, QFontAlignment.Left, ref yOffset, monoSpaceCondensed);
 
-                            PrintCommentWithLine(monoSpaced, mono, QFontAlignment.Left, 20f, ref yOffset, true);
+                            PrintCommentWithLine(monoSpaced, mono, QFontAlignment.Left, 20f, ref yOffset, monoSpaceCondensed);
                             yOffset += 2f;
-                            PrintCommentWithLine(monoSpaced, mono, QFontAlignment.Right, 20f, ref yOffset, true);
+                            PrintCommentWithLine(monoSpaced, mono, QFontAlignment.Right, 20f, ref yOffset, monoSpaceCondensed);
                             yOffset += 2f;
-                            PrintCommentWithLine(monoSpaced, mono, QFontAlignment.Centre, Width*0.5f, ref yOffset, true);
+                            PrintCommentWithLine(monoSpaced, mono, QFontAlignment.Centre, Width * 0.5f, ref yOffset, monoSpaceCondensed);
                             yOffset += 2f;
 
                             PrintComment(monoSpaced,
-                                         "As usual, you can adjust character spacing with myFont.Options.CharacterSpacing.",
-                                         QFontAlignment.Left, ref yOffset, true);
+                                         "As usual, you can adjust character spacing with myPrimitive.Options.CharacterSpacing.",
+                                         QFontAlignment.Left, ref yOffset, monoSpaceCondensed);
 
                             
                             break;
@@ -590,7 +589,7 @@ namespace StarterKit
                         {
                             yOffset += drawing.Print(heading2, "In Conclusion",
                                                                      new Vector3(20f, Height - yOffset, 0f),
-                                                                     QFontAlignment.Left).Height;
+                                                                     QFontAlignment.Left, heading2Options).Height;
 
                             PrintComment(thereAreActually, ref yOffset);
 

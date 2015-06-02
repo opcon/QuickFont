@@ -6,20 +6,23 @@ using OpenTK;
 
 namespace QuickFont
 {
-    public class GlFontDrawingPimitive
+    public class QFontDrawingPimitive
     {
         private Vector3 _printOffset;
         private readonly QFont _font;
         private readonly IList<QVertex> _currentVertexRepr = new List<QVertex>();
         private readonly IList<QVertex> _shadowVertexRepr = new List<QVertex>();
+#if DEBUG
+        private string _DisplayText_dbg;
+#endif
 
-        public GlFontDrawingPimitive(QFont font, QFontRenderOptions options)
+        public QFontDrawingPimitive(QFont font, QFontRenderOptions options)
         {
             _font = font;
             Options = options;
         }
 
-        public GlFontDrawingPimitive(QFont font)
+        public QFontDrawingPimitive(QFont font)
         {
             _font = font;
             Options = new QFontRenderOptions();
@@ -130,7 +133,6 @@ namespace QuickFont
             store.Add(new QVertex() { Position = v1, TextureCoord = tv1, VertexColor = colour });
             store.Add(new QVertex() { Position = v3, TextureCoord = tv3, VertexColor = colour });
             store.Add(new QVertex() { Position = v4, TextureCoord = tv4, VertexColor = colour });
-
         }
 
         /// <summary>
@@ -327,17 +329,13 @@ namespace QuickFont
             float xOffset = 0f;
             float yOffset = 0f;
 
-//////make sure fontdata font's options are synced with the actual options
-////if (_font.FontData.dropShadowFont != null && _font.FontData.dropShadowFont.Options != this.Options)
-////{
-////    _font.FontData.dropShadowFont.Options = this.Options;
-////}
-
             float maxXpos = float.MinValue;
             float minXPos = float.MaxValue;
 
             text = text.Replace("\r\n", "\r");
-
+#if DEBUG
+            _DisplayText_dbg = text;
+#endif
             if (alignment == QFontAlignment.Right)
                 xOffset -= MeasureNextlineLength(text);
             else if (alignment == QFontAlignment.Centre)
@@ -830,7 +828,6 @@ namespace QuickFont
         public static ProcessedText ProcessText(QFont font, QFontRenderOptions options, string text, SizeF maxSize, QFontAlignment alignment)
         {
             //TODO: bring justify and alignment calculations in here
-
             maxSize.Width = TransformWidthToViewport(maxSize.Width, options);
 
             var nodeList = new TextNodeList(text);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Text;
 using OpenTK;
@@ -9,10 +10,12 @@ namespace QuickFont
     /// <summary>
     /// Meant to be the actual Font... a resource like <see cref="System.Drawing.Font"/>. Because it holds the textures (the fonts).
     /// </summary>
+    [DebuggerDisplay("{FontName}")]
     public class QFont : IDisposable
     {
         private QFontData _fontData;
         private bool _disposed;
+        private string _fontName;
 
         internal QFont(QFontData fontData)
         {
@@ -47,6 +50,7 @@ namespace QuickFont
 
             using (Font font = GetFont(fontPath, size, style, config == null ? 1 : config.SuperSampleLevels, fontScale))
             {
+                _fontName = font.ToString();
                 InitialiseGlFont(font, config);
             }
             
@@ -69,6 +73,7 @@ namespace QuickFont
                 transToVp = OrthogonalTransform(out fontScale, currentProjectionMatrix);
 
             InitialiseGlFont(null, new QFontBuilderConfiguration(loaderConfig), Builder.LoadQFontDataFromFile(qfontPath, downSampleFactor*fontScale, loaderConfig));
+            _fontName = qfontPath;
             ViewportHelper.CurrentViewport.ToString();
 
 //if (transToVp != null)
@@ -79,6 +84,11 @@ namespace QuickFont
         {
             set { _fontData = value; }
             get { return _fontData; }
+        }
+
+        public string FontName
+        {
+            get { return _fontName; }
         }
 
         private void InitialiseGlFont(Font font, QFontBuilderConfiguration config, QFontData data = null)
@@ -171,7 +181,7 @@ namespace QuickFont
                 // and unmanaged resources.
                 if (disposing)
                 {
-                    //GlFontDrawingPimitive.Font.FontData.Dispose();
+                    //QFontDrawingPimitive.Font.FontData.Dispose();
                     FontData.Dispose();
                 }
 
@@ -189,7 +199,7 @@ namespace QuickFont
         /// <returns>Measured size</returns>
         public SizeF Measure(string text, SizeF maxSize, QFontAlignment alignment)
         {
-            var test = new GlFontDrawingPimitive(this);
+            var test = new QFontDrawingPimitive(this);
             return test.Measure(text, maxSize, alignment);
         }
 
@@ -204,7 +214,7 @@ namespace QuickFont
         /// </returns>
         public SizeF Measure(string text, float maxWidth, QFontAlignment alignment)
         {
-            var test = new GlFontDrawingPimitive(this);
+            var test = new QFontDrawingPimitive(this);
             return test.Measure(text, maxWidth, alignment);
         }
 
@@ -217,7 +227,7 @@ namespace QuickFont
         /// </returns>
         public SizeF Measure(ProcessedText processedText)
         {
-            var test = new GlFontDrawingPimitive(this);
+            var test = new QFontDrawingPimitive(this);
             return test.Measure(processedText);
         }
 
@@ -231,7 +241,7 @@ namespace QuickFont
         /// </returns>
         public SizeF Measure(string text, QFontAlignment alignment = QFontAlignment.Left)
         {
-            var test = new GlFontDrawingPimitive(this);
+            var test = new QFontDrawingPimitive(this);
             return test.Measure(text, alignment);
         }
     }

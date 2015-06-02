@@ -47,7 +47,7 @@ void main(void)
 
         public QVertexArrayObject _vertexArrayObject;
         private SharedState _instanceSharedState;
-        private readonly List<GlFontDrawingPimitive> _glFontDrawingPimitives;
+        private readonly List<QFontDrawingPimitive> _glFontDrawingPimitives;
         private readonly bool _useDefaultBlendFunction;
 
         private Matrix4 _projectionMatrix;
@@ -55,7 +55,7 @@ void main(void)
         public QFontDrawing(bool useDefaultBlendFunction = true)
         {
             _useDefaultBlendFunction = useDefaultBlendFunction;
-            _glFontDrawingPimitives =new List<GlFontDrawingPimitive>();
+            _glFontDrawingPimitives =new List<QFontDrawingPimitive>();
             InitialiseState();
         }
 
@@ -75,7 +75,7 @@ void main(void)
             set { _projectionMatrix = value; }
         }
 
-        public List<GlFontDrawingPimitive> DrawingPimitiveses
+        public List<QFontDrawingPimitive> DrawingPimitiveses
         {
             get { return _glFontDrawingPimitives; }
         }
@@ -221,10 +221,10 @@ void main(void)
                 GL.BindTexture(TextureTarget.Texture2D, primitive.Font.FontData.Pages[0].GLTexID);
                 GL.DrawArrays(dpt, start, primitive.CurrentVertexRepr.Count);
                 start += primitive.CurrentVertexRepr.Count;
-
-                GL.BindVertexArray(0);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             }
+
+            GL.BindVertexArray(0);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ void main(void)
 
         public SizeF Print(QFont font, ProcessedText processedText, Vector3 position, Color? colour = null)
         {
-            var dp = new GlFontDrawingPimitive(font);
+            var dp = new QFontDrawingPimitive(font);
             DrawingPimitiveses.Add(dp);
             if (colour.HasValue)
                 return dp.Print(processedText, position, colour.Value);
@@ -271,14 +271,14 @@ void main(void)
 
         public SizeF Print(QFont font, string text, Vector3 position, QFontAlignment alignment, QFontRenderOptions opt)
         {
-            var dp = new GlFontDrawingPimitive(font, opt);
+            var dp = new QFontDrawingPimitive(font, opt);
             DrawingPimitiveses.Add(dp);
             return dp.Print(text, position, alignment);
         }
 
         public SizeF Print(QFont font, string text, Vector3 position, QFontAlignment alignment, Color? color = null)
         {
-            var dp = new GlFontDrawingPimitive(font);
+            var dp = new QFontDrawingPimitive(font);
             DrawingPimitiveses.Add(dp);
             if( color.HasValue )
                 return dp.Print(text, position, alignment, color.Value);
@@ -287,7 +287,7 @@ void main(void)
 
         public SizeF Print(QFont font, string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color? colour = null)
         {
-            var dp = new GlFontDrawingPimitive(font);
+            var dp = new QFontDrawingPimitive(font);
             DrawingPimitiveses.Add(dp);
             if (colour.HasValue)
                 return dp.Print(text, position, maxSize, alignment, colour.Value);
@@ -330,7 +330,7 @@ void main(void)
                 // and unmanaged resources.
                 if (disposing)
                 {
-                    //GlFontDrawingPimitive.Font.FontData.Dispose();
+                    //QFontDrawingPimitive.Font.FontData.Dispose();
                     _vertexArrayObject.Dispose();
                 }
 
