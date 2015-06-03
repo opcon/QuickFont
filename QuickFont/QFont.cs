@@ -53,9 +53,10 @@ namespace QuickFont
                 _fontName = font.ToString();
                 InitialiseGlFont(font, config);
             }
-            
-//if (transToVp != null)_fontData.Pages
-//    Options.TransformToViewport = transToVp;
+
+            // TODO: What to do with transToVp?  Property:Matrix4 and use in QFontDrawing?
+            //if (transToVp != null)_fontData.Pages
+   //    Options.TransformToViewport = transToVp;
         }
 
         /// <summary>
@@ -75,7 +76,7 @@ namespace QuickFont
             InitialiseGlFont(null, new QFontBuilderConfiguration(loaderConfig), Builder.LoadQFontDataFromFile(qfontPath, downSampleFactor*fontScale, loaderConfig));
             _fontName = qfontPath;
             ViewportHelper.CurrentViewport.ToString();
-
+            // TODO: What to do with transToVp?  Property:Matrix4 and use in QFontDrawing?
 //if (transToVp != null)
 //    Options.TransformToViewport = transToVp;
         }
@@ -93,17 +94,23 @@ namespace QuickFont
 
         private void InitialiseGlFont(Font font, QFontBuilderConfiguration config, QFontData data = null)
         {
-           // if (_qFont.ProjectionMatrix == Matrix4.Zero) _qFont.ProjectionMatrix = Matrix4.Identity;
-
             _fontData = data ?? BuildFont(font, config, null);
-
-            //if (config.ShadowConfig != null)
-            //    _qFont.Options.DropShadowActive = true;
-
-            //NOTE This should be the only usage of InitialiseState() (I think).
-            //TODO allow instance render states
-            //InitialiseState();
-
+            
+            // Check and fail if more than one texture was generated. The original implementation of QFont supported
+            // this by choosing them as the come but this ModernOpenGl -implementation would be handycapped by 
+            // allowing this degree of freedom. It is now possible to call DrawArrays for whole texts (requiring
+            // shadows and text to be each 1 texture). This is quite efficient.
+            // To cover it from another aspect: OpenGL 3.1 and more easily allow Textures of up to 8129² not
+            // necessrily being base2 and square - this generousity should be hapily used and effiency be gained.
+            // So there will be no implementation of VAO VBO based "Modern" OpenGL that is limited to 512 textures.
+            // So this is a well takeable tradeoff
+            if( _fontData.Pages.Length != 1 || (_fontData.dropShadowFont != null && _fontData.dropShadowFont.FontData.Pages.Length != 1))
+            {
+                throw new NotSupportedException("The implementation of QFontDrawing does not support multiple textures per Font/Shadow. " +
+                                                "Thus this font can not be properly rendered in all cases. Reduce number of characters " +
+                                                "or increase QFontBuilderConfiguration.MaxTexSize QFontShadowConfiguration.PageMaxTextureSize " +
+                                                "to contain all characters/char-shadows in one Bitmap=>Texture.");
+            }
         }
 
         /// <summary>

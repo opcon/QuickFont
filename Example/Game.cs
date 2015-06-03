@@ -33,6 +33,21 @@ namespace StarterKit
 
         #region string constants
 
+        private String modernQuickFontIntro =
+            @"Welcome to ModernQuickFont. This is yet another fork of the original library QuickFont (which uses ordinary OpenGL). " +
+            "This is actually a fork of opcon/QuickFont and thus (as the name implies) is a modern OpenGL implementation using VBOs and VAOs. " +
+            "The difference to opcon/QuickFont therefore is a big Refactoring. The original (god like) QFont-class has been separated in 3 concerns: " +
+            "Actual Font (save, create, hold texture) [QFont], Drawing-primitive (layout + vertex computations) [QFontDrawingPrimitive] "+
+            "and a Drawing container (push stuff to OpenGL, draw) [QFontDrawing]. " +
+            "Unfortunately or naturally the API has changed remarkably so that old code is nop longer compatible. "+
+            "However the changes are not radical and can be adapted (some conceptual changes may surface) as you can see with thsi example. "+
+            "This refactoring into three classes should make using QuickFont more flexible and more pleasing to use. " +
+            "It lost of it's ease because you have to handle more classes. But your code will be more future proof and architected well.";
+        String modernIntroCode = @"myFont = new QFont(""Fonts/HappySans.ttf"", 72, new QFontBuilderConfiguration(true));"+ Environment.NewLine +
+            "drawing = new QFontDrawing();" + Environment.NewLine +
+            @"drawing.Print(myFont, ""text"", pos, FontAlignment.Left, opts);" + Environment.NewLine +
+            "for { drawing.Draw(); }";
+
         String introduction = @"Welcome to the QuickFont tutorial. All text in this tutorial (including headings!) is drawn with QuickFont, so it is also intended to showcase the library. :) If you want to get started immediately, you can skip the rest of this introduction by pressing [Right]. You can also press [Left] to go back to previous pages at any point" + Environment.NewLine + Environment.NewLine +
             "Why QuickFont? QuickFont is intended as a replacement (and improvement upon) OpenTK's TextPrinter library. My primary motivation for writing it was for practical reasons: I'm using OpenTK to write a game, and currently the most annoying bugs are all being caused by TextPrinter: it is slow, it is buggy, and no one wants to maintain it." + Environment.NewLine + Environment.NewLine +
             "I did consider simply fixing it, but then decided that it would be easier and more fun to write my own library from scratch. That is exactly what I've done." + Environment.NewLine + Environment.NewLine +
@@ -117,7 +132,7 @@ namespace StarterKit
         private string nonPreProcessed = "Text can be preprocessed which improves rendering time. This text is not preprocessed.";
         #endregion
 
-        int currentDemoPage = 1;
+        int currentDemoPage = 0;
         int lastPage = 10;
         private int frameCount = 0;
 
@@ -184,8 +199,8 @@ namespace StarterKit
 
             if (currentDemoPage > lastPage)
                 currentDemoPage = lastPage;
-            if (currentDemoPage < 1)
-                currentDemoPage = 1;
+            if (currentDemoPage < 0)
+                currentDemoPage = 0;
         }
 
         /// <summary>Load resources here.</summary>
@@ -380,6 +395,24 @@ namespace StarterKit
                             
                 switch (currentDemoPage)
                 {
+                    case 0:
+                        {
+                            yOffset += drawing.Print(heading1, "ModernQuickFont",
+                                                                     new Vector3((float) Width/2, Height, 0),
+                                                                     QFontAlignment.Centre, heading1Options).Height;
+
+                            yOffset += drawing.Print(heading2, "Introduction #0",
+                                                                     new Vector3(20, Height - yOffset, 0),
+                                                                     QFontAlignment.Left, heading2Options)
+                                        .Height;
+
+                            yOffset += drawing.Print(mainText, modernQuickFontIntro, new Vector3(30, Height - yOffset, 0),
+                                                                 new SizeF(Width - 60f, -1), QFontAlignment.Justify).Height;
+                            
+                            PrintCode(modernIntroCode, ref yOffset);
+                            break;
+                        }
+
                     case 1:
                         {
                             yOffset += drawing.Print(heading1, "QuickFont",
@@ -608,7 +641,7 @@ namespace StarterKit
                 controlsDrawing.Print(controlsText, "Press [Right] ->", pos, QFontAlignment.Right, controlsTextOpts);
             }
 
-            if (currentDemoPage != 1)
+            if (currentDemoPage != 0)
             {
                 var pos = new Vector3(10 + 16*(float) (1 + Math.Sin(cnt*4)), controlsText.Measure("P").Height + 10f, 0f);
                 controlsDrawing.Print(controlsText, "<- Press [Left]", pos, QFontAlignment.Left, controlsTextOpts);
