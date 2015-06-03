@@ -259,6 +259,13 @@ void main(void)
             _vertexArrayObject.Load();
         }
 
+        public SizeF Print(QFont font, ProcessedText text, Vector3 position, QFontRenderOptions opt)
+        {
+            var dp = new QFontDrawingPimitive(font, opt);
+            DrawingPimitiveses.Add(dp);
+            return dp.Print(text, position);
+        }
+
         public SizeF Print(QFont font, ProcessedText processedText, Vector3 position, Color? colour = null)
         {
             var dp = new QFontDrawingPimitive(font);
@@ -285,12 +292,17 @@ void main(void)
             return dp.Print(text, position, alignment);
         }
 
-        public SizeF Print(QFont font, string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color? colour = null)
+        public SizeF Print(QFont font, string text, Vector3 position, SizeF maxSize, QFontAlignment alignment)
         {
             var dp = new QFontDrawingPimitive(font);
             DrawingPimitiveses.Add(dp);
-            if (colour.HasValue)
-                return dp.Print(text, position, maxSize, alignment, colour.Value);
+            return dp.Print(text, position, maxSize, alignment);
+        }
+
+        public SizeF Print(QFont font, string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, QFontRenderOptions opts )
+        {
+            var dp = new QFontDrawingPimitive(font, opts);
+            DrawingPimitiveses.Add(dp);
             return dp.Print(text, position, maxSize, alignment);
         }
 

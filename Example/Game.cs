@@ -1,4 +1,4 @@
-// Released to the public domain. Use, modify and relicense at will.
+﻿// Released to the public domain. Use, modify and relicense at will.
 
 using System;
 using System.Diagnostics;
@@ -135,6 +135,7 @@ namespace StarterKit
 
         private void KeyDown(object sender, KeyboardKeyEventArgs keyEventArgs)
         {
+            int texmax = GL.GetInteger(GetPName.MaxTextureSize);
             switch (keyEventArgs.Key)
             {
                 case Key.Space:
@@ -196,6 +197,7 @@ namespace StarterKit
             this.Keyboard.KeyDown += KeyDown;
             drawing = new QFontDrawing();
             controlsDrawing = new QFontDrawing();
+            controlsTextOpts = new QFontRenderOptions() { Colour = Color.FromArgb(new Color4(0.8f, 0.1f, 0.1f, 1.0f).ToArgb()), DropShadowActive = true };
 
             heading2 = new QFont("woodenFont.qfont", new QFontConfiguration(addDropShadow: true), 1.0f);
             heading2Options = new QFontRenderOptions() { Colour = Color.White, DropShadowActive = true};
@@ -208,10 +210,7 @@ namespace StarterKit
             mainText = new QFont("Fonts/times.ttf", 14, builderConfig);
             mainTextOptions = new QFontRenderOptions() { DropShadowActive = true, Colour = Color.White, WordSpacing = 0.5f};
  
-//controlsDrawing.Options.DropShadowActive = false;
-
             _benchmarkResults = new QFont("Fonts/times.ttf", 14, builderConfig);
-           // ben_benchmarkResults.Options.DropShadowActive = false;
 
             heading1 = new QFont("Fonts/HappySans.ttf", 72, new QFontBuilderConfiguration(true));
 
@@ -220,7 +219,6 @@ namespace StarterKit
             codeText = new QFont("Fonts/Comfortaa-Regular.ttf", 12, new QFontBuilderConfiguration());
 
             heading1Options = new QFontRenderOptions() { Colour = Color.FromArgb(new Color4(0.2f, 0.2f, 0.2f, 1.0f).ToArgb()), DropShadowActive = true};
-            var options = new QFontRenderOptions();
             _processedText = QFontDrawingPimitive.ProcessText(mainText, mainTextOptions, preProcessed, new SizeF(Width - 40, -1), QFontAlignment.Justify);
             codeTextOptions = new QFontRenderOptions() { Colour = Color.FromArgb(new Color4(0.0f, 0.0f, 0.4f, 1.0f).ToArgb()) };
 
@@ -255,6 +253,7 @@ namespace StarterKit
         private QFontRenderOptions mainTextOptions;
         private QFontRenderOptions heading1Options;
         private QFontRenderOptions heading2Options;
+        private QFontRenderOptions controlsTextOpts;
         private int _previousPage = -1;
 
         /// <summary>
@@ -343,7 +342,7 @@ namespace StarterKit
         {
             yOffset += 20;
             var pos = new Vector3(50f, Height - yOffset, 0f);
-            drawing.Print(codeText, code, pos, new SizeF(Width - 50, -1), QFontAlignment.Left);
+            drawing.Print(codeText, code, pos, new SizeF(Width - 50, -1), QFontAlignment.Left, codeTextOptions);
             yOffset += codeText.Measure(code, new SizeF(Width - 50, -1), QFontAlignment.Left).Height;
         }
 
@@ -438,14 +437,16 @@ namespace StarterKit
 
                     case 4:
                         {
-                            yOffset +=  drawing.Print( heading2, "Bounds and Justify",
+                            // in this stage force redraw and recreation of VBO every time: just divert last page
+                            _previousPage = -1;
+                            yOffset += drawing.Print(heading2, "Bounds and Justify",
                                                                      new Vector3(20f, Height - yOffset, 0f),
                                                                      QFontAlignment.Left, heading2Options).Height;
 
                             yOffset += 20;
                             yOffset +=  drawing.Print( controlsText, "Press [Up], [Down] or [Enter]!",
                                                                          new Vector3(Width*0.5f, Height - yOffset, 0f),
-                                                                         QFontAlignment.Centre).Height;
+                                                                         QFontAlignment.Centre, controlsTextOpts).Height;
 
                             float boundShrink = (int) (350*(1 - Math.Cos(boundsAnimationCnt*Math.PI*2)));
 
@@ -504,14 +505,6 @@ namespace StarterKit
                                                                      new Vector3(20f, Height - yOffset, 0f),
                                                                      QFontAlignment.Left).Height;
                             drawing.DrawingPimitiveses.Add(dp);
-                            
-
-                            //dp = new QFontDrawingPimitive(mainText);
-                            //dp.Options.DropShadowActive = true;
-                            //dp.Options.DropShadowColour = Color.FromArgb((byte) (0.7*255), Color.White);
-                            //dp.Options.DropShadowOffset = new Vector2(0.1f + 0.2f*(float) Math.Sin(cnt),
-                            //                                                0.1f + 0.2f*(float) Math.Cos(cnt));
-                            //drawing.DrawingPimitiveses.Add(dp);
 
                             PrintComment(asIhaveleant, ref yOffset);
                             PrintCode(dropShadowCode1, ref yOffset);
@@ -527,7 +520,7 @@ namespace StarterKit
                         {
                             yOffset += drawing.Print(heading2, "Monospaced Fonts",
                                                                      new Vector3(20f, Height - yOffset, 0f),
-                                                                     QFontAlignment.Left, monoSpacedOptions).Height;
+                                                                     QFontAlignment.Left, heading2Options).Height;
 
                             QFontRenderOptions monoSpaceCondensed = monoSpacedOptions.CreateClone();
                             monoSpaceCondensed.CharacterSpacing = 0.05f;
@@ -552,6 +545,8 @@ namespace StarterKit
 
                     case 9:
                         {
+                            // in this stage force redraw and recreation of VBO every time: just divert last page
+                            _previousPage = -1;
                             yOffset += drawing.Print(heading2, "Preprocessed Text",
                                                                      new Vector3(20f, Height - yOffset, 0f),
                                                                      QFontAlignment.Left).Height;
@@ -606,18 +601,17 @@ namespace StarterKit
             controlsDrawing.DrawingPimitiveses.Clear();
             controlsDrawing.ProjectionMatrix = _projectionMatrix;
 
-            var col = Color.FromArgb(new Color4(0.8f, 0.1f, 0.1f, 1.0f).ToArgb());
             if (currentDemoPage != lastPage)
             {
                 Vector3 pos = new Vector3(Width - 10 - 16 * (float)(1 + Math.Sin(cnt * 4)), 
                     controlsText.Measure("P").Height + 10f, 0f);
-                controlsDrawing.Print(controlsText, "Press [Right] ->", pos, QFontAlignment.Right, col);
+                controlsDrawing.Print(controlsText, "Press [Right] ->", pos, QFontAlignment.Right, controlsTextOpts);
             }
 
             if (currentDemoPage != 1)
             {
                 var pos = new Vector3(10 + 16*(float) (1 + Math.Sin(cnt*4)), controlsText.Measure("P").Height + 10f, 0f);
-                controlsDrawing.Print(controlsText, "<- Press [Left]", pos, QFontAlignment.Left, col);
+                controlsDrawing.Print(controlsText, "<- Press [Left]", pos, QFontAlignment.Left, controlsTextOpts);
             }
             controlsDrawing.RefreshBuffers();
             controlsDrawing.Draw();

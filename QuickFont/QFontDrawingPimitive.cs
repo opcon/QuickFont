@@ -12,8 +12,8 @@ namespace QuickFont
         private readonly QFont _font;
         private readonly IList<QVertex> _currentVertexRepr = new List<QVertex>();
         private readonly IList<QVertex> _shadowVertexRepr = new List<QVertex>();
-#if DEBUG
-        private string _DisplayText_dbg;
+#if DEBUG   // Keep copy of string for debug purposes, only
+        private string _DisplayText_dbg = "<processedtext>";
 #endif
 
         public QFontDrawingPimitive(QFont font, QFontRenderOptions options)
