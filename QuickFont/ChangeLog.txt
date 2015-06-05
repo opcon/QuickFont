@@ -18,3 +18,5 @@
 31/12/2011 - Fixed limitation on downscaling texture fonts (previously glyphs could overlap, throwing an exception)
 
 02/06/2012 - Added vertex buffer support
+
+05/06/2015 - Relased version 2.1, changelog and further development can be found at https://github.com/opcon/QuickFont.
