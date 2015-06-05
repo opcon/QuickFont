@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Drawing;
 
 namespace QuickFont
 {
+    [DebuggerDisplay("{character} Pg:{page}")]
     public class QFontGlyph
     {
         /// <summary>
