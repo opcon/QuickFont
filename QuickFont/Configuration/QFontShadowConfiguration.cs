@@ -39,11 +39,21 @@ namespace QuickFont
         public int blurPasses = 2;
 
         /// <summary>
-        /// The standard max width/height of 2D texture pages this OpenGl context wants to support
-        /// 8129 sholud be a minimum. Exact value can be obtained with GL.GetInteger(GetPName.MaxTextureSize);
-        /// page will automatically be cropped if there is extra space.
+        /// The standard width of texture pages (the page will
+        /// automatically be cropped if there is extra space)
         /// </summary>
-        public int PageMaxTextureSize = 4096;
+        public int PageWidth = 512;
+
+        /// <summary>
+        /// The standard height of texture pages (the page will
+        /// automatically be cropped if there is extra space)
+        /// </summary>
+        public int PageHeight = 512;
+
+        /// <summary>
+        /// Whether to force texture pages to use a power of two.
+        /// </summary>
+        public bool ForcePowerOfTwo = true;
 
         /// <summary>
         /// The margin (on all sides) around glyphs when rendered to

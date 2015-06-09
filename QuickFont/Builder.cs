@@ -321,7 +321,7 @@ namespace QuickFont
                 glyph.yOffset = glyph.rect.Y;
         }
 
-        private static List<QBitmap> GenerateBitmapSheetsAndRepack(QFontGlyph[] sourceGlyphs, BitmapData[] sourceBitmaps, int destSheetWidth, int destSheetHeight, out QFontGlyph[] destGlyphs, int destMargin)
+        private static List<QBitmap> GenerateBitmapSheetsAndRepack(QFontGlyph[] sourceGlyphs, BitmapData[] sourceBitmaps, int destSheetWidth, int destSheetHeight, out QFontGlyph[] destGlyphs, int destMargin, bool usePowerOfTwo)
         {
             var pages = new List<QBitmap>();
             destGlyphs = new QFontGlyph[sourceGlyphs.Length];
@@ -351,8 +351,8 @@ namespace QuickFont
 
                         if (finalPageIndex == pages.Count)
                         {
-                            int width = Math.Min(destSheetWidth, finalPageRequiredWidth);
-                            int height = Math.Min(destSheetHeight, finalPageRequiredHeight);
+                            int width = Math.Min(destSheetWidth, usePowerOfTwo ? PowerOfTwo(finalPageRequiredWidth) : finalPageRequiredWidth);
+                            int height = Math.Min(destSheetHeight, usePowerOfTwo ? PowerOfTwo(finalPageRequiredHeight) : finalPageRequiredHeight);
 
                             currentPage = new QBitmap(new Bitmap(width, height, PixelFormat.Format32bppArgb));
                             currentPage.Clear32(255, 255, 255, 0); //clear to white, but totally transparent
@@ -435,12 +435,20 @@ namespace QuickFont
 
         public QFontData BuildFontData(string saveName)
         {
+            if (config.ForcePowerOfTwo && config.SuperSampleLevels != PowerOfTwo(config.SuperSampleLevels))
+            {
+                throw new ArgumentOutOfRangeException("SuperSampleLevels must be a power of two when using ForcePowerOfTwo.");
+            }
+
             if (config.SuperSampleLevels <= 0 || config.SuperSampleLevels > 8)
             {
                 throw new ArgumentOutOfRangeException("SuperSampleLevels = [" + config.SuperSampleLevels + "] is an unsupported value. Please use values in the range [1,8]"); 
             }
 
             int margin = 2; //margin in initial bitmap (don't bother to make configurable - likely to cause confusion
+            int pageWidth = config.PageWidth * config.SuperSampleLevels; //texture page width
+            int pageHeight = config.PageHeight * config.SuperSampleLevels; //texture page height
+            bool usePowerOfTwo = config.ForcePowerOfTwo;
             int glyphMargin = config.GlyphMargin * config.SuperSampleLevels;
 
             QFontGlyph[] initialGlyphs;
@@ -450,8 +458,7 @@ namespace QuickFont
             var initialBitmapData = initialBmp.LockBits(new Rectangle(0, 0, initialBmp.Width, initialBmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
 
             int minYOffset = int.MaxValue;
-            foreach (var glyph in initialGlyphs)
-            {
+            foreach (var glyph in initialGlyphs){
                 RetargetGlyphRectangleInwards(initialBitmapData, glyph, true, config.KerningConfig.alphaEmptyPixelTolerance);
                 minYOffset = Math.Min(minYOffset,glyph.yOffset);
             }
@@ -459,10 +466,10 @@ namespace QuickFont
 
             foreach (var glyph in initialGlyphs)
                 glyph.yOffset -= minYOffset;
+           
 
-            Size pagesize = GetOptimalPageSize(initialBmp.Width * config.SuperSampleLevels, initialBmp.Height * config.SuperSampleLevels, config.PageMaxTextureSize);
-            QFontGlyph[] glyphs;
-            List<QBitmap> bitmapPages = GenerateBitmapSheetsAndRepack(initialGlyphs, new BitmapData[1] { initialBitmapData }, pagesize.Width, pagesize.Height, out glyphs, glyphMargin);
+            QFontGlyph[] glyphs; 
+            var bitmapPages = GenerateBitmapSheetsAndRepack( initialGlyphs,new BitmapData[1] { initialBitmapData},pageWidth, pageHeight, out glyphs, glyphMargin, usePowerOfTwo);
 
             initialBmp.UnlockBits(initialBitmapData);
             initialBmp.Dispose();
@@ -498,7 +505,7 @@ namespace QuickFont
             }
 
             if (config.ShadowConfig != null)
-                fontData.dropShadowFont = BuildDropShadow(bitmapPages, glyphs, config.ShadowConfig, charSet.ToCharArray(),config.KerningConfig.alphaEmptyPixelTolerance);
+                fontData.dropShadow = BuildDropShadow(bitmapPages, glyphs, config.ShadowConfig, charSet.ToCharArray(),config.KerningConfig.alphaEmptyPixelTolerance);
 
             foreach (var page in bitmapPages)
                 page.Free();
@@ -511,12 +518,6 @@ namespace QuickFont
             return fontData;
         }
 
-        private Size GetOptimalPageSize(int width, int height, int pageMaxTextureSize)
-        {
-            int rows = (width/(pageMaxTextureSize))+1;
-            return new Size(pageMaxTextureSize, rows*height);
-        }
-
         private static QFont BuildDropShadow(List<QBitmap> sourceFontSheets, QFontGlyph[] sourceFontGlyphs, QFontShadowConfiguration shadowConfig, char[] charSet, byte alphaTolerance)
         {
             QFontGlyph[] newGlyphs;
@@ -525,7 +526,8 @@ namespace QuickFont
             foreach(var sourceSheet in sourceFontSheets)
                 sourceBitmapData.Add(sourceSheet.bitmapData);
             
-            var bitmapSheets = GenerateBitmapSheetsAndRepack(sourceFontGlyphs, sourceBitmapData.ToArray(), shadowConfig.PageMaxTextureSize, shadowConfig.PageMaxTextureSize, out newGlyphs, shadowConfig.GlyphMargin + shadowConfig.blurRadius*3);
+            //GenerateBitmapSheetsAndRepack(QFontGlyph[] sourceGlyphs, BitmapData[] sourceBitmaps, int destSheetWidth, int destSheetHeight, out QFontGlyph[] destGlyphs, int destMargin, bool usePowerOfTwo)
+            var bitmapSheets = GenerateBitmapSheetsAndRepack(sourceFontGlyphs, sourceBitmapData.ToArray(), shadowConfig.PageWidth, shadowConfig.PageHeight, out newGlyphs, shadowConfig.GlyphMargin + shadowConfig.blurRadius*3, shadowConfig.ForcePowerOfTwo);
 
             //scale up in case we wanted bigger/smaller shadows
             if (shadowConfig.Scale != 1.0f)
@@ -687,7 +689,7 @@ namespace QuickFont
                     bitmapPages[i].Free();
 
                 QFontGlyph[] shrunkRepackedGlyphs;
-                bitmapPages = GenerateBitmapSheetsAndRepack(shrunkGlyphs, shrunkBitmapData, newWidth, newHeight, out shrunkRepackedGlyphs, 4);
+                bitmapPages = GenerateBitmapSheetsAndRepack(shrunkGlyphs, shrunkBitmapData, newWidth, newHeight, out shrunkRepackedGlyphs, 4, false);
                 data.CharSetMapping = CreateCharGlyphMapping(shrunkRepackedGlyphs);
 
                 foreach (var bmp in shrunkBitmapsPerGlyph)
@@ -718,7 +720,7 @@ namespace QuickFont
                 glyphList.Add(data.CharSetMapping[c]);
 
             if (loaderConfig.ShadowConfig != null)
-                data.dropShadowFont = BuildDropShadow(bitmapPages, glyphList.ToArray(), loaderConfig.ShadowConfig, Helper.ToArray(charSet),loaderConfig.KerningConfig.alphaEmptyPixelTolerance);
+                data.dropShadow = BuildDropShadow(bitmapPages, glyphList.ToArray(), loaderConfig.ShadowConfig, Helper.ToArray(charSet),loaderConfig.KerningConfig.alphaEmptyPixelTolerance);
 
             data.KerningPairs = KerningCalculator.CalculateKerning(Helper.ToArray(charSet), glyphList.ToArray(), bitmapPages, loaderConfig.KerningConfig);
             
