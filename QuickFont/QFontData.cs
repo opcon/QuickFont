@@ -162,8 +162,13 @@ namespace QuickFont
 
         public void Dispose()
         {
+            // release all textures
             foreach (var page in Pages)
                 page.Dispose();
+
+            // and also all sub-fonts if there
+            if(dropShadowFont != null)
+                dropShadowFont.Dispose();
         }
     }
 }
