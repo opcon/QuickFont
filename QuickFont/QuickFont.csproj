@@ -50,11 +50,13 @@
   <ItemGroup>
     <Compile Include="Configuration\QFontConfiguration.cs" />
     <Compile Include="Configuration\QFontKerningConfiguration.cs" />
+    <Compile Include="QFont.cs" />
+    <Compile Include="QFontDrawingPimitive.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="KerningCalculator.cs" />
+    <Compile Include="QFontDrawing.cs" />
     <Compile Include="ViewportHelper.cs" />
     <Compile Include="QBitmap.cs" />
-    <Compile Include="QFont.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Builder.cs" />
     <Compile Include="Configuration\QFontBuilderConfiguration.cs" />
