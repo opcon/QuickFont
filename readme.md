@@ -83,6 +83,6 @@ protected virtual void Dispose(bool disposing)
 ```
 
 
-###Please not this API is not backwards compatible with all previous QuickFont releases therefore new Version 3
+###Please note this API is not backwards compatible with all previous QuickFont releases hence the new Version 3
 
 
