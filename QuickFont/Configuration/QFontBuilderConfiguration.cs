@@ -271,7 +271,7 @@ namespace QuickFont
         /// Depends on current active culture. To be more general we'd use
         /// the code page and distinct the most used and practically usable
         /// cultures in terms of their characters in use. Obviuously traditional
-        /// chinese can not be supported well. Due to Texture size limits and even wores due to the
+        /// chinese can not be supported well. Due to Texture size limits and even worse due to the
         /// Kerning infos (which are n² size if n is number of characters).
         /// </summary>
         /// <returns></returns>
