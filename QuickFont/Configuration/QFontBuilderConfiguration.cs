@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 
 namespace QuickFont
 {
@@ -24,7 +25,108 @@ namespace QuickFont
         /// Use SystemDefault when rendering the ttf character set to create the QFont texture
         /// </summary>
         SystemDefault
-    } 
+    }
+
+    [Flags]
+    public enum CharacterSet
+    {
+        /// <summary>
+        ///  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.:,;'\"(!?)+-*/=_{}[]@~#\\&gt;&lt;|^%$£&amp;€°µ"
+        /// </summary>
+        BasicSet = 0,
+        /// <summary>
+        ///  "«»‹›"
+        /// </summary>
+        FrenchQuotes = 1 << 0,
+        /// <summary>
+        ///  "¡¿"
+        /// </summary>
+        SpanishQuestEx = 1 << 1,
+        /// <summary>
+        ///  "АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяљњќћџЉЊЌЋЏ"
+        /// </summary>
+        CyrillicSet = 1 << 2,
+        /// <summary>
+        ///  "ÀŠŽŸžÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ"
+        /// </summary>
+        ExtendedLatin = 1 << 3,
+        /// <summary>
+        /// "ΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώ"
+        /// </summary>
+        GreekAlphabet = 1 << 4,
+        /// <summary>
+        /// "ıİŞ"
+        /// </summary>
+        TurkishI = 1 << 5,
+        /// <summary>
+        /// "אבגדהוזחטיכךלמםנןסעפףצץקרשת"
+        /// </summary>
+        HebrewAlphabet = 1 << 6,
+        /// <summary>
+        /// "ںکگپچژڈ¯؛ہءآأؤإئابةتثجحخدذرزسشصض×طظعغـفقكàلâمنهوçèéêëىيîï؟"
+        /// </summary>
+        ArabicAlphabet = 1 << 7,
+        /// <summary>
+        /// "กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮฯะัาำิีึืฺุู฿เแโใไๅๆ็่้๊๋์ํ๎๏๐๑๒๓๔๕๖๗๘๙๚๛"
+        /// </summary>
+        ThaiKhmerAlphabet = 1 << 8,
+        /// <summary>
+        /// "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖ゗゘゙゛゜ゝゞゟ"
+        /// </summary>
+        Hiragana = 1 << 9,
+        /// <summary>
+        /// "㆐㆑㆒㆓㆔㆕㆖㆗㆘㆙㆚㆛㆜㆝㆞㆟"
+        /// </summary>
+        JapDigits = 1 << 10,
+        /// <summary>
+        /// "「」"
+        /// </summary>
+        AsianQuotes = 1 << 11,
+        /// <summary>
+        /// "⽇⽉" 
+        /// </summary>
+        EssentialKanji = 1 << 12,
+        /// <summary>
+        /// "゠ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヷヸヹヺ・ーヽヾヿ"
+        /// </summary>
+        Katakana = 1 << 13,
+
+        //Some common combinations of character sets.
+
+        /// <summary>
+        /// Includes the BasicSet, ExtendedLatin, FrenchQuotes and SpanishQuestEx
+        /// </summary>
+        General = BasicSet | ExtendedLatin | FrenchQuotes | SpanishQuestEx,
+        /// <summary>
+        /// Includes the BasicSet, CyrillicSet and FrenchQuotes
+        /// </summary>
+        Cyrillic = BasicSet | CyrillicSet | FrenchQuotes,
+        /// <summary>
+        /// Includes the BasicSet, GreekAlphabet and FrenchQuotes
+        /// </summary>
+        Greek = BasicSet | GreekAlphabet | FrenchQuotes,
+        /// <summary>
+        /// Includes the BasicSet, ExtendedLatin and TurkishI
+        /// </summary>
+        Turkish = BasicSet | ExtendedLatin | TurkishI,
+        /// <summary>
+        /// Includes the BasicSet and HebrewAlphabet
+        /// </summary>
+        Hebrew = BasicSet | HebrewAlphabet,
+        /// <summary>
+        /// Includes the BasicSet, ArabicAlphabet and FrenchQuotes
+        /// </summary>
+        Arabic = BasicSet | ArabicAlphabet | FrenchQuotes,
+        /// <summary>
+        /// Includes the BasicSet, Hiragana, Katakana, AsianQuotes, JapDigits and EssentialKanji
+        /// </summary>
+        Japanese = BasicSet | Hiragana | Katakana | AsianQuotes | JapDigits | EssentialKanji,
+        /// <summary>
+        /// Includes the BasicSet, ThaiKhmerAlphabet and FrenchQuotes
+        /// </summary>
+        Thai = BasicSet | ThaiKhmerAlphabet | FrenchQuotes
+
+    }
 
     /// <summary>
     /// What settings to use when building the font
@@ -34,7 +136,7 @@ namespace QuickFont
         public const string BasicSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.:,;'\"(!?)+-*/=_{}[]@~#\\<>|^%$£&€°µ";
         public const string FrenchQuotes = "«»‹›";
         public const string SpanishQestEx = "¡¿";
-        public const string CyrillSet = "АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяљњќћџЉЊЌЋЏ";
+        public const string CyrillicSet = "АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяљњќћџЉЊЌЋЏ";
         public const string ExtendedLatin = "ÀŠŽŸžÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ";
         public const string GreekAlphabet = "ΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώ";
         public const string TurkishI = "ıİŞ";
@@ -70,7 +172,19 @@ namespace QuickFont
         /// <summary>
         /// Set of characters to support
         /// </summary>
-        public string charSet = FigureOutBestCharacterSet();
+        public string charSet = BuildCharacterSet(FigureOutBestCharacterSet());
+
+        private CharacterSet _characters = CharacterSet.BasicSet;
+
+        public CharacterSet Characters
+        {
+            get { return _characters; }
+            set
+            {
+                _characters = value;
+                charSet = BuildCharacterSet(_characters);
+            }
+        }
 
         /// <summary>
         /// Which render hint to use when rendering the ttf character set to create the QFont texture
@@ -91,6 +205,67 @@ namespace QuickFont
             this.TransformToCurrentOrthogProjection = fontConfiguration.TransformToCurrentOrthogProjection;
         }
 
+        private static string BuildCharacterSet(CharacterSet set)
+        {
+            var characterSetValues = Enum.GetValues(typeof(CharacterSet));
+            string result = "";
+            foreach (CharacterSet value in characterSetValues)
+            {
+                if (set.HasFlag(value))
+                {
+                    switch (value)
+                    {
+                        case CharacterSet.BasicSet:
+                            result += BasicSet;
+                            break;
+                        case CharacterSet.FrenchQuotes:
+                            result += FrenchQuotes;
+                            break;
+                        case CharacterSet.SpanishQuestEx:
+                            result += SpanishQestEx;
+                            break;
+                        case CharacterSet.CyrillicSet:
+                            result += CyrillicSet;
+                            break;
+                        case CharacterSet.ExtendedLatin:
+                            result += ExtendedLatin;
+                            break;
+                        case CharacterSet.GreekAlphabet:
+                            result += GreekAlphabet;
+                            break;
+                        case CharacterSet.TurkishI:
+                            result += TurkishI;
+                            break;
+                        case CharacterSet.HebrewAlphabet:
+                            result += HebrewAlphabet;
+                            break;
+                        case CharacterSet.ArabicAlphabet:
+                            result += ArabicAlphabet;
+                            break;
+                        case CharacterSet.ThaiKhmerAlphabet:
+                            result += ThaiKhmerAlphabet;
+                            break;
+                        case CharacterSet.Hiragana:
+                            result += Hiragana;
+                            break;
+                        case CharacterSet.JapDigits:
+                            result += JapDigits;
+                            break;
+                        case CharacterSet.AsianQuotes:
+                            result += AsianQuotes;
+                            break;
+                        case CharacterSet.EssentialKanji:
+                            result += EssentialKanji;
+                            break;
+                        case CharacterSet.Katakana:
+                            result += Katakana;
+                            break;
+                    }
+                }
+            }
+            return result;
+        }
+
         /// <summary>
         /// Figures the out best character set to be assigned to charSet.
         /// Depends on current active culture. To be more general we'd use
@@ -100,37 +275,35 @@ namespace QuickFont
         /// Kerning infos (which are n² size if n is number of characters).
         /// </summary>
         /// <returns></returns>
-        static string FigureOutBestCharacterSet()
+        static CharacterSet FigureOutBestCharacterSet()
         {
             // he : 1255, de/en=1252, arab =ANSICodePage = 1256, bg/ru=1251, ko=949, ja =932, cz=1250, thai =847
-            TextInfo textInfo = System.Globalization.CultureInfo.CurrentCulture.TextInfo;
+            TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
             switch (textInfo.ANSICodePage)
             {
                 case 1251: //stands for cyrillic writing systems like bu, ru, uk
-                    return BasicSet + CyrillSet+FrenchQuotes;
+                    return CharacterSet.Cyrillic;
                 case 1257: //stands for baltic
                 case 1252: //stands for western european writing systems as fr,es,de,nl,se... and most others
-                    return BasicSet + ExtendedLatin + FrenchQuotes + SpanishQestEx;
+                    return CharacterSet.General;
                 case 1253: //stands for greek and greek writing cultures.
-                    return BasicSet + GreekAlphabet + FrenchQuotes;
+                    return CharacterSet.Greek;
                 case 1254: //stands for turkish etc.
-                    return BasicSet + ExtendedLatin + TurkishI;
+                    return CharacterSet.Turkish;
                 case 1255: // stands for hebrew (he) adds hebrew characters  (well, right-to left reading order is not supported TODO)
-                    return BasicSet + HebrewAlphabet;
+                    return CharacterSet.Hebrew;
                 case 1256: // stands for arabic writing cultures as north arfica and near east inc. persia 
                     // but it does not work properly becaues right-to left reading order is not supported by qfont. TODO
                     // Note this is not really supported since arabic has zero space combindig characters that are not supported (or are they?)
-                    return BasicSet + ArabicAlphabet + FrenchQuotes;
+                    return CharacterSet.Arabic;
                 case 932: // stands for japanese - add hiragana and katakana characters plus some essential kanji
-                    return BasicSet + Hiragana + Katakana + AsianQuotes + JapDigits + EssentialKanji;
+                    return CharacterSet.Japanese;
                 case 874: // stands for thai
                     // Note this is not really supported since thai has zero space combindig characters that are not supported (or are they?)
-                    return BasicSet + ThaiKhmerAlphabet + FrenchQuotes;
+                    return CharacterSet.Thai;
                 // TODO : add hindi, malayalam and telugu
-
-
             }
-            return BasicSet;
+            return CharacterSet.BasicSet;
         }
     }
 }
