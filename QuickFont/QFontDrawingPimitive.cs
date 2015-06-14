@@ -61,6 +61,8 @@ namespace QuickFont
 
         public QFontRenderOptions Options { get; private set; }
 
+        public SizeF LastSize { get; private set; }
+
         internal IList<QVertex> CurrentVertexRepr
         {
             get { return _currentVertexRepr; }
@@ -390,7 +392,8 @@ namespace QuickFont
             if (minXPos != float.MaxValue)
                 maxWidth = maxXpos - minXPos;
 
-            return new SizeF(maxWidth, yOffset + LineSpacing);
+            LastSize = new SizeF(maxWidth, yOffset + LineSpacing);
+            return LastSize;
         }
 
         private SizeF PrintOrMeasure(ProcessedText processedText, bool measureOnly)
@@ -488,7 +491,8 @@ namespace QuickFont
                 }
             }
 
-            return new SizeF(maxMeasuredWidth, yOffset + LineSpacing - yPos);
+            LastSize = new SizeF(maxMeasuredWidth, yOffset + LineSpacing - yPos);
+            return LastSize;
         }
 
         private void RenderWord(float x, float y, TextNode node)
@@ -854,6 +858,5 @@ namespace QuickFont
 
             return processedText;
         }
-
     }
 }
