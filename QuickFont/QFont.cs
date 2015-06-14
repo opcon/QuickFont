@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Text;
+using System.Linq;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
@@ -124,10 +125,21 @@ namespace QuickFont
         /// <returns></returns>
         internal static Font GetFont(string fontPath, float size, FontStyle style, int superSampleLevels = 1, float scale = 1.0f)
         {
-            var pfc = new PrivateFontCollection();
-            pfc.AddFontFile(fontPath);
-            FontFamily fontFamily = pfc.Families[0];
-
+            FontFamily fontFamily;
+            try
+            {
+                var pfc = new PrivateFontCollection();
+                pfc.AddFontFile(fontPath);
+                fontFamily = pfc.Families[0];
+            }
+            catch(System.IO.FileNotFoundException ex)
+            {
+                //font file could not be found, check if it exists in the installed font collection
+                var installed = new InstalledFontCollection();
+                fontFamily = installed.Families.FirstOrDefault(family => string.Equals(fontPath, family.Name));
+                //if we can't find the font file at all, use the system default font
+                if (fontFamily == null) fontFamily = SystemFonts.DefaultFont.FontFamily;
+            }
             if (!fontFamily.IsStyleAvailable(style))
                 throw new ArgumentException("Font file: " + fontPath + " does not support style: " + style);
 
