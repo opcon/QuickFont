@@ -227,6 +227,8 @@ namespace QuickFont
         /// </summary>
         public float JustifyContractionPenalty = 2;
 
+        public Rectangle ClippingRectangle = default(Rectangle);
+
         #endregion
 
         public QFontRenderOptions CreateClone()
@@ -252,6 +254,7 @@ namespace QuickFont
             clone.JustifyCapExpand = JustifyCapExpand;
             clone.JustifyCapContract = JustifyCapContract;
             clone.JustifyContractionPenalty = JustifyContractionPenalty;
+            clone.ClippingRectangle = ClippingRectangle;
 
             return clone;
         }
