@@ -263,10 +263,10 @@ void main(void)
         {
             var dp = new QFontDrawingPimitive(font, opt);
             DrawingPimitiveses.Add(dp);
-            return dp.Print(text, position);
+            return dp.Print(text, position, opt.ClippingRectangle);
         }
 
-        public SizeF Print(QFont font, ProcessedText processedText, Vector3 position, Color? colour = null)
+        public SizeF Print(QFont font, ProcessedText processedText, Vector3 position, Color? colour = null, Rectangle clippingRectangle = default(Rectangle))
         {
             var dp = new QFontDrawingPimitive(font);
             DrawingPimitiveses.Add(dp);
@@ -280,30 +280,30 @@ void main(void)
         {
             var dp = new QFontDrawingPimitive(font, opt);
             DrawingPimitiveses.Add(dp);
-            return dp.Print(text, position, alignment);
+            return dp.Print(text, position, alignment, opt.ClippingRectangle);
         }
 
-        public SizeF Print(QFont font, string text, Vector3 position, QFontAlignment alignment, Color? color = null)
+        public SizeF Print(QFont font, string text, Vector3 position, QFontAlignment alignment, Color? color = null, Rectangle clippingRectangle = default(Rectangle))
         {
             var dp = new QFontDrawingPimitive(font);
             DrawingPimitiveses.Add(dp);
             if( color.HasValue )
-                return dp.Print(text, position, alignment, color.Value);
-            return dp.Print(text, position, alignment);
+                return dp.Print(text, position, alignment, color.Value, clippingRectangle);
+            return dp.Print(text, position, alignment, clippingRectangle);
         }
 
-        public SizeF Print(QFont font, string text, Vector3 position, SizeF maxSize, QFontAlignment alignment)
+        public SizeF Print(QFont font, string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Rectangle clippingRectangle = default(Rectangle))
         {
             var dp = new QFontDrawingPimitive(font);
             DrawingPimitiveses.Add(dp);
-            return dp.Print(text, position, maxSize, alignment);
+            return dp.Print(text, position, maxSize, alignment, clippingRectangle);
         }
 
-        public SizeF Print(QFont font, string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, QFontRenderOptions opts )
+        public SizeF Print(QFont font, string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, QFontRenderOptions opt )
         {
-            var dp = new QFontDrawingPimitive(font, opts);
+            var dp = new QFontDrawingPimitive(font, opt);
             DrawingPimitiveses.Add(dp);
-            return dp.Print(text, position, maxSize, alignment);
+            return dp.Print(text, position, maxSize, alignment, opt.ClippingRectangle);
         }
 
         #region IDisposable impl

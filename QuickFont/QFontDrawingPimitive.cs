@@ -61,6 +61,8 @@ namespace QuickFont
 
         public QFontRenderOptions Options { get; private set; }
 
+        public SizeF LastSize { get; private set; }
+
         internal IList<QVertex> CurrentVertexRepr
         {
             get { return _currentVertexRepr; }
@@ -68,21 +70,96 @@ namespace QuickFont
 
         internal IList<QVertex> ShadowVertexRepr { get { return _shadowVertexRepr; } }
 
-        private void RenderDropShadow(float x, float y, char c, QFontGlyph nonShadowGlyph, QFont shadowFont)
+        private void RenderDropShadow(float x, float y, char c, QFontGlyph nonShadowGlyph, QFont shadowFont, ref Rectangle clippingRectangle)
         {
             //note can cast drop shadow offset to int, but then you can't move the shadow smoothly...
             if (shadowFont != null && this.Options.DropShadowActive)
             {
-                this.RenderGlyphFinal(
-                    x + (_font.FontData.meanGlyphWidth * this.Options.DropShadowOffset.X + nonShadowGlyph.rect.Width * 0.5f),
-                    y +
-                    (_font.FontData.meanGlyphWidth * this.Options.DropShadowOffset.Y + nonShadowGlyph.rect.Height * 0.5f +
-                     nonShadowGlyph.yOffset), c, shadowFont, this.ShadowVertexRepr);
+                float xOffset = (_font.FontData.meanGlyphWidth*this.Options.DropShadowOffset.X + nonShadowGlyph.rect.Width*0.5f);
+                float yOffset = (_font.FontData.meanGlyphWidth*this.Options.DropShadowOffset.Y + nonShadowGlyph.rect.Height*0.5f + nonShadowGlyph.yOffset);
+                this.RenderGlyph(x + xOffset, y + yOffset, c, shadowFont, this.ShadowVertexRepr, clippingRectangle);
             }
         }
+        
+        private bool ScissorsTest(ref float x, ref float y, ref float width, ref float height, ref float u1, ref float v1, ref float u2, ref float v2, Rectangle clipRectangle)
+        {
+            if (y > clipRectangle.Y + clipRectangle.Height)
+            {
+                float oldHeight = height;
+                float delta = y - (clipRectangle.Y + clipRectangle.Height);
+                y = clipRectangle.Y + clipRectangle.Height;
+                height -= delta;
 
+                if (height <= 0)
+                {
+                    return true;
+                }
 
-        private void RenderGlyphFinal(float x, float y, char c, QFont font, IList<QVertex> store)
+                float dv = (float)delta / (float)oldHeight;
+
+                v1 += dv * (v2 - v1);
+            }
+
+            if ((y - height) < (clipRectangle.Y))
+            {
+                float oldHeight = height;
+                float delta = (y - height) - clipRectangle.Y;
+
+                height -= delta;
+
+                if (height <= 0)
+                {
+                    return true;
+                }
+
+                float dv = (float) delta/(float) oldHeight;
+
+                v2 -= dv*(v2 - v1);
+            }
+
+            if (x < clipRectangle.X)
+            {
+                float oldWidth = width;
+                float delta = clipRectangle.X - x;
+                x = clipRectangle.X;
+                width -= delta;
+
+                if (width <= 0)
+                {
+                    return true;
+                }
+
+                float du = (float)delta / (float)oldWidth;
+
+                u1 += du * (u2 - u1);
+            }
+
+            if ((x + width) > (clipRectangle.X + clipRectangle.Width))
+            {
+                float oldWidth = width;
+                float delta = (x + width) - (clipRectangle.X + clipRectangle.Width);
+
+                width -= delta;
+
+                if (width <= 0)
+                {
+                    return true;
+                }
+
+                float du = (float)delta / (float)oldWidth;
+
+                u2 -= du * (u2 - u1);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Renders the glyph at the position given.
+        /// </summary>
+        /// <param name="x">The x.</param>
+        /// <param name="y">The y.</param>
+        /// <param name="c">The character to print.</param>
+        internal void RenderGlyph(float x, float y, char c, QFont font, IList<QVertex> store, Rectangle clippingRectangle)
         {
             QFontGlyph glyph = font.FontData.CharSetMapping[c];
 
@@ -96,7 +173,7 @@ namespace QuickFont
             }
             else
             {
-                RenderDropShadow(x, y, c, glyph, font.FontData.dropShadowFont);
+                RenderDropShadow(x, y, c, glyph, font.FontData.dropShadowFont, ref clippingRectangle);
             }
 
             y = -y;
@@ -108,15 +185,22 @@ namespace QuickFont
             float tx2 = (float)(glyph.rect.X + glyph.rect.Width) / sheet.Width;
             float ty2 = (float)(glyph.rect.Y + glyph.rect.Height) / sheet.Height;
 
+            float vx = x + PrintOffset.X;
+            float vy = y - glyph.yOffset + PrintOffset.Y;
+            float vwidth = glyph.rect.Width;
+            float vheight = glyph.rect.Height;
+
+            if (clippingRectangle != default(Rectangle) && ScissorsTest(ref vx, ref vy, ref vwidth, ref vheight, ref tx1, ref ty1, ref tx2, ref ty2, clippingRectangle)) return;
+
             var tv1 = new Vector2(tx1, ty1);
             var tv2 = new Vector2(tx1, ty2);
             var tv3 = new Vector2(tx2, ty2);
             var tv4 = new Vector2(tx2, ty1);
 
-            Vector3 v1 = PrintOffset + new Vector3(x, y - glyph.yOffset, 0);
-            Vector3 v2 = PrintOffset + new Vector3(x, y - glyph.yOffset - glyph.rect.Height, 0);
-            Vector3 v3 = PrintOffset + new Vector3(x + glyph.rect.Width, y - glyph.yOffset - glyph.rect.Height, 0);
-            Vector3 v4 = PrintOffset + new Vector3(x + glyph.rect.Width, y - glyph.yOffset, 0);
+            Vector3 v1 = new Vector3(vx, vy, PrintOffset.Z);
+            Vector3 v2 = new Vector3(vx, vy - vheight, PrintOffset.Z);
+            Vector3 v3 = new Vector3(vx + vwidth, vy - vheight, PrintOffset.Z);
+            Vector3 v4 = new Vector3(vx + vwidth, vy, PrintOffset.Z);
 
             Color color;
             if (font.FontData.isDropShadow)
@@ -135,18 +219,6 @@ namespace QuickFont
             store.Add(new QVertex() { Position = v4, TextureCoord = tv4, VertexColor = colour });
         }
 
-        /// <summary>
-        /// Renders the glyph at the position given. Adds a drop shadow if configured.
-        /// </summary>
-        /// <param name="x">The x.</param>
-        /// <param name="y">The y.</param>
-        /// <param name="c">The character to print.</param>
-        public void RenderGlyph(float x, float y, char c)
-        {
-            //if (_font.FontData.dropShadowFont != null)
-            //    RenderGlyphFinal(x, y, c, _font.FontData.dropShadowFont, ShadowVertexRepr);
-            RenderGlyphFinal(x, y, c, _font, CurrentVertexRepr);
-        }
 
         private float MeasureNextlineLength(string text)
         {
@@ -252,42 +324,42 @@ namespace QuickFont
             return new Vector3(LockToPixel(TransformPositionToViewport(input.Xy))) {Z = input.Z};
         }
 
-        public SizeF Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment)
-        {
-            ProcessedText processedText = ProcessText(_font, Options, text, maxSize, alignment);
-            return Print(processedText, TransformToViewport(position));
-        }
-
-        public SizeF Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color colour)
-        {
-            ProcessedText processedText = ProcessText(_font, Options, text, maxSize, alignment);
-            return Print(processedText, TransformToViewport(position), colour);
-        }
-
-        public SizeF Print(ProcessedText processedText, Vector3 position)
+        public SizeF Print(string text, Vector3 position, QFontAlignment alignment, Rectangle clippingRectangle = default(Rectangle))
         {
             PrintOffset = TransformToViewport(position);
-            return PrintOrMeasure(processedText, false);
+            return PrintOrMeasure(text, alignment, false, clippingRectangle);
         }
 
-        public SizeF Print(ProcessedText processedText, Vector3 position, Color colour)
-        {
-            this.Options.Colour = colour;
-            PrintOffset = TransformToViewport(position);
-            return PrintOrMeasure(processedText, false);
-        }
-
-        public SizeF Print(string text, Vector3 position, QFontAlignment alignment)
-        {
-            PrintOffset = TransformToViewport(position);
-            return PrintOrMeasure(text, alignment, false);
-        }
-
-        public SizeF Print(string text, Vector3 position, QFontAlignment alignment, Color color)
+        public SizeF Print(string text, Vector3 position, QFontAlignment alignment, Color color, Rectangle clippingRectangle = default(Rectangle))
         {
             this.Options.Colour = color;
             PrintOffset = TransformToViewport(position);
-            return PrintOrMeasure(text, alignment, false);
+            return PrintOrMeasure(text, alignment, false, clippingRectangle);
+        }
+
+        public SizeF Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Rectangle clippingRectangle = default(Rectangle))
+        {
+            ProcessedText processedText = ProcessText(_font, Options, text, maxSize, alignment);
+            return Print(processedText, TransformToViewport(position), clippingRectangle);
+        }
+
+        public SizeF Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color colour, Rectangle clippingRectangle = default(Rectangle))
+        {
+            ProcessedText processedText = ProcessText(_font, Options, text, maxSize, alignment);
+            return Print(processedText, TransformToViewport(position), colour, clippingRectangle);
+        }
+
+        public SizeF Print(ProcessedText processedText, Vector3 position, Rectangle clippingRectangle = default(Rectangle))
+        {
+            PrintOffset = TransformToViewport(position);
+            return PrintOrMeasure(processedText, false, clippingRectangle);
+        }
+
+        public SizeF Print(ProcessedText processedText, Vector3 position, Color colour, Rectangle clippingRectangle = default(Rectangle))
+        {
+            this.Options.Colour = colour;
+            PrintOffset = TransformToViewport(position);
+            return PrintOrMeasure(processedText, false, clippingRectangle);
         }
 
         public SizeF Measure(string text, QFontAlignment alignment = QFontAlignment.Left)
@@ -323,7 +395,7 @@ namespace QuickFont
             return TransformMeasureFromViewport(PrintOrMeasure(processedText, true));
         }
 
-        private SizeF PrintOrMeasure(string text, QFontAlignment alignment, bool measureOnly)
+        private SizeF PrintOrMeasure(string text, QFontAlignment alignment, bool measureOnly, Rectangle clippingRectangle = default(Rectangle))
         {
             float maxWidth = 0f;
             float xOffset = 0f;
@@ -364,7 +436,7 @@ namespace QuickFont
                     if (c != ' ' && _font.FontData.CharSetMapping.ContainsKey(c))
                     {
                         if (!measureOnly)
-                            RenderGlyph(xOffset, yOffset, c);
+                            RenderGlyph(xOffset, yOffset, c, _font, CurrentVertexRepr, clippingRectangle);
                     }
 
                     if (IsMonospacingActive)
@@ -390,10 +462,11 @@ namespace QuickFont
             if (minXPos != float.MaxValue)
                 maxWidth = maxXpos - minXPos;
 
-            return new SizeF(maxWidth, yOffset + LineSpacing);
+            LastSize = new SizeF(maxWidth, yOffset + LineSpacing);
+            return LastSize;
         }
 
-        private SizeF PrintOrMeasure(ProcessedText processedText, bool measureOnly)
+        private SizeF PrintOrMeasure(ProcessedText processedText, bool measureOnly, Rectangle clippingRectangle = default(Rectangle))
         {
             // init values we'll return
             float maxMeasuredWidth = 0f;
@@ -450,7 +523,7 @@ namespace QuickFont
                         atLeastOneNodeCosumedOnLine = true;
 
                         if (!measureOnly)
-                            RenderWord(xOffset + length, yOffset, node);
+                            RenderWord(xOffset + length, yOffset, node, ref clippingRectangle);
                         length += node.ModifiedLength;
 
                         maxMeasuredWidth = Math.Max(length, maxMeasuredWidth);
@@ -488,10 +561,11 @@ namespace QuickFont
                 }
             }
 
-            return new SizeF(maxMeasuredWidth, yOffset + LineSpacing - yPos);
+            LastSize = new SizeF(maxMeasuredWidth, yOffset + LineSpacing - yPos);
+            return LastSize;
         }
 
-        private void RenderWord(float x, float y, TextNode node)
+        private void RenderWord(float x, float y, TextNode node, ref Rectangle clippingRectangle)
         {
             if (node.Type != TextNodeType.Word)
                 return;
@@ -517,7 +591,7 @@ namespace QuickFont
                 {
                     QFontGlyph glyph = _font.FontData.CharSetMapping[c];
 
-                    RenderGlyph(x, y, c);
+                    RenderGlyph(x, y, c, _font, CurrentVertexRepr, clippingRectangle);
 
 
                     if (IsMonospacingActive)
@@ -854,6 +928,5 @@ namespace QuickFont
 
             return processedText;
         }
-
     }
 }
