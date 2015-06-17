@@ -83,11 +83,12 @@ namespace QuickFont
         
         private bool ScissorsTest(ref float x, ref float y, ref float width, ref float height, ref float u1, ref float v1, ref float u2, ref float v2, Rectangle clipRectangle)
         {
-            if (y > clipRectangle.Y + clipRectangle.Height)
+            float cRectY = clipRectangle.Y;
+            if (y > cRectY + clipRectangle.Height)
             {
                 float oldHeight = height;
-                float delta = y - (clipRectangle.Y + clipRectangle.Height);
-                y = clipRectangle.Y + clipRectangle.Height;
+                float delta = Math.Abs(y - (cRectY + clipRectangle.Height));
+                y = cRectY + clipRectangle.Height;
                 height -= delta;
 
                 if (height <= 0)
@@ -95,15 +96,14 @@ namespace QuickFont
                     return true;
                 }
 
-                float dv = (float)delta / (float)oldHeight;
-
+                float dv = Math.Abs((float)delta / (float)oldHeight);
                 v1 += dv * (v2 - v1);
             }
 
-            if ((y - height) < (clipRectangle.Y))
+            if ((y - height) < (cRectY))
             {
                 float oldHeight = height;
-                float delta = (y - height) - clipRectangle.Y;
+                float delta = Math.Abs(cRectY - (y - height));
 
                 height -= delta;
 
@@ -112,8 +112,7 @@ namespace QuickFont
                     return true;
                 }
 
-                float dv = (float) delta/(float) oldHeight;
-
+                float dv = Math.Abs((float) delta/(float) oldHeight);
                 v2 -= dv*(v2 - v1);
             }
 
