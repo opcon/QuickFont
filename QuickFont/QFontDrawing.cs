@@ -47,7 +47,7 @@ void main(void)
 
         public QVertexArrayObject _vertexArrayObject;
         private SharedState _instanceSharedState;
-        private readonly List<QFontDrawingPimitive> _glFontDrawingPimitives;
+        private readonly List<QFontDrawingPrimitive> _glFontDrawingPrimitives;
         private readonly bool _useDefaultBlendFunction;
 
         private Matrix4 _projectionMatrix;
@@ -55,7 +55,7 @@ void main(void)
         public QFontDrawing(bool useDefaultBlendFunction = true)
         {
             _useDefaultBlendFunction = useDefaultBlendFunction;
-            _glFontDrawingPimitives =new List<QFontDrawingPimitive>();
+            _glFontDrawingPrimitives =new List<QFontDrawingPrimitive>();
             InitialiseState();
         }
 
@@ -75,9 +75,9 @@ void main(void)
             set { _projectionMatrix = value; }
         }
 
-        public List<QFontDrawingPimitive> DrawingPimitiveses
+        public List<QFontDrawingPrimitive> DrawingPrimitives
         {
-            get { return _glFontDrawingPimitives; }
+            get { return _glFontDrawingPrimitives; }
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ void main(void)
 
             int start = 0;
             _vertexArrayObject.Bind();
-            foreach (var primitive in _glFontDrawingPimitives)
+            foreach (var primitive in _glFontDrawingPrimitives)
             {
                 var dpt = PrimitiveType.Triangles;
                 GL.ActiveTexture(QFontSharedState.DefaultTextureUnit);
@@ -251,7 +251,7 @@ void main(void)
 
             _vertexArrayObject.Reset();
 
-            foreach (var primitive in _glFontDrawingPimitives)
+            foreach (var primitive in _glFontDrawingPrimitives)
             {
                 _vertexArrayObject.AddVertexes(primitive.ShadowVertexRepr);
                 _vertexArrayObject.AddVertexes(primitive.CurrentVertexRepr);
@@ -261,15 +261,15 @@ void main(void)
 
         public SizeF Print(QFont font, ProcessedText text, Vector3 position, QFontRenderOptions opt)
         {
-            var dp = new QFontDrawingPimitive(font, opt);
-            DrawingPimitiveses.Add(dp);
+            var dp = new QFontDrawingPrimitive(font, opt);
+            DrawingPrimitives.Add(dp);
             return dp.Print(text, position, opt.ClippingRectangle);
         }
 
         public SizeF Print(QFont font, ProcessedText processedText, Vector3 position, Color? colour = null, Rectangle clippingRectangle = default(Rectangle))
         {
-            var dp = new QFontDrawingPimitive(font);
-            DrawingPimitiveses.Add(dp);
+            var dp = new QFontDrawingPrimitive(font);
+            DrawingPrimitives.Add(dp);
             if (colour.HasValue)
                 return dp.Print(processedText, position, colour.Value);
             else
@@ -278,15 +278,15 @@ void main(void)
 
         public SizeF Print(QFont font, string text, Vector3 position, QFontAlignment alignment, QFontRenderOptions opt)
         {
-            var dp = new QFontDrawingPimitive(font, opt);
-            DrawingPimitiveses.Add(dp);
+            var dp = new QFontDrawingPrimitive(font, opt);
+            DrawingPrimitives.Add(dp);
             return dp.Print(text, position, alignment, opt.ClippingRectangle);
         }
 
         public SizeF Print(QFont font, string text, Vector3 position, QFontAlignment alignment, Color? color = null, Rectangle clippingRectangle = default(Rectangle))
         {
-            var dp = new QFontDrawingPimitive(font);
-            DrawingPimitiveses.Add(dp);
+            var dp = new QFontDrawingPrimitive(font);
+            DrawingPrimitives.Add(dp);
             if( color.HasValue )
                 return dp.Print(text, position, alignment, color.Value, clippingRectangle);
             return dp.Print(text, position, alignment, clippingRectangle);
@@ -294,15 +294,15 @@ void main(void)
 
         public SizeF Print(QFont font, string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Rectangle clippingRectangle = default(Rectangle))
         {
-            var dp = new QFontDrawingPimitive(font);
-            DrawingPimitiveses.Add(dp);
+            var dp = new QFontDrawingPrimitive(font);
+            DrawingPrimitives.Add(dp);
             return dp.Print(text, position, maxSize, alignment, clippingRectangle);
         }
 
         public SizeF Print(QFont font, string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, QFontRenderOptions opt )
         {
-            var dp = new QFontDrawingPimitive(font, opt);
-            DrawingPimitiveses.Add(dp);
+            var dp = new QFontDrawingPrimitive(font, opt);
+            DrawingPrimitives.Add(dp);
             return dp.Print(text, position, maxSize, alignment, opt.ClippingRectangle);
         }
 
@@ -342,7 +342,7 @@ void main(void)
                 // and unmanaged resources.
                 if (disposing)
                 {
-                    //QFontDrawingPimitive.Font.FontData.Dispose();
+                    //QFontDrawingPrimitive.Font.FontData.Dispose();
                     _vertexArrayObject.Dispose();
                 }
 

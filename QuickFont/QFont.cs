@@ -210,7 +210,7 @@ namespace QuickFont
                 // and unmanaged resources.
                 if (disposing)
                 {
-                    //QFontDrawingPimitive.Font.FontData.Dispose();
+                    //QFontDrawingPrimitive.Font.FontData.Dispose();
                     FontData.Dispose();
                 }
 
@@ -228,7 +228,7 @@ namespace QuickFont
         /// <returns>Measured size</returns>
         public SizeF Measure(string text, SizeF maxSize, QFontAlignment alignment)
         {
-            var test = new QFontDrawingPimitive(this);
+            var test = new QFontDrawingPrimitive(this);
             return test.Measure(text, maxSize, alignment);
         }
 
@@ -243,7 +243,7 @@ namespace QuickFont
         /// </returns>
         public SizeF Measure(string text, float maxWidth, QFontAlignment alignment)
         {
-            var test = new QFontDrawingPimitive(this);
+            var test = new QFontDrawingPrimitive(this);
             return test.Measure(text, maxWidth, alignment);
         }
 
@@ -256,7 +256,7 @@ namespace QuickFont
         /// </returns>
         public SizeF Measure(ProcessedText processedText)
         {
-            var test = new QFontDrawingPimitive(this);
+            var test = new QFontDrawingPrimitive(this);
             return test.Measure(processedText);
         }
 
@@ -270,7 +270,7 @@ namespace QuickFont
         /// </returns>
         public SizeF Measure(string text, QFontAlignment alignment = QFontAlignment.Left)
         {
-            var test = new QFontDrawingPimitive(this);
+            var test = new QFontDrawingPrimitive(this);
             return test.Measure(text, alignment);
         }
     }
