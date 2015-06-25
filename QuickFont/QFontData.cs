@@ -33,6 +33,11 @@ namespace QuickFont
         public int maxGlyphHeight;
 
         /// <summary>
+        /// The maximum line height
+        /// </summary>
+        public int maxLineHeight;
+
+        /// <summary>
         /// Null if no dropShadowFont is available
         /// </summary>
         public QFont dropShadowFont;
@@ -118,8 +123,12 @@ namespace QuickFont
         public void CalculateMaxHeight()
         {
             maxGlyphHeight = 0;
+            maxLineHeight = 0;
             foreach (var glyph in CharSetMapping)
+            {
                 maxGlyphHeight = Math.Max(glyph.Value.rect.Height, maxGlyphHeight);
+                maxLineHeight = Math.Max(glyph.Value.rect.Height + glyph.Value.yOffset, maxLineHeight);
+            }
         }
 
         /// <summary>

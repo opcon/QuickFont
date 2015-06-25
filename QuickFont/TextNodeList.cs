@@ -14,11 +14,13 @@ namespace QuickFont
         public string Text;
         public float Length; //pixel length (without tweaks)
         public float LengthTweak; //length tweak for justification
+        public float Height;
 
         public float ModifiedLength
         {
             get { return Length + LengthTweak; }
         }
+
 
         public TextNode(TextNodeType Type, string Text){
             this.Type = Type;
@@ -120,6 +122,7 @@ namespace QuickFont
             }
 
             float length = 0f;
+            float height = 0f;
             if (node.Type == TextNodeType.Word)
             {
                 
@@ -128,13 +131,16 @@ namespace QuickFont
                     char c = node.Text[i];
                     if (fontData.CharSetMapping.ContainsKey(c))
                     {
+                        var glyph = fontData.CharSetMapping[c];
                         if (monospaced)
                             length += monospaceWidth;
                         else
                             length += (float)Math.Ceiling(fontData.CharSetMapping[c].rect.Width + fontData.meanGlyphWidth * options.CharacterSpacing + fontData.GetKerningPairCorrection(i, node.Text, node));
+                        height = Math.Max(height, glyph.yOffset + glyph.rect.Height);
                     }
                 }
             }
+            node.Height = height;
             return length;
         }
 

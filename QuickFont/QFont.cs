@@ -18,6 +18,16 @@ namespace QuickFont
         private bool _disposed;
         private string _fontName;
 
+        /// <summary>
+        /// The maximum line height for the glyph set, unscaled
+        /// </summary>
+        public int MaxLineHeight {get { return _fontData.maxLineHeight; }}
+
+        /// <summary>
+        /// The maximum glyph height for the glyph set, unscaled
+        /// </summary>
+        public int MaxGlyphHeight {get { return _fontData.maxGlyphHeight; }}
+
         internal QFont(QFontData fontData)
         {
             this._fontData = fontData;

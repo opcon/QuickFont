@@ -412,6 +412,7 @@ namespace QuickFont
             else if (alignment == QFontAlignment.Centre)
                 xOffset -= (int) (0.5f*MeasureNextlineLength(text));
 
+            float maxCharHeight = 0;
             for (int i = 0; i < text.Length; i++)
             {
                 char c = text[i];
@@ -419,7 +420,10 @@ namespace QuickFont
                 //newline
                 if (c == '\r' || c == '\n')
                 {
+                    //maxCharHeight = maxCharHeight - LineSpacing;
+                    //if (maxCharHeight < 0) maxCharHeight = 0;
                     yOffset += LineSpacing;
+                    maxCharHeight = 0;
                     xOffset = 0f;
 
                     if (alignment == QFontAlignment.Right)
@@ -451,6 +455,7 @@ namespace QuickFont
                             xOffset +=
                                 (float)
                                 Math.Ceiling(glyph.rect.Width + _font.FontData.meanGlyphWidth * this.Options.CharacterSpacing + _font.FontData.GetKerningPairCorrection(i, text, null));
+                            maxCharHeight = Math.Max(maxCharHeight, glyph.rect.Height + glyph.yOffset);
                         }
                     }
 
@@ -461,6 +466,8 @@ namespace QuickFont
             if (minXPos != float.MaxValue)
                 maxWidth = maxXpos - minXPos;
 
+            maxCharHeight = maxCharHeight - LineSpacing;
+            if (maxCharHeight < 0) maxCharHeight = 0;
             LastSize = new SizeF(maxWidth, yOffset + LineSpacing);
             return LastSize;
         }
@@ -469,9 +476,10 @@ namespace QuickFont
         {
             // init values we'll return
             float maxMeasuredWidth = 0f;
+            float maxCharHeight = 0f;
 
-            float xPos = 0f;
-            float yPos = 0f;
+            const float xPos = 0f;
+            const float yPos = 0f;
 
             float xOffset = xPos;
             float yOffset = yPos;
@@ -525,6 +533,7 @@ namespace QuickFont
                             RenderWord(xOffset + length, yOffset, node, ref clippingRectangle);
                         length += node.ModifiedLength;
 
+                        maxCharHeight = Math.Max(maxCharHeight, node.Height);
                         maxMeasuredWidth = Math.Max(length, maxMeasuredWidth);
                     }
                     else if (this.Options.WordWrap)
@@ -542,7 +551,8 @@ namespace QuickFont
                     if (processedText.maxSize.Height > 0 &&
                         yOffset + LineSpacing - yPos >= processedText.maxSize.Height)
                         break;
-
+                    //maxCharHeight = maxCharHeight - LineSpacing;
+                    //if (maxCharHeight < 0) maxCharHeight = 0;
                     yOffset += LineSpacing;
                     xOffset = xPos;
                     length = 0f;
@@ -569,6 +579,7 @@ namespace QuickFont
             if (node.Type != TextNodeType.Word)
                 return;
 
+
             int charGaps = node.Text.Length - 1;
             bool isCrumbleWord = CrumbledWord(node);
             if (isCrumbleWord)
@@ -591,7 +602,6 @@ namespace QuickFont
                     QFontGlyph glyph = _font.FontData.CharSetMapping[c];
 
                     RenderGlyph(x, y, c, _font, CurrentVertexRepr, clippingRectangle);
-
 
                     if (IsMonospacingActive)
                         x += MonoSpaceWidth;
