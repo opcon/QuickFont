@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Drawing.Text;
 using System.Linq;
 using OpenTK;
-using OpenTK.Graphics.OpenGL4;
+using QuickFont.Configuration;
 
 namespace QuickFont
 {

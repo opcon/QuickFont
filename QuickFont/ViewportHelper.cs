@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing.Drawing2D;
-using System.Security.Permissions;
-using System.Text;
 using OpenTK;
-using OpenTK.Graphics.OpenGL4;
 using OpenTK.Graphics;
+using OpenTK.Graphics.ES30;
 
 namespace QuickFont
 {
