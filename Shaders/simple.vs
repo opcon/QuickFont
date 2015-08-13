@@ -1,4 +1,5 @@
-#version 130
+#version 300 es 
+precision mediump float;
 
 uniform mat4 proj_matrix;
 
@@ -13,5 +14,5 @@ void main(void)
 {
 	tc = in_tc;
 	colour = in_colour;
-	gl_Position = proj_matrix * vec4(in_position, 1.); 
+	gl_Position = proj_matrix * vec4(in_position, 1.);
 }

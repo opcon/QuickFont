@@ -12,7 +12,8 @@ namespace QuickFont
     public class QFontDrawing
     {
         //private QFontRenderOptions options = new QFontRenderOptions();
-        private const string fragShaderSource = @"#version 130
+        private const string fragShaderSource = @"#version 300 es 
+precision mediump float;
 
 uniform sampler2D tex_object;
 
@@ -25,7 +26,8 @@ void main(void)
 {
 	fragColour = texture(tex_object, tc) * vec4(colour);
 }";
-        private const string vertShaderSource = @"#version 130
+        private const string vertShaderSource = @"#version 300 es 
+precision mediump float;
 
 uniform mat4 proj_matrix;
 
