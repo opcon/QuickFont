@@ -15,9 +15,6 @@
     <description>$description$</description>
     <releaseNotes>changed OpenGL Version to OpenGL ES3.0</releaseNotes>
     <copyright>Copyright 2015</copyright>
-    <tags>Quickfont OpenGL OpenTK</tags>
-    <dependencies>
-      <dependency id="OpenTK" version="1.1.1589.5942" />
-    </dependencies>
+    <tags>QuickFont OpenGL OpenTK</tags>
   </metadata>
 </package>
