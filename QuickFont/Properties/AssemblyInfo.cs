@@ -1,14 +1,13 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("QuickFont")]
-[assembly: AssemblyDescription("https://github.com/opcon/QuickFont")]
+[assembly: AssemblyDescription("Quickfont provides support for Text rendering with OpenGL ES 3.0. For more information please have a look at the GitHub repository https://github.com/vescon/QuickFont")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("QuickFont")]
 [assembly: AssemblyProduct("QuickFont")]
 [assembly: AssemblyCopyright("Copyright © GitHubMembers and Robertofon 2015")]
 [assembly: AssemblyTrademark("")]
@@ -32,5 +31,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.0.0.0")]
-[assembly: AssemblyFileVersion("3.0.0.0")]
+[assembly: AssemblyVersion("3.0.0.1")]
+[assembly: AssemblyFileVersion("3.0.0.1")]
