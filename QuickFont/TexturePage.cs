@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using OpenTK.Graphics.ES30;
-using PixelFormat = OpenTK.Graphics.ES30.PixelFormat;
+using OpenTK.Graphics.ES20;
+using PixelFormat = OpenTK.Graphics.ES20.PixelFormat;
 
 namespace QuickFont
 {

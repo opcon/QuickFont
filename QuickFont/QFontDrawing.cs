@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Reflection;
 using OpenTK;
-using OpenTK.Graphics.ES30;
+using OpenTK.Graphics.ES20;
 
 namespace QuickFont
 {
@@ -11,40 +13,6 @@ namespace QuickFont
     /// </summary>
     public class QFontDrawing
     {
-        //private QFontRenderOptions options = new QFontRenderOptions();
-        private const string fragShaderSource = @"#version 300 es 
-precision mediump float;
-
-uniform sampler2D tex_object;
-
-in vec2 tc;
-in vec4 colour;
-
-out vec4 fragColour;
-
-void main(void)
-{
-	fragColour = texture(tex_object, tc) * vec4(colour);
-}";
-        private const string vertShaderSource = @"#version 300 es 
-precision mediump float;
-
-uniform mat4 proj_matrix;
-
-in vec3 in_position;
-in vec2 in_tc;
-in vec4 in_colour;
-
-out vec2 tc;
-out vec4 colour;
-
-void main(void)
-{
-	tc = in_tc;
-	colour = in_colour;
-	gl_Position = proj_matrix * vec4(in_position, 1.); 
-}";
-
         private static SharedState _QFontSharedState;
 
         public QVertexArrayObject _vertexArrayObject;
@@ -83,7 +51,31 @@ void main(void)
         }
 
         /// <summary>
-        ///     Initialises the static shared render state
+        /// Load shader string from ressource
+        /// </summary>
+        /// <param name="path">filename of Shader</param>
+        /// <returns></returns>
+        private static string LoadShaderFromRessource(string path)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+
+            var resourceStream =
+                assembly.GetManifestResourceStream(
+                    string.Format("QuickFont.Shader.{0}", path));
+            if (resourceStream == null)
+                throw new AccessViolationException("Error accessing resources!");
+
+            string result;
+            using (var sr = new StreamReader(resourceStream))
+            {
+                result = sr.ReadToEnd();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        ///     Initializes the static shared render state
         /// </summary>
         private static void InitialiseStaticState()
         {
@@ -101,9 +93,9 @@ void main(void)
             int vertCompileStatus;
             int fragCompileStatus;
 
-            GL.ShaderSource(vert, vertShaderSource);
+            GL.ShaderSource(vert, LoadShaderFromRessource("simple.vs"));
             GL.CompileShader(vert);
-            GL.ShaderSource(frag, fragShaderSource);
+            GL.ShaderSource(frag, LoadShaderFromRessource("simple.fs"));
             GL.CompileShader(frag);
 
             GL.GetShader(vert, ShaderParameter.CompileStatus, out vertCompileStatus);
@@ -224,9 +216,14 @@ void main(void)
                 GL.DrawArrays(dpt, start, primitive.CurrentVertexRepr.Count);
                 start += primitive.CurrentVertexRepr.Count;
             }
-
-            GL.BindVertexArray(0);
+            
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        }
+
+        public void DisableShader()
+        {
+            GL.UseProgram(0);
+            _vertexArrayObject.DisableAttributes();
         }
 
         /// <summary>

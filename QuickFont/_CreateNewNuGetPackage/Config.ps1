@@ -42,7 +42,7 @@ $packProperties = ""
 # Do not specify "-Build", as this may result in an infinite build loop.
 # NuGet Pack options that can be specified: http://docs.nuget.org/docs/reference/command-line-reference#Pack_Command_Options
 # Use "-Symbols" to also create a symbols package. When pushing your package, the symbols package will automatically be detected and pushed as well: https://www.symbolsource.org/Public/Wiki/Publishing
-$packOptions = ""
+$packOptions = "-Symbols"
 
 # Specify $true if the generated .nupkg file should be renamed to include the Configuration and Platform that was used to build the project, $false if not.
 #	e.g. If $true, MyProject.1.1.5.6.nupkg might be renamed to MyProject.1.1.5.6.Debug.AnyCPU.nupkg

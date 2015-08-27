@@ -69,7 +69,8 @@
     <Compile Include="TexturePage.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ChangeLog.txt" />
+    <EmbeddedResource Include="Shader\simple.fs" />
+    <EmbeddedResource Include="Shader\simple.vs" />
     <None Include="_CreateNewNuGetPackage\DoNotModify\NuGet.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

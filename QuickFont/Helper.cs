@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OpenTK;
-using OpenTK.Graphics.ES30;
+using OpenTK.Graphics.ES20;
 
 namespace QuickFont
 {

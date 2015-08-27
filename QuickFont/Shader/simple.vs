@@ -1,14 +1,14 @@
-#version 300 es 
+#version 100
 precision mediump float;
 
 uniform mat4 proj_matrix;
 
-in vec3 in_position;
-in vec2 in_tc;
-in vec4 in_colour;
+attribute vec3 in_position;
+attribute vec2 in_tc;
+attribute vec4 in_colour;
 
-out vec2 tc;
-out vec4 colour;
+varying vec2 tc;
+varying vec4 colour;
 
 void main(void)
 {
