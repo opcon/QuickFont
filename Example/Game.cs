@@ -222,6 +222,7 @@ namespace StarterKit
             builderConfig.ShadowConfig.blurPasses = 1;
             builderConfig.ShadowConfig.Type = ShadowType.Blurred;
             builderConfig.TextGenerationRenderHint = TextGenerationRenderHint.ClearTypeGridFit; //best render hint for this font
+            builderConfig.Characters = CharacterSet.General | CharacterSet.Japanese | CharacterSet.Thai | CharacterSet.Cyrillic;
             mainText = new QFont("Fonts/times.ttf", 14, builderConfig);
             mainTextOptions = new QFontRenderOptions() { DropShadowActive = true, Colour = Color.White, WordSpacing = 0.5f};
  
@@ -234,7 +235,7 @@ namespace StarterKit
             codeText = new QFont("Fonts/Comfortaa-Regular.ttf", 12, new QFontBuilderConfiguration());
 
             heading1Options = new QFontRenderOptions() { Colour = Color.FromArgb(new Color4(0.2f, 0.2f, 0.2f, 1.0f).ToArgb()), DropShadowActive = true};
-            _processedText = QFontDrawingPimitive.ProcessText(mainText, mainTextOptions, preProcessed, new SizeF(Width - 40, -1), QFontAlignment.Justify);
+            _processedText = QFontDrawingPrimitive.ProcessText(mainText, mainTextOptions, preProcessed, new SizeF(Width - 40, -1), QFontAlignment.Left);
             codeTextOptions = new QFontRenderOptions() { Colour = Color.FromArgb(new Color4(0.0f, 0.0f, 0.4f, 1.0f).ToArgb()) };
 
             monoSpaced = new QFont("Fonts/Anonymous.ttf", 10, new QFontBuilderConfiguration());
@@ -303,9 +304,9 @@ namespace StarterKit
             //gl.vertex3(bounds.x, bounds.y + height, 0f);
             //gl.end();
 
-            var dp = new QFontDrawingPimitive(font);
+            var dp = new QFontDrawingPrimitive(font);
             dp.Print(text, new Vector3(bounds.X, Height - yOffset, 0), new SizeF(maxWidth, float.MaxValue), alignment);
-            drawing.DrawingPimitiveses.Add(dp);
+            drawing.DrawingPrimitives.Add(dp);
 
             yOffset += height;
         }       
@@ -322,10 +323,10 @@ namespace StarterKit
         {
             yOffset += 20;
             var pos = new Vector3(30f, Height - yOffset, 0f);
-            var dp = new QFontDrawingPimitive(font, opts ?? new QFontRenderOptions());
+            var dp = new QFontDrawingPrimitive(font, opts ?? new QFontRenderOptions());
             dp.Print(comment, pos, new SizeF(Width - 60, -1), alignment);
             yOffset += dp.Measure(comment, new SizeF(Width - 60, -1), alignment).Height;
-            drawing.DrawingPimitiveses.Add(dp);
+            drawing.DrawingPrimitives.Add(dp);
         }
 
         private void PrintCommentWithLine(string comment, QFontAlignment alignment, float xOffset, ref float yOffset)
@@ -336,11 +337,11 @@ namespace StarterKit
         private void PrintCommentWithLine(QFont font, string comment, QFontAlignment alignment, float xOffset, ref float yOffset, QFontRenderOptions opts)
         {
             yOffset += 20;
-            var dp = new QFontDrawingPimitive(font, opts);
+            var dp = new QFontDrawingPrimitive(font, opts);
             //if (doSpacing)
             //    dp.Options.CharacterSpacing = 0.05f;
             dp.Print(comment, new Vector3(xOffset, Height - yOffset, 0f), new SizeF(Width - 60, -1), alignment);
-            drawing.DrawingPimitiveses.Add(dp);
+            drawing.DrawingPrimitives.Add(dp);
             var bounds = font.Measure(comment, new SizeF(Width - 60, float.MaxValue), alignment);
 
             //GL.Disable(EnableCap.Texture2D);
@@ -391,7 +392,7 @@ namespace StarterKit
             {
                 _previousPage = currentDemoPage;
                 // we have to rebuild the stuff
-                drawing.DrawingPimitiveses.Clear();
+                drawing.DrawingPrimitives.Clear();
                             
                 switch (currentDemoPage)
                 {
@@ -407,7 +408,7 @@ namespace StarterKit
                                         .Height;
 
                             yOffset += drawing.Print(mainText, modernQuickFontIntro, new Vector3(30, Height - yOffset, 0),
-                                                                 new SizeF(Width - 60f, -1), QFontAlignment.Justify).Height;
+                                                                 new SizeF(Width - 60f, -1), QFontAlignment.Justify, new Rectangle(60, Height-400, 200, 200)).Height;
                             
                             PrintCode(modernIntroCode, ref yOffset);
                             break;
@@ -529,7 +530,7 @@ namespace StarterKit
                             _previousPage = -1;
 
                             // store this primitive to remember
-                            QFontDrawingPimitive dp = new QFontDrawingPimitive(heading2);
+                            QFontDrawingPrimitive dp = new QFontDrawingPrimitive(heading2);
                             dp.Options.DropShadowActive = true;
                             dp.Options.DropShadowOffset = new Vector2(0.1f + 0.2f*(float) Math.Sin(cnt),
                                                                             0.1f + 0.2f*(float) Math.Cos(cnt));
@@ -537,7 +538,7 @@ namespace StarterKit
                             yOffset += dp.Print("Drop Shadows",
                                                                      new Vector3(20f, Height - yOffset, 0f),
                                                                      QFontAlignment.Left).Height;
-                            drawing.DrawingPimitiveses.Add(dp);
+                            drawing.DrawingPrimitives.Add(dp);
 
                             PrintComment(asIhaveleant, ref yOffset);
                             PrintCode(dropShadowCode1, ref yOffset);
@@ -594,7 +595,7 @@ namespace StarterKit
                             _stopwatch = Stopwatch.StartNew();
                             yOffset += drawing.Print( mainText,nonPreProcessed,
                                                                      new Vector3(20, Height - yOffset, 0),
-                                                                     new SizeF(Width - 40f, -1), QFontAlignment.Justify)
+                                                                     new SizeF(Width - 40f, -1), QFontAlignment.Left)
                                         .Height;
                             _stopwatch.Stop();
                             long notpreprocessed = _stopwatch.Elapsed.Ticks;
@@ -631,7 +632,7 @@ namespace StarterKit
 
             // Create controlsDrawing every time.. would be also good to vary ProjectionMatrix with * Matrix4.CreateTranslation() !
             // this would save buffer work for OpenGL
-            controlsDrawing.DrawingPimitiveses.Clear();
+            controlsDrawing.DrawingPrimitives.Clear();
             controlsDrawing.ProjectionMatrix = _projectionMatrix;
 
             if (currentDemoPage != lastPage)
