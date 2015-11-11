@@ -11,6 +11,7 @@ using OpenTK.Audio.OpenAL;
 using OpenTK.Input;
 using QuickFont;
 using System.Drawing;
+using QuickFont.Configuration;
 
 namespace StarterKit
 {

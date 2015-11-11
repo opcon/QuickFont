@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.ES20;
 
 namespace QuickFont
 {
@@ -16,8 +12,7 @@ namespace QuickFont
         private int _bufferSize;
         private int _bufferMaxVertexCount;
         public int VertexCount;
-
-        private int VAOID;
+        
         private int VBOID;
 
         public readonly SharedState QFontSharedState;
@@ -39,28 +34,16 @@ namespace QuickFont
             Vertices = new List<QVertex>(InitialSize);
             _bufferMaxVertexCount = InitialSize;
             _bufferSize = _bufferMaxVertexCount * QVertexStride;
-
-            VAOID = GL.GenVertexArray();
-
+            
             GL.UseProgram(QFontSharedState.ShaderVariables.ShaderProgram);
-            GL.BindVertexArray(VAOID);
 
             GL.GenBuffers(1, out VBOID);
             GL.BindBuffer(BufferTarget.ArrayBuffer, VBOID);
-
-            int stride = QVertexStride;
-            GL.EnableVertexAttribArray(QFontSharedState.ShaderVariables.PositionCoordAttribLocation);
-            GL.EnableVertexAttribArray(QFontSharedState.ShaderVariables.TextureCoordAttribLocation);
-            GL.EnableVertexAttribArray(QFontSharedState.ShaderVariables.ColorCoordAttribLocation);
-            GL.VertexAttribPointer(QFontSharedState.ShaderVariables.PositionCoordAttribLocation, 3, VertexAttribPointerType.Float, false, stride, IntPtr.Zero);
-            GL.VertexAttribPointer(QFontSharedState.ShaderVariables.TextureCoordAttribLocation, 2, VertexAttribPointerType.Float, false,
-                stride, new IntPtr(3 * sizeof(float)));
-            GL.VertexAttribPointer(QFontSharedState.ShaderVariables.ColorCoordAttribLocation, 4, VertexAttribPointerType.Float, false, stride, new IntPtr(5 * sizeof(float)));
+            EnableAttributes();
 
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)_bufferSize, IntPtr.Zero, BufferUsageHint.StreamDraw );
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.BindVertexArray(0);
         }
 
         internal void AddVertexes(IList<QVertex> vertices)
@@ -86,7 +69,7 @@ namespace QuickFont
                 return;
             VertexArray = Vertices.ToArray();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VBOID);
-            GL.BindVertexArray(VAOID);
+            EnableAttributes();
 
             if (VertexCount > _bufferMaxVertexCount)
             {
@@ -110,14 +93,35 @@ namespace QuickFont
 
         public void Bind()
         {
-            GL.BindVertexArray(VAOID);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, VAOID);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, VBOID);
+            EnableAttributes();
         }
 
         public void Dispose()
         {
             GL.DeleteBuffers(1, ref VBOID);
-            GL.DeleteVertexArrays(1, ref VAOID);
+        }
+
+        public void DisableAttributes()
+        {
+            GL.DisableVertexAttribArray(QFontSharedState.ShaderVariables.PositionCoordAttribLocation);
+            GL.DisableVertexAttribArray(QFontSharedState.ShaderVariables.TextureCoordAttribLocation);
+            GL.DisableVertexAttribArray(QFontSharedState.ShaderVariables.ColorCoordAttribLocation);
+        }
+
+        private void EnableAttributes()
+        {
+            int stride = QVertexStride;
+            GL.EnableVertexAttribArray(QFontSharedState.ShaderVariables.PositionCoordAttribLocation);
+            GL.EnableVertexAttribArray(QFontSharedState.ShaderVariables.TextureCoordAttribLocation);
+            GL.EnableVertexAttribArray(QFontSharedState.ShaderVariables.ColorCoordAttribLocation);
+            GL.VertexAttribPointer(QFontSharedState.ShaderVariables.PositionCoordAttribLocation, 3,
+                VertexAttribPointerType.Float, false, stride, IntPtr.Zero);
+            GL.VertexAttribPointer(QFontSharedState.ShaderVariables.TextureCoordAttribLocation, 2, VertexAttribPointerType.Float,
+                false,
+                stride, new IntPtr(3*sizeof (float)));
+            GL.VertexAttribPointer(QFontSharedState.ShaderVariables.ColorCoordAttribLocation, 4, VertexAttribPointerType.Float,
+                false, stride, new IntPtr(5*sizeof (float)));
         }
     }
 

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Drawing;
-using System.Drawing.Text;
 using System.Drawing.Imaging;
+using System.Drawing.Text;
 using System.IO;
+using QuickFont.Configuration;
 
 namespace QuickFont
 {
@@ -489,11 +489,11 @@ namespace QuickFont
             if (saveName != null)
             {
                 if (bitmapPages.Count == 1)
-                    bitmapPages[0].bitmap.Save(saveName + ".png", System.Drawing.Imaging.ImageFormat.Png);
+                    bitmapPages[0].bitmap.Save(saveName + ".png", ImageFormat.Png);
                 else
                 {
                     for (int i = 0; i < bitmapPages.Count; i++)
-                        bitmapPages[i].bitmap.Save(saveName + "_sheet_" + i + ".png", System.Drawing.Imaging.ImageFormat.Png);
+                        bitmapPages[i].bitmap.Save(saveName + "_sheet_" + i + ".png", ImageFormat.Png);
                 }
             }
 
