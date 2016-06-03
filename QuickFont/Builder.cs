@@ -38,6 +38,13 @@ namespace QuickFont
         //these do not affect the actual width of glyphs (we measure widths pixel-perfectly ourselves), but is used to detect whether a font is monospaced
         private List<SizeF> GetGlyphSizes(Font font)
         {
+            // We add padding to the returned sizes measured by MeasureString, because on some platforms (*cough*Mono*cough) this method
+            // can return unreliable information. Without padding, this leads to some glyphs not fitting on the generated
+            // texture page when we precisely measure their bounds
+            // Hopefully a padding of 5 is enough, however may need to increase this?
+            // For now we scale it with font size
+            int padding = 5 + (int)(0.1 * font.Size);
+
             Bitmap bmp = new Bitmap(512, 512, PixelFormat.Format24bppRgb);
             Graphics graph = Graphics.FromImage(bmp);
             List<SizeF> sizes = new List<SizeF>();
@@ -45,7 +52,7 @@ namespace QuickFont
             for (int i = 0; i < charSet.Length; i++)
             {
                 var charSize = graph.MeasureString("" + charSet[i], font);
-                sizes.Add(new SizeF(charSize.Width, charSize.Height));
+                sizes.Add(new SizeF(charSize.Width+padding, charSize.Height+padding));
             }
 
             graph.Dispose();
@@ -440,7 +447,7 @@ namespace QuickFont
                 throw new ArgumentOutOfRangeException("SuperSampleLevels = [" + config.SuperSampleLevels + "] is an unsupported value. Please use values in the range [1,8]"); 
             }
 
-            int margin = 2; //margin in initial bitmap (don't bother to make configurable - likely to cause confusion
+            int margin = 3; //margin in initial bitmap (don't bother to make configurable - likely to cause confusion
             int glyphMargin = config.GlyphMargin * config.SuperSampleLevels;
 
             QFontGlyph[] initialGlyphs;
@@ -489,11 +496,19 @@ namespace QuickFont
             if (saveName != null)
             {
                 if (bitmapPages.Count == 1)
+                {
+                    bitmapPages[0].bitmap.UnlockBits(bitmapPages[0].bitmapData);
                     bitmapPages[0].bitmap.Save(saveName + ".png", System.Drawing.Imaging.ImageFormat.Png);
+                    bitmapPages[0] = new QBitmap(bitmapPages[0].bitmap);
+                }
                 else
                 {
                     for (int i = 0; i < bitmapPages.Count; i++)
+                    {
+                        bitmapPages[i].bitmap.UnlockBits(bitmapPages[i].bitmapData);
                         bitmapPages[i].bitmap.Save(saveName + "_sheet_" + i + ".png", System.Drawing.Imaging.ImageFormat.Png);
+                        bitmapPages[i] = new QBitmap(bitmapPages[i].bitmap);
+                    }
                 }
             }
 
