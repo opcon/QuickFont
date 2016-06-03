@@ -12,9 +12,10 @@ namespace QuickFont
     public class QFontDrawing
     {
         //private QFontRenderOptions options = new QFontRenderOptions();
-        private const string fragShaderSource = @"#version 130
-
-uniform sampler2D tex_object;
+        private const string shaderVersionString130 = "#version 130\n\n";
+        private const string shaderVersionString140 = "#version 140\n\n";
+        private const string shaderVersionString150 = "#version 150\n\n";
+        private const string fragShaderSource = @"uniform sampler2D tex_object;
 
 in vec2 tc;
 in vec4 colour;
@@ -25,9 +26,7 @@ void main(void)
 {
 	fragColour = texture(tex_object, tc) * vec4(colour);
 }";
-        private const string vertShaderSource = @"#version 130
-
-uniform mat4 proj_matrix;
+        private const string vertShaderSource = @"uniform mat4 proj_matrix;
 
 in vec3 in_position;
 in vec2 in_tc;
@@ -95,26 +94,48 @@ void main(void)
             if (vert == -1 || frag == -1)
                 throw new Exception(string.Format("Error creating shader name for {0}", vert == -1 ? (frag == -1 ? "vert and frag shaders" : "vert shader") : "frag shader"));
 
-            //Compile default (simple) shaders
-            int vertCompileStatus;
-            int fragCompileStatus;
+            // We try to compile the shaders with ever increasing version numbers (up to 1.50)
+            // This fixes a bug on MaxOSX where the Core profile only supports shaders >= 1.50 (or sometimes 1.40)
+            var versions = new string[] { shaderVersionString130, shaderVersionString140, shaderVersionString150 };
 
-            GL.ShaderSource(vert, vertShaderSource);
-            GL.CompileShader(vert);
-            GL.ShaderSource(frag, fragShaderSource);
-            GL.CompileShader(frag);
+            // Holds the compilation status of the shaders
+            int vertCompileStatus = 0;
+            int fragCompileStatus = 0;
 
-            GL.GetShader(vert, ShaderParameter.CompileStatus, out vertCompileStatus);
-            GL.GetShader(frag, ShaderParameter.CompileStatus, out fragCompileStatus);
+            foreach (var version in versions)
+            {
+                // These assignments are not needed
+                vertCompileStatus = 0;
+                fragCompileStatus = 0;
 
-            //Check shaders were compiled correctly
-            //TODO Worth doing this rather than just checking the total program error log?
+                GL.ShaderSource(vert, version + vertShaderSource);
+                GL.CompileShader(vert);
+                GL.ShaderSource(frag, version + fragShaderSource);
+                GL.CompileShader(frag);
+
+                GL.GetShader(vert, ShaderParameter.CompileStatus, out vertCompileStatus);
+                GL.GetShader(frag, ShaderParameter.CompileStatus, out fragCompileStatus);
+
+                // Check shaders were compiled correctly
+                // If they have, we break out of the foreach loop as we have found the minimum supported glsl version
+                if (vertCompileStatus != 0 && fragCompileStatus != 0)
+                    break;
+
+                // Otherwise continue with the loop
+            }
+
+            // Check that we ended up with a compiled shader at the end of all this
+            // These will only be 0 if all compilations with different versions failed,
+            // since we break out of the version loop as soon as one compiles
             if (vertCompileStatus == 0 || fragCompileStatus == 0)
             {
                 string vertInfo = GL.GetShaderInfoLog(vert);
                 string fragInfo = GL.GetShaderInfoLog(frag);
                 throw new Exception(String.Format("Shaders were not compiled correctly. Info logs are\nVert:\n{0}\nFrag:\n{1}", vertInfo, fragInfo));
             }
+
+            // I don't think we need to loop through versions for the linking step, as any compilation errors should be picked up
+            // in the previous loop? TODO: Verify this assumption
 
             int prog;
             int progLinkStatus;
