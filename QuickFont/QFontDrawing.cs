@@ -21,32 +21,6 @@ namespace QuickFont
         private const string shaderVersionString130 = "#version 130\n\n";
         private const string shaderVersionString140 = "#version 140\n\n";
         private const string shaderVersionString150 = "#version 150\n\n";
-        private const string fragShaderSource = @"uniform sampler2D tex_object;
-
-in vec2 tc;
-in vec4 colour;
-
-out vec4 fragColour;
-
-void main(void)
-{
-	fragColour = texture(tex_object, tc) * vec4(colour);
-}";
-        private const string vertShaderSource = @"uniform mat4 proj_matrix;
-
-in vec3 in_position;
-in vec2 in_tc;
-in vec4 in_colour;
-
-out vec2 tc;
-out vec4 colour;
-
-void main(void)
-{
-	tc = in_tc;
-	colour = in_colour;
-	gl_Position = proj_matrix * vec4(in_position, 1.); 
-}";
 
         private static SharedState _QFontSharedState;
 
@@ -96,7 +70,7 @@ void main(void)
 
             var resourceStream =
                 assembly.GetManifestResourceStream(
-                    string.Format("QuickFont.Shader.{0}", path));
+                    string.Format("QuickFont.Shaders.{0}", path));
             if (resourceStream == null)
                 throw new AccessViolationException("Error accessing resources!");
 
@@ -139,18 +113,18 @@ void main(void)
                 fragCompileStatus = 0;
 
 #if OPENGL_ES
-                GL.ShaderSource(vert, LoadShaderFromResource("simple.vs"));
-                GL.ShaderSource(frag, LoadShaderFromResource("simple.fs"));
+                GL.ShaderSource(vert, LoadShaderFromResource("simple_es.vs"));
+                GL.ShaderSource(frag, LoadShaderFromResource("simple_es.fs"));
 #else
-                GL.ShaderSource(vert, version + vertShaderSource);
-                GL.ShaderSource(frag, version + fragShaderSource);
+                GL.ShaderSource(vert, version + LoadShaderFromResource("simple.vs"));
+                GL.ShaderSource(frag, version + LoadShaderFromResource("simple.fs"));
 #endif
                 
                 GL.CompileShader(vert);
                 GL.CompileShader(frag);
 
-            GL.GetShader(vert, ShaderParameter.CompileStatus, out vertCompileStatus);
-            GL.GetShader(frag, ShaderParameter.CompileStatus, out fragCompileStatus);
+                GL.GetShader(vert, ShaderParameter.CompileStatus, out vertCompileStatus);
+                GL.GetShader(frag, ShaderParameter.CompileStatus, out fragCompileStatus);
 
                 // Check shaders were compiled correctly
                 // If they have, we break out of the foreach loop as we have found the minimum supported glsl version

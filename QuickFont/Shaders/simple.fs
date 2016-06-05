@@ -1,4 +1,3 @@
-#version 130
 
 uniform sampler2D tex_object;
 
