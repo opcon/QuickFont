@@ -1,45 +1,32 @@
-###ModernQuickFont ES 2.0
-A Modern OpenGL implementation of the VBO advanced [swax/QuickFont](https://github.com/swax/QuickFont) library.
+###QuickFont
+
+A modern OpenGL text rendering library for OpenTK.
+
+Forked from [swax/QuickFont](https://github.com/swax/QuickFont) library.
 Original Library [QFont](http://www.opentk.com/project/QuickFont)
 
-Welcome to ModernQuickFont ES 2.0. This is yet another fork of the original library QuickFont (which uses ordinary OpenGL).
-This is actually a fork of swax/QuickFont and thus (as the name implies) is a modern OpenGL implementation using VBOs and the OpenGL Version 2.0 ES, so it should be runnable on OpenGL 2.
-The difference to swax/QuickFont therefore is a downgrade of the OpenGL Version to ES 2.0.
-The original (god like) QFont-class has been separated in 3 concerns:
-Actual Font (save, create, hold texture) [QFont], Drawing-primitive (layout + vertex computations) [QFontDrawingPrimitive]
-and a Drawing container (push stuff to OpenGL, draw) [QFontDrawing].
-Unfortunately or naturally the API has changed remarkably so that old code is nop longer compatible.
-However the changes are not radical and can be adapted (some conceptual changes may surface) as you can see with thsi example.
-This refactoring into three classes should make using QuickFont more flexible and more pleasing to use.
-It lost of it's ease because you have to handle more classes. But your code will be more future proof and architected well.
+You can install this library via [nuget](https://www.nuget.org/packages/QuickFont.Desktop/).
 
-You can install this library via [nuget](https://www.nuget.org/packages/QuickFont/).
-
-##What's new
-- [x] Version changed to 3.0.2
-- [x] OpenGL Version changed to ES 2.0
-- [x] added nuget support
-- [x] QFont in it's form is history
-- [x] QFont is the new Font ressource
-- [x] QFontDrawingPrimitve layouts everything
-- [x] QFontDrawing is the drawing container that actually draws (composed off primitives!)
-- [x] special care for quadratic and small texture sizes removed (OpenGL does not need this rescriction Texture size 8129 should be normal)
-- [x] Also because the new way of holding everything in one VAO requires one texture per QFont (shadows another one) otherwise it can not be implemented efficiently
-- [x] therefore changed defaults for Texture default sizes to 4096. (QFontBuilderConfiguration, QFontShadowConfiguration)
-- [x] Added support for other than latin scripts to have an adequately populated character set.
-- [x] Removed more legacy stuff.
-- [x] Updated Example to work again. Left text alone just added a new Page 0.
+##Latest version 4.0
+* Added Nuget package
+* Added support for OpenGL ES (requires conditional compilation) thanks to [vescon](https://github.com/vescon/QuickFont)
+* Improved Shader loading
+* Cross-platform support (tested on Windows 10, Ubuntu 15.10, OSX 10.11,10.10)
+* Unicode support
+* Example is working again
+* Updated to latest OpenTK nuget package (OpenTK.Next)
 
 ###Todo
-- [x] Maybe extract all Print methods in a static class to leave QFontDrawingPrimitive more basic.
-- [x] Right to Left text flow support (arabic, hebrew)
-- [x] Unicode zero spacing eg. combining character support
-- [x] On-the-fly character addition (If a character can not be found, add it, regenerate the font)
+- [ ] Maybe extract all Print methods in a static class to leave QFontDrawingPrimitive more basic.
+- [ ] Right to Left text flow support (arabic, hebrew)
+- [ ] Unicode zero spacing eg. combining character support
+- [ ] On-the-fly character addition (If a character can not be found, add it, regenerate the font)
 
+##Screenshot
 
-##Code
-So how would the code look like, now?
+![](https://i.imgur.com/lf0mKCl.png)
 
+##Example
 In some OnLoad() method create your QFont and your QFontDrawing
 ```C#
 _myFont = new QFont("Fonts/HappySans.ttf", 72, new QFontBuilderConfiguration(true));
@@ -47,7 +34,7 @@ _myFont2 = new QFont("basics.qfont", new QFontBuilderConfiguration(true));
 _drawing = new QFontDrawing();
 ```
 
-On Event (to create screen) call some print methods or create Drawing primitives by themselves.
+Call some print methods or create Drawing primitives by themselves.
 Add them to the drawing.
 ```C#
 _drawing.DrawingPimitiveses.Clear();
@@ -70,14 +57,14 @@ _drawing.RefreshBuffers();
 
 ```
 
-Then in your paint-loop do:
+Then in your draw loop do:
 ```C#
 _drawing.ProjectionMatrix = proj;
 _drawing.Draw();
 SwapBuffers();
 ```
 
-At the end of the program dispose your own resources:
+At the end of the program dispose the QuickFont resources:
 ```C#
 protected virtual void Dispose(bool disposing)
 {
@@ -87,5 +74,4 @@ protected virtual void Dispose(bool disposing)
 }
 ```
 
-
-###Please note this API is not backwards compatible with all previous QuickFont releases hence the new Version 3
+**See the included example project for more!**
