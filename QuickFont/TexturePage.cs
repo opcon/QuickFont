@@ -1,12 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Drawing;
-using System.Drawing.Text;
 using System.Drawing.Imaging;
-using OpenTK.Graphics.OpenGL4;
-using OpenTK;
+using System.Runtime.InteropServices;
 
+#if OPENGL_ES
+using OpenTK.Graphics.ES20;
+using PixelFormat = OpenTK.Graphics.ES20.PixelFormat;
+#else
+using OpenTK.Graphics.OpenGL4;
+#endif
 
 namespace QuickFont
 {
@@ -50,11 +51,37 @@ namespace QuickFont
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
+#if OPENGL_ES
+                var rawData = ConvertBgraToRgba(dataSource);
+                GL.TexImage2D(TextureTarget2d.Texture2D, 0, TextureComponentCount.Rgba, width, height, 0,
+                    PixelFormat.Rgba, PixelType.UnsignedByte, rawData);
+
+                GL.GenerateMipmap(TextureTarget.Texture2D);
+#else
                 GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0,
                     OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.UnsignedByte, dataSource.Scan0);
 
                 GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+#endif
             });
+        }
+
+        private static byte[] ConvertBgraToRgba(BitmapData dataSource)
+        {
+            var length = dataSource.Stride*dataSource.Height;
+
+            var rawData = new byte[length];
+
+            // Copy bitmap to byte[]
+            Marshal.Copy(dataSource.Scan0, rawData, 0, length);
+
+            for (var i = 0; i < rawData.Length; i = i + 4)
+            {
+                var temp1 = rawData[i];
+                rawData[i] = rawData[i + 2];
+                rawData[i + 2] = temp1;
+            }
+            return rawData;
         }
 
         public void Dispose()

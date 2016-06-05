@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Drawing;
-using System.Drawing.Text;
 using System.Drawing.Imaging;
+using System.Drawing.Text;
 using System.IO;
+using QuickFont.Configuration;
 
 namespace QuickFont
 {
@@ -498,7 +498,7 @@ namespace QuickFont
                 if (bitmapPages.Count == 1)
                 {
                     bitmapPages[0].bitmap.UnlockBits(bitmapPages[0].bitmapData);
-                    bitmapPages[0].bitmap.Save(saveName + ".png", System.Drawing.Imaging.ImageFormat.Png);
+                    bitmapPages[0].bitmap.Save(saveName + ".png", ImageFormat.Png);
                     bitmapPages[0] = new QBitmap(bitmapPages[0].bitmap);
                 }
                 else
@@ -506,7 +506,7 @@ namespace QuickFont
                     for (int i = 0; i < bitmapPages.Count; i++)
                     {
                         bitmapPages[i].bitmap.UnlockBits(bitmapPages[i].bitmapData);
-                        bitmapPages[i].bitmap.Save(saveName + "_sheet_" + i + ".png", System.Drawing.Imaging.ImageFormat.Png);
+                        bitmapPages[i].bitmap.Save(saveName + "_sheet_" + i + ".png", ImageFormat.Png);
                         bitmapPages[i] = new QBitmap(bitmapPages[i].bitmap);
                     }
                 }

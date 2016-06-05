@@ -1,8 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Reflection;
 using OpenTK;
+#if OPENGL_ES
+using OpenTK.Graphics.ES20;
+#else
 using OpenTK.Graphics.OpenGL4;
+#endif
 
 namespace QuickFont
 {
@@ -80,7 +86,31 @@ void main(void)
         }
 
         /// <summary>
-        ///     Initialises the static shared render state
+        /// Load shader string from resource
+        /// </summary>
+        /// <param name="path">filename of Shader</param>
+        /// <returns></returns>
+        private static string LoadShaderFromResource(string path)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+
+            var resourceStream =
+                assembly.GetManifestResourceStream(
+                    string.Format("QuickFont.Shader.{0}", path));
+            if (resourceStream == null)
+                throw new AccessViolationException("Error accessing resources!");
+
+            string result;
+            using (var sr = new StreamReader(resourceStream))
+            {
+                result = sr.ReadToEnd();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        ///     Initializes the static shared render state
         /// </summary>
         private static void InitialiseStaticState()
         {
@@ -108,13 +138,19 @@ void main(void)
                 vertCompileStatus = 0;
                 fragCompileStatus = 0;
 
+#if OPENGL_ES
+                GL.ShaderSource(vert, LoadShaderFromResource("simple.vs"));
+                GL.ShaderSource(frag, LoadShaderFromResource("simple.fs"));
+#else
                 GL.ShaderSource(vert, version + vertShaderSource);
-                GL.CompileShader(vert);
                 GL.ShaderSource(frag, version + fragShaderSource);
+#endif
+                
+                GL.CompileShader(vert);
                 GL.CompileShader(frag);
 
-                GL.GetShader(vert, ShaderParameter.CompileStatus, out vertCompileStatus);
-                GL.GetShader(frag, ShaderParameter.CompileStatus, out fragCompileStatus);
+            GL.GetShader(vert, ShaderParameter.CompileStatus, out vertCompileStatus);
+            GL.GetShader(frag, ShaderParameter.CompileStatus, out fragCompileStatus);
 
                 // Check shaders were compiled correctly
                 // If they have, we break out of the foreach loop as we have found the minimum supported glsl version
@@ -244,8 +280,16 @@ void main(void)
                 start += primitive.CurrentVertexRepr.Count;
             }
 
+#if !OPENGL_ES
             GL.BindVertexArray(0);
+#endif
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        }
+
+        public void DisableShader()
+        {
+            GL.UseProgram(0);
+            _vertexArrayObject.DisableAttributes();
         }
 
         /// <summary>
@@ -327,7 +371,7 @@ void main(void)
             return dp.Print(text, position, maxSize, alignment, opt.ClippingRectangle);
         }
 
-        #region IDisposable impl
+#region IDisposable impl
 
         // Track whether Dispose has been called.
         private bool disposed;
@@ -372,7 +416,7 @@ void main(void)
             }
         }
 
-        #endregion
+#endregion
     }
 
 

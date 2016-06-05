@@ -5,12 +5,17 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using OpenTK;
 using OpenTK.Graphics;
+#if OPENGL_ES
+using OpenTK.Graphics.ES20;
+#else
 using OpenTK.Graphics.OpenGL4;
+#endif
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
 using OpenTK.Input;
 using QuickFont;
 using System.Drawing;
+using QuickFont.Configuration;
 
 namespace StarterKit
 {
@@ -31,7 +36,7 @@ namespace StarterKit
         private Matrix4 _projectionMatrix;
 
 
-        #region string constants
+#region string constants
 
         private String modernQuickFontIntro =
             @"Welcome to ModernQuickFont. This is yet another fork of the original library QuickFont (which uses ordinary OpenGL). " +
@@ -130,7 +135,7 @@ namespace StarterKit
 
         private string preProcessed = "Text can be preprocessed which improves rendering time. This text is preprocessed.";
         private string nonPreProcessed = "Text can be preprocessed which improves rendering time. This text is not preprocessed.";
-        #endregion
+#endregion
 
         int currentDemoPage = 0;
         int lastPage = 10;
@@ -146,6 +151,8 @@ namespace StarterKit
         {
             VSync = VSyncMode.Off;
             this.WindowBorder = WindowBorder.Fixed;
+
+            Debug.WriteLine(GL.GetString(StringName.Version));
         }
 
         private void KeyDown(object sender, KeyboardKeyEventArgs keyEventArgs)
