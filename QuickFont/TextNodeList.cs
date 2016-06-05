@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Collections;
 using System.Drawing;
+using System.Text;
 
 namespace QuickFont
 {
@@ -230,7 +229,7 @@ namespace QuickFont
                 if (node.Type == TextNodeType.Space)
                     builder.Append(" ");
                 if (node.Type == TextNodeType.LineBreak)
-                    builder.Append(System.Environment.NewLine);
+                    builder.Append(Environment.NewLine);
                 if (node.Type == TextNodeType.Word)
                     builder.Append("" + node.Text + "");
             }

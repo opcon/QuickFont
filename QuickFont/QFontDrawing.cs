@@ -1,8 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Reflection;
 using OpenTK;
+#if OPENGL_ES
+using OpenTK.Graphics.ES20;
+#else
 using OpenTK.Graphics.OpenGL4;
+#endif
 
 namespace QuickFont
 {
@@ -15,32 +21,6 @@ namespace QuickFont
         private const string shaderVersionString130 = "#version 130\n\n";
         private const string shaderVersionString140 = "#version 140\n\n";
         private const string shaderVersionString150 = "#version 150\n\n";
-        private const string fragShaderSource = @"uniform sampler2D tex_object;
-
-in vec2 tc;
-in vec4 colour;
-
-out vec4 fragColour;
-
-void main(void)
-{
-	fragColour = texture(tex_object, tc) * vec4(colour);
-}";
-        private const string vertShaderSource = @"uniform mat4 proj_matrix;
-
-in vec3 in_position;
-in vec2 in_tc;
-in vec4 in_colour;
-
-out vec2 tc;
-out vec4 colour;
-
-void main(void)
-{
-	tc = in_tc;
-	colour = in_colour;
-	gl_Position = proj_matrix * vec4(in_position, 1.); 
-}";
 
         private static SharedState _QFontSharedState;
 
@@ -80,7 +60,31 @@ void main(void)
         }
 
         /// <summary>
-        ///     Initialises the static shared render state
+        /// Load shader string from resource
+        /// </summary>
+        /// <param name="path">filename of Shader</param>
+        /// <returns></returns>
+        private static string LoadShaderFromResource(string path)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+
+            var resourceStream =
+                assembly.GetManifestResourceStream(
+                    string.Format("QuickFont.Shaders.{0}", path));
+            if (resourceStream == null)
+                throw new AccessViolationException("Error accessing resources!");
+
+            string result;
+            using (var sr = new StreamReader(resourceStream))
+            {
+                result = sr.ReadToEnd();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        ///     Initializes the static shared render state
         /// </summary>
         private static void InitialiseStaticState()
         {
@@ -108,9 +112,15 @@ void main(void)
                 vertCompileStatus = 0;
                 fragCompileStatus = 0;
 
-                GL.ShaderSource(vert, version + vertShaderSource);
+#if OPENGL_ES
+                GL.ShaderSource(vert, LoadShaderFromResource("simple_es.vs"));
+                GL.ShaderSource(frag, LoadShaderFromResource("simple_es.fs"));
+#else
+                GL.ShaderSource(vert, version + LoadShaderFromResource("simple.vs"));
+                GL.ShaderSource(frag, version + LoadShaderFromResource("simple.fs"));
+#endif
+                
                 GL.CompileShader(vert);
-                GL.ShaderSource(frag, version + fragShaderSource);
                 GL.CompileShader(frag);
 
                 GL.GetShader(vert, ShaderParameter.CompileStatus, out vertCompileStatus);
@@ -244,8 +254,16 @@ void main(void)
                 start += primitive.CurrentVertexRepr.Count;
             }
 
+#if !OPENGL_ES
             GL.BindVertexArray(0);
+#endif
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        }
+
+        public void DisableShader()
+        {
+            GL.UseProgram(0);
+            _vertexArrayObject.DisableAttributes();
         }
 
         /// <summary>
@@ -327,7 +345,7 @@ void main(void)
             return dp.Print(text, position, maxSize, alignment, opt.ClippingRectangle);
         }
 
-        #region IDisposable impl
+#region IDisposable impl
 
         // Track whether Dispose has been called.
         private bool disposed;
@@ -372,7 +390,7 @@ void main(void)
             }
         }
 
-        #endregion
+#endregion
     }
 
 

@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using OpenTK;
-using OpenTK.Graphics.OpenGL4;
 using System.Drawing;
+using OpenTK;
+#if OPENGL_ES
+using OpenTK.Graphics.ES20;
+#else
+using OpenTK.Graphics.OpenGL4;
+#endif
 
 namespace QuickFont
 {

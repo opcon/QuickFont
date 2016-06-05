@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickFont", "QuickFont\QuickFont.csproj", "{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}"
 EndProject
@@ -9,16 +9,26 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Example\Example.
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug OpenGL ES|Any CPU = Debug OpenGL ES|Any CPU
 		Debug|Any CPU = Debug|Any CPU
+		Release OpenGL ES|Any CPU = Release OpenGL ES|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Debug OpenGL ES|Any CPU.ActiveCfg = Debug OpenGL ES|Any CPU
+		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Debug OpenGL ES|Any CPU.Build.0 = Debug OpenGL ES|Any CPU
 		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Release OpenGL ES|Any CPU.ActiveCfg = Release OpenGL ES|Any CPU
+		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Release OpenGL ES|Any CPU.Build.0 = Release OpenGL ES|Any CPU
 		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84E44D1B-460F-46AF-A0AA-31735088DE3F}.Debug OpenGL ES|Any CPU.ActiveCfg = Debug OpenGL ES|Any CPU
+		{84E44D1B-460F-46AF-A0AA-31735088DE3F}.Debug OpenGL ES|Any CPU.Build.0 = Debug OpenGL ES|Any CPU
 		{84E44D1B-460F-46AF-A0AA-31735088DE3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{84E44D1B-460F-46AF-A0AA-31735088DE3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84E44D1B-460F-46AF-A0AA-31735088DE3F}.Release OpenGL ES|Any CPU.ActiveCfg = Release OpenGL ES|Any CPU
+		{84E44D1B-460F-46AF-A0AA-31735088DE3F}.Release OpenGL ES|Any CPU.Build.0 = Release OpenGL ES|Any CPU
 		{84E44D1B-460F-46AF-A0AA-31735088DE3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84E44D1B-460F-46AF-A0AA-31735088DE3F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection

@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>QuickFont.Desktop</id>
+    <version>$version$</version>
+    <title>QuickFont.Desktop</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>https://github.com/opcon/QuickFont/blob/master/License.txt</licenseUrl>
+    <projectUrl>https://github.com/opcon/QuickFont</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>Now supports Windows, OSX and Linux</releaseNotes>
+    <copyright>Copyright 2016</copyright>
+    <tags>QuickFont OpenGL OpenTK</tags>
+  </metadata>
+</package>
