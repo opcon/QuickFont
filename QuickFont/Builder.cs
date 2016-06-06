@@ -16,9 +16,9 @@ namespace QuickFont
     {
         private string charSet;
         private QFontBuilderConfiguration config;
-        private Font font;
+        private IFont font;
 
-        public Builder(Font font, QFontBuilderConfiguration config)
+        public Builder(IFont font, QFontBuilderConfiguration config)
         {
             this.charSet = config.charSet;
             this.config = config;
@@ -36,7 +36,7 @@ namespace QuickFont
         }
 
         //these do not affect the actual width of glyphs (we measure widths pixel-perfectly ourselves), but is used to detect whether a font is monospaced
-        private List<SizeF> GetGlyphSizes(Font font)
+        private List<SizeF> GetGlyphSizes(IFont font)
         {
             // We add padding to the returned sizes measured by MeasureString, because on some platforms (*cough*Mono*cough) this method
             // can return unreliable information. Without padding, this leads to some glyphs not fitting on the generated
@@ -51,7 +51,7 @@ namespace QuickFont
 
             for (int i = 0; i < charSet.Length; i++)
             {
-                var charSize = graph.MeasureString("" + charSet[i], font);
+                var charSize = font.MeasureString("" + charSet[i], graph);
                 sizes.Add(new SizeF(charSize.Width+padding, charSize.Height+padding));
             }
 
@@ -132,7 +132,7 @@ namespace QuickFont
         }*/
 
         //The initial bitmap is simply a long thin strip of all glyphs in a row
-        private Bitmap CreateInitialBitmap(Font font, SizeF maxSize, int initialMargin, out QFontGlyph[] glyphs, TextGenerationRenderHint renderHint)
+        private Bitmap CreateInitialBitmap(IFont font, SizeF maxSize, int initialMargin, out QFontGlyph[] glyphs, TextGenerationRenderHint renderHint)
         {
             glyphs = new QFontGlyph[charSet.Length];
 
@@ -161,8 +161,8 @@ namespace QuickFont
             int xOffset = initialMargin;
             for (int i = 0; i < charSet.Length; i++)
             {
-                graph.DrawString("" + charSet[i], font, Brushes.White, xOffset, initialMargin);
-                var charSize = graph.MeasureString("" + charSet[i], font);
+				font.DrawString("" + charSet[i], graph, Brushes.White, xOffset, initialMargin);
+                var charSize = font.MeasureString("" + charSet[i], graph);
                 glyphs[i] = new QFontGlyph(0, new Rectangle(xOffset - initialMargin, 0, (int)charSize.Width + initialMargin * 2, (int)charSize.Height + initialMargin * 2), 0, charSet[i]);
                 xOffset += (int)charSize.Width + initialMargin * 2;
             }
