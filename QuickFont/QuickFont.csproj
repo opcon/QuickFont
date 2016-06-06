@@ -72,6 +72,8 @@
   <ItemGroup>
     <Compile Include="Configuration\QFontConfiguration.cs" />
     <Compile Include="Configuration\QFontKerningConfiguration.cs" />
+    <Compile Include="GDIFont.cs" />
+    <Compile Include="IFont.cs" />
     <Compile Include="QFont.cs" />
     <Compile Include="QFontDrawingPrimitive.cs" />
     <Compile Include="Helper.cs" />

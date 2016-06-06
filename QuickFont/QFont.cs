@@ -38,7 +38,7 @@ namespace QuickFont
         /// </summary>
         /// <param name="font"></param>
         /// <param name="config"></param>
-        public QFont(Font font, QFontBuilderConfiguration config = null)
+        public QFont(IFont font, QFontBuilderConfiguration config = null)
         {
             InitialiseGlFont(font, config);
         }
@@ -59,7 +59,7 @@ namespace QuickFont
             if (config.TransformToCurrentOrthogProjection)
                 transToVp = OrthogonalTransform(out fontScale, currentProjectionMatrix);
 
-            using (Font font = GetFont(fontPath, size, style, config == null ? 1 : config.SuperSampleLevels, fontScale))
+            using (IFont font = new GDIFont(fontPath, size, style, config == null ? 1 : config.SuperSampleLevels, fontScale))
             {
                 _fontName = font.ToString();
                 InitialiseGlFont(font, config);
@@ -103,7 +103,7 @@ namespace QuickFont
             get { return _fontName; }
         }
 
-        private void InitialiseGlFont(Font font, QFontBuilderConfiguration config, QFontData data = null)
+        private void InitialiseGlFont(IFont font, QFontBuilderConfiguration config, QFontData data = null)
         {
             _fontData = data ?? BuildFont(font, config, null);
             
@@ -124,39 +124,7 @@ namespace QuickFont
             }
         }
 
-        /// <summary>
-        ///     Returns a System.Drawing.Font object created from the specified font file
-        /// </summary>
-        /// <param name="fontPath">The path to the font file</param>
-        /// <param name="size"></param>
-        /// <param name="style"></param>
-        /// <param name="superSampleLevels"></param>
-        /// <param name="scale"></param>
-        /// <returns></returns>
-        internal static Font GetFont(string fontPath, float size, FontStyle style, int superSampleLevels = 1, float scale = 1.0f)
-        {
-            FontFamily fontFamily;
-            try
-            {
-                var pfc = new PrivateFontCollection();
-                pfc.AddFontFile(fontPath);
-                fontFamily = pfc.Families[0];
-            }
-            catch(System.IO.FileNotFoundException ex)
-            {
-                //font file could not be found, check if it exists in the installed font collection
-                var installed = new InstalledFontCollection();
-                fontFamily = installed.Families.FirstOrDefault(family => string.Equals(fontPath, family.Name));
-                //if we can't find the font file at all, use the system default font
-                if (fontFamily == null) fontFamily = SystemFonts.DefaultFont.FontFamily;
-            }
-            if (!fontFamily.IsStyleAvailable(style))
-                throw new ArgumentException("Font file: " + fontPath + " does not support style: " + style);
-
-            return new Font(fontFamily, size*scale*superSampleLevels, style);
-        }
-
-        public static void CreateTextureFontFiles(Font font, string newFontName, QFontBuilderConfiguration config)
+        public static void CreateTextureFontFiles(IFont font, string newFontName, QFontBuilderConfiguration config)
         {
             QFontData fontData = BuildFont(font, config, newFontName);
             Builder.SaveQFontDataToFile(fontData, newFontName);
@@ -164,13 +132,13 @@ namespace QuickFont
 
         public static void CreateTextureFontFiles(string fileName, float size, string newFontName, QFontBuilderConfiguration config, FontStyle style = FontStyle.Regular)
         {
-            using (Font font = GetFont(fileName, size, style, config == null ? 1 : config.SuperSampleLevels))
+            using (IFont font = new GDIFont(fileName, size, style, config == null ? 1 : config.SuperSampleLevels))
             {
                 CreateTextureFontFiles(font, newFontName, config);
             }
         }
 
-        private static QFontData BuildFont(Font font, QFontBuilderConfiguration config, string saveName)
+        private static QFontData BuildFont(IFont font, QFontBuilderConfiguration config, string saveName)
         {
             var builder = new Builder(font, config);
             return builder.BuildFontData(saveName);
