@@ -477,7 +477,7 @@ namespace QuickFont
 			debugBmp.Save(font.ToString() + "-DEBUG.png", ImageFormat.Png);
 #endif
 
-			var initialBitmapData = initialBmp.LockBits(new Rectangle(0, 0, initialBmp.Width, initialBmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+            var initialBitmapData = initialBmp.LockBits(new Rectangle(0, 0, initialBmp.Width, initialBmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
 
             int minYOffset = int.MaxValue;
             foreach (var glyph in initialGlyphs)
