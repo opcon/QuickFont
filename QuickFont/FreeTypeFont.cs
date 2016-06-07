@@ -104,29 +104,17 @@ namespace QuickFont
 			// Load the glyph into the face's glyph slot
 			LoadGlyph(s[0]);
 
-			var glyph = _fontFace.Glyph.GetGlyph();
-			glyph.ToBitmap(RenderMode.Normal, new FTVector26Dot6(0, 0), true);
-			var bmg = glyph.ToBitmapGlyph();
-
 			// Render the glyph
 			_fontFace.Glyph.RenderGlyph(RenderMode.Normal);
-
-			var tbl = _fontFace.GetSfntTable(SharpFont.TrueType.SfntTag.OS2) as OS2;
-			var dist = tbl.TypographicAscender - tbl.TypographicDescender;
-			Debug.WriteLine(dist * (float)_fontFace.Size.Metrics.ScaleY);
 
 			// If glyph rendered correctly, copy onto graphics
 			if (_fontFace.Glyph.Bitmap.Width > 0)
 			{
 				var bitmap = _fontFace.Glyph.Bitmap.ToGdipBitmap(fontColor);
 				int baseline = y + _maxHorizontalBearyingY;
-				//graph.DrawImageUnscaled(bmg.Bitmap.ToGdipBitmap(fontColor), x - (int)_fontFace.Glyph.Metrics.HorizontalBearingX, y);
 				graph.DrawImageUnscaled(bitmap, x, (baseline - _fontFace.Glyph.Metrics.HorizontalBearingY.Ceiling()));
-				Debug.WriteLine(bitmap.Height);
 				return new Point(0, baseline - _fontFace.Glyph.Metrics.HorizontalBearingY.Ceiling() - 2*y);
 			}
-
-			Debug.WriteLine(string.Format("Loading character {0}, y position is {1}, horizontal bearing is {2}, height is {3}", s, y, _fontFace.Glyph.Metrics.HorizontalBearingY.ToInt32(), height));
 
 			return Point.Empty;
 		}
