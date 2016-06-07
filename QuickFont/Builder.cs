@@ -16,9 +16,9 @@ namespace QuickFont
     {
         private string charSet;
         private QFontBuilderConfiguration config;
-        private Font font;
+        private IFont font;
 
-        public Builder(Font font, QFontBuilderConfiguration config)
+        public Builder(IFont font, QFontBuilderConfiguration config)
         {
             this.charSet = config.charSet;
             this.config = config;
@@ -36,7 +36,7 @@ namespace QuickFont
         }
 
         //these do not affect the actual width of glyphs (we measure widths pixel-perfectly ourselves), but is used to detect whether a font is monospaced
-        private List<SizeF> GetGlyphSizes(Font font)
+        private List<SizeF> GetGlyphSizes(IFont font)
         {
             // We add padding to the returned sizes measured by MeasureString, because on some platforms (*cough*Mono*cough) this method
             // can return unreliable information. Without padding, this leads to some glyphs not fitting on the generated
@@ -51,7 +51,7 @@ namespace QuickFont
 
             for (int i = 0; i < charSet.Length; i++)
             {
-                var charSize = graph.MeasureString("" + charSet[i], font);
+                var charSize = font.MeasureString("" + charSet[i], graph);
                 sizes.Add(new SizeF(charSize.Width+padding, charSize.Height+padding));
             }
 
@@ -132,7 +132,7 @@ namespace QuickFont
         }*/
 
         //The initial bitmap is simply a long thin strip of all glyphs in a row
-        private Bitmap CreateInitialBitmap(Font font, SizeF maxSize, int initialMargin, out QFontGlyph[] glyphs, TextGenerationRenderHint renderHint)
+        private Bitmap CreateInitialBitmap(IFont font, SizeF maxSize, int initialMargin, out QFontGlyph[] glyphs, TextGenerationRenderHint renderHint)
         {
             glyphs = new QFontGlyph[charSet.Length];
 
@@ -158,12 +158,17 @@ namespace QuickFont
                     break;
             }
 
+			// enable high quality graphics
+			graph.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+			graph.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+			graph.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceOver;
+
             int xOffset = initialMargin;
             for (int i = 0; i < charSet.Length; i++)
             {
-                graph.DrawString("" + charSet[i], font, Brushes.White, xOffset, initialMargin);
-                var charSize = graph.MeasureString("" + charSet[i], font);
-                glyphs[i] = new QFontGlyph(0, new Rectangle(xOffset - initialMargin, 0, (int)charSize.Width + initialMargin * 2, (int)charSize.Height + initialMargin * 2), 0, charSet[i]);
+				var offset = font.DrawString("" + charSet[i], graph, Brushes.White, xOffset, initialMargin, maxSize.Height);
+                var charSize = font.MeasureString("" + charSet[i], graph);
+                glyphs[i] = new QFontGlyph(0, new Rectangle(xOffset - initialMargin + offset.X, initialMargin + offset.Y, (int)charSize.Width + initialMargin * 2, (int)charSize.Height + initialMargin * 2), 0, charSet[i]);
                 xOffset += (int)charSize.Width + initialMargin * 2;
             }
 
@@ -192,26 +197,26 @@ namespace QuickFont
             unsafe
             {
                 for (startX = rect.X; startX < bitmapData.Width; startX++)
-                    for (int j = rect.Y; j < rect.Y + rect.Height; j++)
+                    for (int j = rect.Y; j <= rect.Y + rect.Height; j++)
                         if (!emptyPix(bitmapData, startX, j))
                             goto Done1;
                 Done1:
 
                 for (endX = rect.X + rect.Width; endX >= 0; endX--)
-                    for (int j = rect.Y; j < rect.Y + rect.Height; j++)
+                    for (int j = rect.Y; j <= rect.Y + rect.Height; j++)
                         if (!emptyPix(bitmapData, endX, j))
                             goto Done2;
                 Done2:
 
                 for (startY = rect.Y; startY < bitmapData.Height; startY++)
-                    for (int i = startX; i < endX; i++)
+                    for (int i = startX; i <= endX; i++)
                         if (!emptyPix(bitmapData, i, startY))
                             goto Done3;
                             
                 Done3:
 
                 for (endY = rect.Y + rect.Height; endY >= 0; endY--)
-                    for (int i = startX; i < endX; i++)
+                    for (int i = startX; i <= endX; i++)
                         if (!emptyPix(bitmapData, i, endY))
                             goto Done4;
                 Done4:;
@@ -454,6 +459,24 @@ namespace QuickFont
             var sizes = GetGlyphSizes(font);
             var maxSize = GetMaxGlyphSize(sizes);
             var initialBmp = CreateInitialBitmap(font, maxSize, margin, out initialGlyphs,config.TextGenerationRenderHint);
+
+#if DEBUG
+			// print bitmap with bounds to debug it
+			var debugBmp = initialBmp.Clone() as Bitmap;
+			var graphics = Graphics.FromImage(debugBmp);
+			var pen = new Pen(Color.Red, 1);
+
+			foreach (var g in initialGlyphs)
+			{
+				graphics.DrawRectangle(pen, g.rect);
+			}
+
+			graphics.Flush();
+			graphics.Dispose();
+
+			debugBmp.Save(font.ToString() + "-DEBUG.png", ImageFormat.Png);
+#endif
+
             var initialBitmapData = initialBmp.LockBits(new Rectangle(0, 0, initialBmp.Width, initialBmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
 
             int minYOffset = int.MaxValue;

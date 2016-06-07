@@ -48,23 +48,23 @@ namespace QuickFont
         }
 
         /// <summary>
-        /// Returns try if the given pixel is empty (i.e. black)
+        /// Returns true if the given pixel is empty (i.e. black)
         /// </summary>
         public static unsafe bool EmptyPixel(BitmapData bitmapData, int px, int py)
         {
-
+			if (px < 0 || py < 0 || px >= bitmapData.Width || py >= bitmapData.Height) return true;
             byte* addr = (byte*) (bitmapData.Scan0) + bitmapData.Stride*py + px*3;
             return (*addr == 0 && *(addr + 1) == 0 && *(addr + 2) == 0);
 
         }
 
         /// <summary>
-        /// Returns try if the given pixel is empty (i.e. alpha is zero)
+        /// Returns true if the given pixel is empty (i.e. alpha is zero)
         /// </summary>
         public static unsafe bool EmptyAlphaPixel(BitmapData bitmapData, int px, int py, byte alphaEmptyPixelTolerance)
         {
-
-            byte* addr = (byte*) (bitmapData.Scan0) + bitmapData.Stride*py + px*4;
+			if (px < 0 || py < 0 || px >= bitmapData.Width || py >= bitmapData.Height) return true;
+			byte* addr = (byte*) (bitmapData.Scan0) + bitmapData.Stride*py + px*4;
             return (*(addr + 3) <= alphaEmptyPixelTolerance);
 
         }
