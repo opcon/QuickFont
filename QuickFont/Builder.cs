@@ -158,12 +158,17 @@ namespace QuickFont
                     break;
             }
 
+			// enable high quality graphics
+			graph.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+			graph.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+			graph.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceOver;
+
             int xOffset = initialMargin;
             for (int i = 0; i < charSet.Length; i++)
             {
-				font.DrawString("" + charSet[i], graph, Brushes.White, xOffset, initialMargin);
+				var offset = font.DrawString("" + charSet[i], graph, Brushes.White, xOffset, initialMargin, maxSize.Height);
                 var charSize = font.MeasureString("" + charSet[i], graph);
-                glyphs[i] = new QFontGlyph(0, new Rectangle(xOffset - initialMargin, 0, (int)charSize.Width + initialMargin * 2, (int)charSize.Height + initialMargin * 2), 0, charSet[i]);
+                glyphs[i] = new QFontGlyph(0, new Rectangle(xOffset - initialMargin + offset.X, initialMargin + offset.Y, (int)charSize.Width + initialMargin * 2, (int)charSize.Height + initialMargin * 2), 0, charSet[i]);
                 xOffset += (int)charSize.Width + initialMargin * 2;
             }
 
