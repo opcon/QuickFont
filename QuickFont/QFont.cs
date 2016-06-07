@@ -59,7 +59,7 @@ namespace QuickFont
             if (config.TransformToCurrentOrthogProjection)
                 transToVp = OrthogonalTransform(out fontScale, currentProjectionMatrix);
 
-            using (IFont font = new GDIFont(fontPath, size, style, config == null ? 1 : config.SuperSampleLevels, fontScale))
+            using (IFont font = new FreeTypeFont(fontPath, size, style, config == null ? 1 : config.SuperSampleLevels, fontScale))
             {
                 _fontName = font.ToString();
                 InitialiseGlFont(font, config);
@@ -132,7 +132,7 @@ namespace QuickFont
 
         public static void CreateTextureFontFiles(string fileName, float size, string newFontName, QFontBuilderConfiguration config, FontStyle style = FontStyle.Regular)
         {
-            using (IFont font = new GDIFont(fileName, size, style, config == null ? 1 : config.SuperSampleLevels))
+            using (IFont font = new FreeTypeFont(fileName, size, style, config == null ? 1 : config.SuperSampleLevels))
             {
                 CreateTextureFontFiles(font, newFontName, config);
             }
