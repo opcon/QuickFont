@@ -454,7 +454,25 @@ namespace QuickFont
             var sizes = GetGlyphSizes(font);
             var maxSize = GetMaxGlyphSize(sizes);
             var initialBmp = CreateInitialBitmap(font, maxSize, margin, out initialGlyphs,config.TextGenerationRenderHint);
-            var initialBitmapData = initialBmp.LockBits(new Rectangle(0, 0, initialBmp.Width, initialBmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+
+#if DEBUG
+			// print bitmap with bounds to debug it
+			var debugBmp = initialBmp.Clone() as Bitmap;
+			var graphics = Graphics.FromImage(debugBmp);
+			var pen = new Pen(Color.Red, 1);
+
+			foreach (var g in initialGlyphs)
+			{
+				graphics.DrawRectangle(pen, g.rect);
+			}
+
+			graphics.Flush();
+			graphics.Dispose();
+
+			debugBmp.Save(font.ToString() + "-DEBUG.png", ImageFormat.Png);
+#endif
+
+			var initialBitmapData = initialBmp.LockBits(new Rectangle(0, 0, initialBmp.Width, initialBmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
 
             int minYOffset = int.MaxValue;
             foreach (var glyph in initialGlyphs)
