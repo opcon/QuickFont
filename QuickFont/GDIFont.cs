@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Text;
 using System.Linq;
@@ -44,9 +45,13 @@ namespace QuickFont
 			_font = new Font(_fontFamily, size * scale * superSampleLevels, style);
 		}
 
-		public void DrawString(string s, Graphics graph, Brush color, int x, int y)
+		public Point DrawString(string s, Graphics graph, Brush color, int x, int y, float height)
 		{
 			graph.DrawString(s, _font, color, x, y);
+
+			Debug.WriteLine(string.Format("Loading character {0}, y position is {1}", s, y));
+
+			return Point.Empty;
 		}
 
 		public SizeF MeasureString(string s, Graphics graph)
@@ -54,7 +59,7 @@ namespace QuickFont
 			return graph.MeasureString(s, _font);
 		}
 
-		string IFont.ToString()
+		public override string ToString()
 		{
 			return _font.ToString();
 		}
