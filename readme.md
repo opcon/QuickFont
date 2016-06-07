@@ -1,5 +1,7 @@
 ###QuickFont
 
+[![Join the chat at https://gitter.im/opcon/QuickFont](https://badges.gitter.im/opcon/QuickFont.svg)](https://gitter.im/opcon/QuickFont?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 A modern OpenGL text rendering library for OpenTK.
 
 Forked from [swax/QuickFont](https://github.com/swax/QuickFont) library.
