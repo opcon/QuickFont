@@ -10,6 +10,7 @@ Original Library [QFont](http://www.opentk.com/project/QuickFont)
 You can install this library via [nuget](https://www.nuget.org/packages/QuickFont.Desktop/).
 
 ##Latest version 4.0
+* Now uses SharpFont for loading the font files, so custom (non-installed) fonts are now supported on Linux and OSX
 * Added Nuget package
 * Added support for OpenGL ES (requires conditional compilation) thanks to [vescon](https://github.com/vescon/QuickFont)
 * Improved Shader loading
