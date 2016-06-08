@@ -10,7 +10,7 @@
     <projectUrl>https://github.com/opcon/QuickFont</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Now supports Windows, OSX and Linux</releaseNotes>
+    <releaseNotes></releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>QuickFont OpenGL OpenTK</tags>
   </metadata>
