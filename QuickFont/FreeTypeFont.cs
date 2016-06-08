@@ -6,6 +6,7 @@ using System.Text;
 using SharpFont;
 using System.Diagnostics;
 using SharpFont.TrueType;
+using System.IO;
 
 namespace QuickFont
 {

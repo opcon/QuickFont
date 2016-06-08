@@ -59,7 +59,7 @@ namespace QuickFont
             if (config.TransformToCurrentOrthogProjection)
                 transToVp = OrthogonalTransform(out fontScale, currentProjectionMatrix);
 
-            using (IFont font = new FreeTypeFont(fontPath, size, style, config == null ? 1 : config.SuperSampleLevels, fontScale))
+            using (IFont font = GetFont(fontPath, size, style, config == null ? 1 : config.SuperSampleLevels, fontScale))
             {
                 _fontName = font.ToString();
                 InitialiseGlFont(font, config);
@@ -132,10 +132,20 @@ namespace QuickFont
 
         public static void CreateTextureFontFiles(string fileName, float size, string newFontName, QFontBuilderConfiguration config, FontStyle style = FontStyle.Regular)
         {
-            using (IFont font = new FreeTypeFont(fileName, size, style, config == null ? 1 : config.SuperSampleLevels))
+            using (IFont font = GetFont(fileName, size, style, config == null ? 1 : config.SuperSampleLevels))
             {
                 CreateTextureFontFiles(font, newFontName, config);
             }
+        }
+
+        private static IFont GetFont(string fontPath, float size, FontStyle style, int superSampleLevels = 1, float scale = 1.0f)
+        {
+            // If the font file exists load it using FreeTypeFont,
+            // otherwise assume it references an internal font, and
+            // load it using GDIFont (which will use the InstalledFontCollection)
+            return System.IO.File.Exists(fontPath) ? 
+                (new FreeTypeFont(fontPath, size, style, superSampleLevels, scale)) as IFont : 
+                (new GDIFont(fontPath, size, style, superSampleLevels, scale)) as IFont;
         }
 
         private static QFontData BuildFont(IFont font, QFontBuilderConfiguration config, string saveName)
