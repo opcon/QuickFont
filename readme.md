@@ -1,4 +1,4 @@
-QuickFont [![Join the chat at https://gitter.im/opcon/QuickFont](https://badges.gitter.im/opcon/QuickFont.svg)](https://gitter.im/opcon/QuickFont?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/opcon/QuickFont.svg?branch=master)](https://travis-ci.org/opcon/QuickFont) [![NuGet](https://img.shields.io/nuget/v/QuickFont.Desktop.svg)](https://www.nuget.org/packages/QuickFont.Desktop/)
+QuickFont [![Join the chat at https://gitter.im/opcon/QuickFont](https://badges.gitter.im/opcon/QuickFont.svg)](https://gitter.im/opcon/QuickFont?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/opcon/QuickFont.svg?branch=master)](https://travis-ci.org/opcon/QuickFont) [![NuGet](https://img.shields.io/nuget/v/QuickFont.Desktop.svg?maxAge=3600)](https://www.nuget.org/packages/QuickFont.Desktop/)
 =========
 
 A modern OpenGL text rendering library for OpenTK.
