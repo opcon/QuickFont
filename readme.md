@@ -1,6 +1,5 @@
 QuickFont [![Join the chat at https://gitter.im/opcon/QuickFont](https://badges.gitter.im/opcon/QuickFont.svg)](https://gitter.im/opcon/QuickFont?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/opcon/QuickFont.svg?branch=master)](https://travis-ci.org/opcon/QuickFont) [![NuGet](https://img.shields.io/nuget/v/QuickFont.Desktop.svg?maxAge=2592000)](https://www.nuget.org/packages/QuickFont.Desktop/)
-
-=======
+=========
 
 A modern OpenGL text rendering library for OpenTK.
 
@@ -95,11 +94,17 @@ protected virtual void Dispose(bool disposing)
 The following is a non-exhaustive list of people who have contributed to QuickFont:
 
 James Lohr - Creator of the original library (http://www.opentk.com/project/QuickFont)
+
 John (swax) Marshall - Added vertex buffer support
+
 Patrick (opcon) Yates - Current maintainer
+
 Robertofon - Refactored monolithic QFont class
+
 Martinay - OpenGL ES 2.0 support
+
 Jan Polak
+
 Jonathan
 
 ## License
