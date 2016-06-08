@@ -1,6 +1,7 @@
 ﻿// Released to the public domain. Use, modify and relicense at will.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using OpenTK;
@@ -15,6 +16,7 @@ using OpenTK.Audio.OpenAL;
 using OpenTK.Input;
 using QuickFont;
 using System.Drawing;
+using System.Drawing.Text;
 using QuickFont.Configuration;
 
 namespace StarterKit
@@ -27,6 +29,7 @@ namespace StarterKit
         QFont codeText;
         QFont controlsText;
         QFont monoSpaced;
+
         private QFontDrawing drawing;
         private QFontDrawing controlsDrawing;
 
@@ -34,6 +37,8 @@ namespace StarterKit
         private ProcessedText _processedText;
         private QFont _benchmarkResults;
         private Matrix4 _projectionMatrix;
+
+        private List<QFont> _installedFonts;
 
 
 #region string constants
@@ -138,7 +143,7 @@ namespace StarterKit
 #endregion
 
         int currentDemoPage = 0;
-        int lastPage = 10;
+        int lastPage = 11;
         private int frameCount = 0;
 
         private string _benchResult="";
@@ -247,6 +252,19 @@ namespace StarterKit
 
             monoSpaced = new QFont("Fonts/Anonymous.ttf", 10, new QFontBuilderConfiguration());
             monoSpacedOptions = new QFontRenderOptions() { Colour = Color.FromArgb(new Color4(0.1f, 0.1f, 0.1f, 1.0f).ToArgb()), DropShadowActive = true};
+
+            // loop through some installed fonts and load them
+            var ifc = new InstalledFontCollection();
+            _installedFonts = new List<QFont>();
+
+            foreach (var fontFamily in ifc.Families)
+            {
+                // Don't load too many fonts
+                if (_installedFonts.Count > 25)
+                    break;
+
+                _installedFonts.Add(new QFont(fontFamily.Name, 14, new QFontBuilderConfiguration()));
+            }
 
             GL.ClearColor(Color4.CornflowerBlue);
         }
@@ -631,6 +649,21 @@ namespace StarterKit
 
                             break;
                         }
+
+                    case 11:
+                    {
+                        yOffset += drawing.Print(heading2, "Different installed fonts",
+                            new Vector3(20f, Height - yOffset, 0f),
+                            QFontAlignment.Left, heading2Options).Height + 20;
+
+                        foreach (var qFont in _installedFonts)
+                        {
+                            yOffset += drawing.Print(qFont, "This text is printed with " + qFont.FontName,
+                                new Vector3(20f, Height - yOffset, 0), QFontAlignment.Left, Color.White).Height + 20;
+                        }
+
+                        break;
+                    }
                 }
 
                 drawing.RefreshBuffers();
