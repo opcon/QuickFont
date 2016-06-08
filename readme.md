@@ -1,6 +1,6 @@
-###QuickFont
+QuickFont [![Join the chat at https://gitter.im/opcon/QuickFont](https://badges.gitter.im/opcon/QuickFont.svg)](https://gitter.im/opcon/QuickFont?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/opcon/QuickFont.svg?branch=master)](https://travis-ci.org/opcon/QuickFont) [![NuGet](https://img.shields.io/nuget/v/QuickFont.Desktop.svg?maxAge=2592000)](https://www.nuget.org/packages/QuickFont.Desktop/)
 
-[![Join the chat at https://gitter.im/opcon/QuickFont](https://badges.gitter.im/opcon/QuickFont.svg)](https://gitter.im/opcon/QuickFont?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+=======
 
 A modern OpenGL text rendering library for OpenTK.
 
@@ -9,7 +9,17 @@ Original Library [QFont](http://www.opentk.com/project/QuickFont)
 
 You can install this library via [nuget](https://www.nuget.org/packages/QuickFont.Desktop/).
 
-##Latest version 4.0
+## Supported Platforms
+
+QuickFont has been tested and runs on Windows, Linux and OSX.
+
+The minimum supported OpenGL version is 3.0
+
+## Version 4.1
+* Updated font loading mechanism to use [SharpFont](https://github.com/Robmaister/SharpFont) for loading fonts by path, and use the regular GDIFont mechanism for loading installed (system) fonts
+* Updated example project to show some different installed system fonts
+
+### Version 4.0
 * Now uses SharpFont for loading the font files, so custom (non-installed) fonts are now supported on Linux and OSX
 * Added Nuget package
 * Added support for OpenGL ES (requires conditional compilation) thanks to [vescon](https://github.com/vescon/QuickFont)
@@ -30,6 +40,7 @@ You can install this library via [nuget](https://www.nuget.org/packages/QuickFon
 ![](https://i.imgur.com/lf0mKCl.png)
 
 ##Example
+
 In some OnLoad() method create your QFont and your QFontDrawing
 ```C#
 _myFont = new QFont("Fonts/HappySans.ttf", 72, new QFontBuilderConfiguration(true));
@@ -78,3 +89,19 @@ protected virtual void Dispose(bool disposing)
 ```
 
 **See the included example project for more!**
+
+## Contributors
+
+The following is a non-exhaustive list of people who have contributed to QuickFont:
+
+James Lohr - Creator of the original library (http://www.opentk.com/project/QuickFont)
+John (swax) Marshall - Added vertex buffer support
+Patrick (opcon) Yates - Current maintainer
+Robertofon - Refactored monolithic QFont class
+Martinay - OpenGL ES 2.0 support
+Jan Polak
+Jonathan
+
+## License
+
+Licensed under MIT, please see the file `License.txt` in the project root directory
