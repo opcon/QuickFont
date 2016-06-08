@@ -61,7 +61,7 @@ namespace QuickFont
 
 		public override string ToString()
 		{
-			return _font.ToString();
+		    return _font.Name;
 		}
 
 		public void Dispose()
