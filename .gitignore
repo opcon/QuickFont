@@ -30,8 +30,7 @@ bld/
 *.VisualState.xml
 TestResult.xml
 
-# Build Results of an ATL Project
-[Dd]ebugPS/
+# Build Results of an ATL Project [Dd]ebugPS/
 [Rr]eleasePS/
 dlldata.c
 
@@ -182,3 +181,6 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
+
+# Project Rider
+.idea/
