@@ -36,6 +36,8 @@ The minimum supported OpenGL version is 3.0
 
 ##Screenshot
 
+![](http://i.imgur.com/M0iq083.png)
+
 ![](https://i.imgur.com/lf0mKCl.png)
 
 ##Example
