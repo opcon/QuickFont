@@ -1,4 +1,4 @@
-QuickFont [![Join the chat at https://gitter.im/opcon/QuickFont](https://badges.gitter.im/opcon/QuickFont.svg)](https://gitter.im/opcon/QuickFont?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/opcon/QuickFont.svg?branch=master)](https://travis-ci.org/opcon/QuickFont) [![NuGet](https://img.shields.io/nuget/v/QuickFont.Desktop.svg?maxAge=3600)](https://www.nuget.org/packages/QuickFont.Desktop/)
+QuickFont [![Join the chat at https://gitter.im/opcon/QuickFont](https://badges.gitter.im/opcon/QuickFont.svg)](https://gitter.im/opcon/QuickFont?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/opcon/QuickFont.svg?branch=master)](https://travis-ci.org/opcon/QuickFont) [![NuGet Version and Downloads](https://buildstats.info/nuget/QuickFont.Desktop)](https://www.nuget.org/packages/QuickFont.Desktop/)
 =========
 
 A modern OpenGL text rendering library for OpenTK.
@@ -13,6 +13,17 @@ You can install this library via [nuget](https://www.nuget.org/packages/QuickFon
 QuickFont has been tested and runs on Windows, Linux and OSX.
 
 The minimum supported OpenGL version is 3.0
+
+**Note the example project will need to be changed to build correctly on OSX, since by default Apple returns an OpenGL 2.1 context if a specific version is not specified.**
+
+Simply replace the Game.cs constructor with:
+
+``` C#
+public Game()
+	: base(800, 600, GraphicsMode.Default, "QuickFont Example", GameWindowFlags.Default, DisplayDevice.Default, 3, 2, GraphicsContextFlags.Default)
+```
+
+This will select an OpenGL version >= 3.2 (usually 4.1).
 
 ## Version 4.1
 * Updated font loading mechanism to use [SharpFont](https://github.com/Robmaister/SharpFont) for loading fonts by path, and use the regular GDIFont mechanism for loading installed (system) fonts
