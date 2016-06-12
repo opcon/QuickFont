@@ -22,6 +22,7 @@ namespace QuickFont
 
 		public FreeTypeFont(string fontPath, float size, FontStyle style, int superSampleLevels = 1, float scale = 1.0f)
 		{
+			SharpFont.
 			StyleFlags _fontStyle = StyleFlags.None;
 			switch (style)
 			{

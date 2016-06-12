@@ -152,7 +152,7 @@ namespace StarterKit
 
         /// <summary>Creates a 800x600 window with the specified title.</summary>
         public Game()
-            : base(800, 600, GraphicsMode.Default, "OpenTK Quick Start Sample")
+            : base(800, 600, GraphicsMode.Default, "QuickFont Example")
         {
             VSync = VSyncMode.Off;
             this.WindowBorder = WindowBorder.Fixed;
@@ -260,7 +260,7 @@ namespace StarterKit
             foreach (var fontFamily in ifc.Families)
             {
                 // Don't load too many fonts
-                if (_installedFonts.Count > 25)
+                if (_installedFonts.Count > 15)
                     break;
 
                 _installedFonts.Add(new QFont(fontFamily.Name, 14, new QFontBuilderConfiguration()));
@@ -659,7 +659,7 @@ namespace StarterKit
                         foreach (var qFont in _installedFonts)
                         {
                             yOffset += drawing.Print(qFont, "This text is printed with " + qFont.FontName,
-                                new Vector3(20f, Height - yOffset, 0), QFontAlignment.Left, Color.White).Height + 20;
+                                new Vector3(20f, Height - yOffset, 0), QFontAlignment.Left, Color.White).Height + 10;
                         }
 
                         break;

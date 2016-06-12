@@ -49,8 +49,6 @@ namespace QuickFont
 		{
 			graph.DrawString(s, _font, color, x, y);
 
-			Debug.WriteLine(string.Format("Loading character {0}, y position is {1}", s, y));
-
 			return Point.Empty;
 		}
 

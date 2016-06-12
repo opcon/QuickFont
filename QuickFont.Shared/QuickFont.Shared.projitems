@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>adf0dfb4-fbbd-4336-bb19-62e5a904c38d</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>QuickFont.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Builder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\QFontBuilderConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\QFontConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\QFontKerningConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\QFontShadowConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FreeTypeFont.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GDIFont.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IFont.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)KerningCalculator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QBitmap.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QFont.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QFontData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QFontDrawing.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QFontDrawingPrimitive.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QFontGlyph.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QFontRenderOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)QVertexArrayObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TextNodeList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TexturePage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewportHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Shaders\simple.fs">
+      <CustomToolNamespace>
+      </CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Shaders\simple.vs">
+      <CustomToolNamespace>
+      </CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Shaders\simple_es.fs">
+      <CustomToolNamespace>
+      </CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Shaders\simple_es.vs">
+      <CustomToolNamespace>
+      </CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>
