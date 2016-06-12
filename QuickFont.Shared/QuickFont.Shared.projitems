@@ -32,9 +32,21 @@
     <Compile Include="$(MSBuildThisFileDirectory)ViewportHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Shaders\simple.fs" />
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Shaders\simple.vs" />
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Shaders\simple_es.fs" />
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Shaders\simple_es.vs" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Shaders\simple.fs">
+      <CustomToolNamespace>
+      </CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Shaders\simple.vs">
+      <CustomToolNamespace>
+      </CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Shaders\simple_es.fs">
+      <CustomToolNamespace>
+      </CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Shaders\simple_es.vs">
+      <CustomToolNamespace>
+      </CustomToolNamespace>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

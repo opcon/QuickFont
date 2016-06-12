@@ -70,7 +70,7 @@ namespace QuickFont
 
             var resourceStream =
                 assembly.GetManifestResourceStream(
-                    string.Format("QuickFont.Shaders.{0}", path));
+                    string.Format("QuickFont.{0}", path));
             if (resourceStream == null)
                 throw new AccessViolationException("Error accessing resources!");
 
