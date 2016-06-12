@@ -25,7 +25,11 @@ public Game()
 
 This will select an OpenGL version >= 3.2 (usually 4.1).
 
-## Version 4.1
+## Version 4.2
+* Switched to using a shared package to build QuickFont
+* Added an OpenGL ES 2.0 nuget package
+
+### Version 4.1
 * Updated font loading mechanism to use [SharpFont](https://github.com/Robmaister/SharpFont) for loading fonts by path, and use the regular GDIFont mechanism for loading installed (system) fonts
 * Updated example project to show some different installed system fonts
 
