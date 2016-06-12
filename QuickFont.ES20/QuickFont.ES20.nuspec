@@ -1,17 +1,21 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>QuickFont.Desktop</id>
+    <id>QuickFont.ES20</id>
     <version>$version$</version>
-    <title>QuickFont.Desktop</title>
+    <title>QuickFont.ES20</title>
     <authors>$author$</authors>
     <owners>$author$</owners>
     <licenseUrl>https://github.com/opcon/QuickFont/blob/master/License.txt</licenseUrl>
     <projectUrl>https://github.com/opcon/QuickFont</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes></releaseNotes>
+    <releaseNotes>* Fixed package not installing due to requiring an older version of SharpFont.Dependencies
+        * Added OpenGL ES 2.0 packaage</releaseNotes>
     <copyright>Copyright 2016</copyright>
-    <tags>QuickFont OpenGL OpenTK</tags>
+    <tags>QuickFont OpenGL ES OpenTK</tags>
+    <dependencies>
+      <dependency id="SharpFont.Dependencies" version="2.6" />
+    </dependencies>
   </metadata>
 </package>
