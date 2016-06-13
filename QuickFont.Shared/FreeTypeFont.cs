@@ -20,9 +20,15 @@ namespace QuickFont
 
 		private int _maxHorizontalBearyingY = 0;
 
+		public float Size { get { return _fontSize; } }
+
+		public bool HasKerningInformation { get { return true; } }
+
 		public FreeTypeFont(string fontPath, float size, FontStyle style, int superSampleLevels = 1, float scale = 1.0f)
 		{
-			SharpFont.
+			// Check that the font exists
+			if (!File.Exists(fontPath)) throw new ArgumentException("The specified font path does not exist", "fontPath");
+
 			StyleFlags _fontStyle = StyleFlags.None;
 			switch (style)
 			{
@@ -88,8 +94,6 @@ namespace QuickFont
 		{
 			return _fontFace.FamilyName ?? "";
 		}
-
-		public float Size { get { return _fontSize; } }
 			
 		public Point DrawString(string s, Graphics graph, Brush color, int x, int y, float height)
 		{
@@ -119,6 +123,14 @@ namespace QuickFont
 			}
 
 			return Point.Empty;
+		}
+
+		public int GetKerning(char c1, char c2)
+		{
+			var c1Index = _fontFace.GetCharIndex(c1);
+			var c2Index = _fontFace.GetCharIndex(c2);
+			var kerning = _fontFace.GetKerning(c1Index, c2Index, KerningMode.Default);
+			return kerning.X.Ceiling();
 		}
 
 		private void LoadGlyph(char c)
@@ -161,27 +173,15 @@ namespace QuickFont
 						_fontFace = null;
 					}
 				}
-
-				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-				// TODO: set large fields to null.
-
 				disposedValue = true;
 			}
 		}
-
-		// TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-		// ~FreeTypeFont() {
-		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-		//   Dispose(false);
-		// }
 
 		// This code added to correctly implement the disposable pattern.
 		public void Dispose()
 		{
 			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(true);
-			// TODO: uncomment the following line if the finalizer is overridden above.
-			// GC.SuppressFinalize(this);
 		}
 	}
 }

@@ -12,6 +12,10 @@ namespace QuickFont
 
 		float Size { get; }
 
+		bool HasKerningInformation { get; }
+
 		Point DrawString(string s, Graphics graph, Brush color, int x, int y, float height);
+
+		int GetKerning(char c1, char c2);
 	}
 }

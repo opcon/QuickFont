@@ -12,8 +12,11 @@ namespace QuickFont
             public int Max;
         }
 
-        private static int Kerning(QFontGlyph g1, QFontGlyph g2, XLimits[] lim1, XLimits[] lim2, QFontKerningConfiguration config)
+        private static int Kerning(QFontGlyph g1, QFontGlyph g2, XLimits[] lim1, XLimits[] lim2, QFontKerningConfiguration config, IFont font)
         {
+			// Use kerning information from the font if it exists
+			if (font != null && font.HasKerningInformation) return font.GetKerning(g1.character, g2.character);
+
             int yOffset1 = g1.yOffset;
             int yOffset2 = g2.yOffset;
 
@@ -36,17 +39,17 @@ namespace QuickFont
             CharacterKerningRule kerningRule = config.GetOverridingCharacterKerningRuleForPair(""+g1.character + g2.character);
             if (kerningRule == CharacterKerningRule.Zero)
             {
-                return 0;
+                return 1;
             }
             else if (kerningRule == CharacterKerningRule.NotMoreThanHalf)
             {
-                return (int)Math.Min(Math.Min(g1.rect.Width,g2.rect.Width)*0.5f, worstCase);
+                return 1 - (int)Math.Min(Math.Min(g1.rect.Width,g2.rect.Width)*0.5f, worstCase);
             }
 
-            return worstCase;
+            return 1 - worstCase;
         }
 
-        public static Dictionary<String, int> CalculateKerning(char[] charSet, QFontGlyph[] glyphs, List<QBitmap> bitmapPages, QFontKerningConfiguration config)
+        public static Dictionary<String, int> CalculateKerning(char[] charSet, QFontGlyph[] glyphs, List<QBitmap> bitmapPages, QFontKerningConfiguration config, IFont font = null)
         {
             var kerningPairs = new Dictionary<String, int>();
 
@@ -123,7 +126,7 @@ namespace QuickFont
 
             for (int i = 0; i < charSet.Length; i++)
                 for (int j = 0; j < charSet.Length; j++)
-                    kerningPairs.Add("" + charSet[i] + charSet[j], 1-Kerning(glyphs[i], glyphs[j], limits[i], limits[j],config));
+                    kerningPairs.Add("" + charSet[i] + charSet[j], Kerning(glyphs[i], glyphs[j], limits[i], limits[j],config, font));
 
             return kerningPairs;
         }

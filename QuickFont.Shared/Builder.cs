@@ -513,7 +513,7 @@ namespace QuickFont
             fontData.Pages = pages.ToArray();
             fontData.CalculateMeanWidth();
             fontData.CalculateMaxHeight();
-            fontData.KerningPairs = KerningCalculator.CalculateKerning(charSet.ToCharArray(), glyphs, bitmapPages,config.KerningConfig);
+            fontData.KerningPairs = KerningCalculator.CalculateKerning(charSet.ToCharArray(), glyphs, bitmapPages,config.KerningConfig, font);
             fontData.naturallyMonospaced = IsMonospaced(sizes);
 
             if (saveName != null)

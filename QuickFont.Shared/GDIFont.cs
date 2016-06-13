@@ -15,6 +15,8 @@ namespace QuickFont
 
 		public float Size { get { return _font.Size; } }
 
+		public bool HasKerningInformation { get { return false; } }
+
 		/// <summary>
 		///     Creates a GDI+ Font from the specified font file
 		/// </summary>
@@ -50,6 +52,11 @@ namespace QuickFont
 			graph.DrawString(s, _font, color, x, y);
 
 			return Point.Empty;
+		}
+
+		public int GetKerning(char c1, char c2)
+		{
+			throw new NotImplementedException("Font kerning for GDI Fonts is not implemented. Should be calculated manually.");
 		}
 
 		public SizeF MeasureString(string s, Graphics graph)
