@@ -36,7 +36,6 @@ namespace QuickFont
             GraphicsContext.Assert();
             int[] viewportInts = new int[4];
 
-            //TODO Test that this function returns the expected values -> tested, 96% sure it works.
             GL.GetInteger(GetPName.Viewport, viewportInts);
             _currentViewport = new Viewport(viewportInts[0], viewportInts[1], viewportInts[2], viewportInts[3]);
         }
