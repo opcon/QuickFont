@@ -73,6 +73,10 @@
     <None Include="Fonts\times.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Content Include="..\packages\SharpFont.Dependencies.2.6\bin\msvc12\x64\freetype6.dll">
+      <Link>freetype6.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="woodenFont.qfont">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
