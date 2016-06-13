@@ -58,7 +58,7 @@ namespace QuickFont
                 var rect = glyphs[n].rect;
                 var page = bitmapPages[glyphs[n].page];
 
-                limits[n] = new XLimits[rect.Height];
+                limits[n] = new XLimits[rect.Height+1];
 
                 maxHeight = Math.Max(rect.Height, maxHeight);
 
@@ -67,12 +67,12 @@ namespace QuickFont
                 int xStart = rect.X;
                 int xEnd = rect.X + rect.Width;
 
-                for (int j = yStart; j < yEnd; j++)
+                for (int j = yStart; j <= yEnd; j++)
                 {
                     int last = xStart;
 
                     bool yetToFindFirst = true;
-                    for (int i = xStart; i < xEnd; i++)
+                    for (int i = xStart; i <= xEnd; i++)
                     {
                         if (!QBitmap.EmptyAlphaPixel(page.bitmapData, i, j,config.alphaEmptyPixelTolerance))
                         {
@@ -94,7 +94,7 @@ namespace QuickFont
             }
 
             //we now bring up each row to the max (or min) of it's two adjacent rows, this is to stop glyphs sliding together too closely
-            var tmp = new XLimits[maxHeight];
+            var tmp = new XLimits[maxHeight+1];
 
             for (int n = 0; n < charSet.Length; n++)
             {
