@@ -49,7 +49,7 @@ namespace StarterKit
             "The difference to opcon/QuickFont therefore is a big Refactoring. The original (god like) QFont-class has been separated in 3 concerns: " +
             "Actual Font (save, create, hold texture) [QFont], Drawing-primitive (layout + vertex computations) [QFontDrawingPrimitive] "+
             "and a Drawing container (push stuff to OpenGL, draw) [QFontDrawing]. " +
-            "Unfortunately or naturally the API has changed remarkably so that old code is nop longer compatible. "+
+            "Unfortunately or naturally the API has changed remarkably so that old code is no longer compatible. "+
             "However the changes are not radical and can be adapted (some conceptual changes may surface) as you can see with thsi example. "+
             "This refactoring into three classes should make using QuickFont more flexible and more pleasing to use. " +
             "It lost of it's ease because you have to handle more classes. But your code will be more future proof and architected well.";
@@ -433,7 +433,7 @@ namespace StarterKit
                                         .Height;
 
                             yOffset += drawing.Print(mainText, modernQuickFontIntro, new Vector3(30, Height - yOffset, 0),
-                                                                 new SizeF(Width - 60f, -1), QFontAlignment.Justify, new Rectangle(60, Height-400, 200, 200)).Height;
+                                                                 new SizeF(Width - 60f, -1), QFontAlignment.Left).Height;
                             
                             PrintCode(modernIntroCode, ref yOffset);
                             break;
