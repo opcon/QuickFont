@@ -309,7 +309,6 @@ namespace QuickFont.Configuration
                 case 874: // stands for thai
                     // Note this is not really supported since thai has zero space combindig characters that are not supported (or are they?)
                     return CharacterSet.Thai;
-                // TODO : add hindi, malayalam and telugu
             }
             return CharacterSet.BasicSet;
         }
