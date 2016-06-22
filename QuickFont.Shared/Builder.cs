@@ -20,7 +20,7 @@ namespace QuickFont
 
         public Builder(IFont font, QFontBuilderConfiguration config)
         {
-            this.charSet = config.charSet;
+            this.charSet = config.CharSet;
             this.config = config;
             this.font = font;
             
@@ -482,7 +482,7 @@ namespace QuickFont
             int minYOffset = int.MaxValue;
             foreach (var glyph in initialGlyphs)
             {
-                RetargetGlyphRectangleInwards(initialBitmapData, glyph, true, config.KerningConfig.alphaEmptyPixelTolerance);
+                RetargetGlyphRectangleInwards(initialBitmapData, glyph, true, config.KerningConfig.AlphaEmptyPixelTolerance);
                 minYOffset = Math.Min(minYOffset,glyph.yOffset);
             }
             minYOffset--; //give one pixel of breathing room?
@@ -500,7 +500,7 @@ namespace QuickFont
             if (config.SuperSampleLevels != 1)
             {
                 ScaleSheetsAndGlyphs(bitmapPages, glyphs, 1.0f / config.SuperSampleLevels);
-                RetargetAllGlyphs(bitmapPages, glyphs,config.KerningConfig.alphaEmptyPixelTolerance);
+                RetargetAllGlyphs(bitmapPages, glyphs,config.KerningConfig.AlphaEmptyPixelTolerance);
             }
 
             //create list of texture pages
@@ -536,7 +536,7 @@ namespace QuickFont
             }
 
             if (config.ShadowConfig != null)
-                fontData.dropShadowFont = BuildDropShadow(bitmapPages, glyphs, config.ShadowConfig, charSet.ToCharArray(),config.KerningConfig.alphaEmptyPixelTolerance);
+                fontData.dropShadowFont = BuildDropShadow(bitmapPages, glyphs, config.ShadowConfig, charSet.ToCharArray(),config.KerningConfig.AlphaEmptyPixelTolerance);
 
             foreach (var page in bitmapPages)
                 page.Free();
@@ -563,7 +563,7 @@ namespace QuickFont
             foreach(var sourceSheet in sourceFontSheets)
                 sourceBitmapData.Add(sourceSheet.bitmapData);
             
-            var bitmapSheets = GenerateBitmapSheetsAndRepack(sourceFontGlyphs, sourceBitmapData.ToArray(), shadowConfig.PageMaxTextureSize, shadowConfig.PageMaxTextureSize, out newGlyphs, shadowConfig.GlyphMargin + shadowConfig.blurRadius*3);
+            var bitmapSheets = GenerateBitmapSheetsAndRepack(sourceFontGlyphs, sourceBitmapData.ToArray(), shadowConfig.PageMaxTextureSize, shadowConfig.PageMaxTextureSize, out newGlyphs, shadowConfig.GlyphMargin + shadowConfig.BlurRadius*3);
 
             //scale up in case we wanted bigger/smaller shadows
             if (shadowConfig.Scale != 1.0f)
@@ -574,9 +574,9 @@ namespace QuickFont
             {
                 bitmapSheet.Colour32(255, 255, 255);
                 if (shadowConfig.Type == ShadowType.Blurred)
-                    bitmapSheet.BlurAlpha(shadowConfig.blurRadius, shadowConfig.blurPasses);
+                    bitmapSheet.BlurAlpha(shadowConfig.BlurRadius, shadowConfig.BlurPasses);
                 else
-                    bitmapSheet.ExpandAlpha(shadowConfig.blurRadius, shadowConfig.blurPasses);
+                    bitmapSheet.ExpandAlpha(shadowConfig.BlurRadius, shadowConfig.BlurPasses);
             }
 
             //retarget after blur and scale
@@ -671,7 +671,7 @@ namespace QuickFont
             }
 
             foreach (var glyph in data.CharSetMapping.Values)
-                RetargetGlyphRectangleOutwards(bitmapPages[glyph.page].bitmapData, glyph, false, loaderConfig.KerningConfig.alphaEmptyPixelTolerance);
+                RetargetGlyphRectangleOutwards(bitmapPages[glyph.page].bitmapData, glyph, false, loaderConfig.KerningConfig.AlphaEmptyPixelTolerance);
  
             var intercept = FirstIntercept(data.CharSetMapping);
             if (intercept != null)
@@ -741,7 +741,7 @@ namespace QuickFont
             if (downSampleFactor != 1.0f)
             {
                 foreach (var glyph in data.CharSetMapping.Values)
-                    RetargetGlyphRectangleOutwards(bitmapPages[glyph.page].bitmapData, glyph, false, loaderConfig.KerningConfig.alphaEmptyPixelTolerance);
+                    RetargetGlyphRectangleOutwards(bitmapPages[glyph.page].bitmapData, glyph, false, loaderConfig.KerningConfig.AlphaEmptyPixelTolerance);
 
                 intercept = FirstIntercept(data.CharSetMapping);
                 if (intercept != null)
@@ -756,7 +756,7 @@ namespace QuickFont
                 glyphList.Add(data.CharSetMapping[c]);
 
             if (loaderConfig.ShadowConfig != null)
-                data.dropShadowFont = BuildDropShadow(bitmapPages, glyphList.ToArray(), loaderConfig.ShadowConfig, Helper.ToArray(charSet),loaderConfig.KerningConfig.alphaEmptyPixelTolerance);
+                data.dropShadowFont = BuildDropShadow(bitmapPages, glyphList.ToArray(), loaderConfig.ShadowConfig, Helper.ToArray(charSet),loaderConfig.KerningConfig.AlphaEmptyPixelTolerance);
 
             data.KerningPairs = KerningCalculator.CalculateKerning(Helper.ToArray(charSet), glyphList.ToArray(), bitmapPages, loaderConfig.KerningConfig);
             

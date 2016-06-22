@@ -1,8 +1,17 @@
 ﻿namespace QuickFont.Configuration
 {
+	/// <summary>
+	/// Shadow Type
+	/// </summary>
     public enum ShadowType
     {
+		/// <summary>
+		/// Blur the font to create a shadow
+		/// </summary>
         Blurred,
+		/// <summary>
+		/// Expand the font to create a shadow
+		/// </summary>
         Expanded
     }
 
@@ -26,13 +35,13 @@
         /// The blur radius. Caution: high values will greatly impact the 
         /// time it takes to build a font shadow
         /// </summary>
-        public int blurRadius = 3;
+        public int BlurRadius = 3;
 
         /// <summary>
         /// Number of blur passes. Caution: high values will greatly impact the 
         /// time it takes to build a font shadow
         /// </summary>
-        public int blurPasses = 2;
+        public int BlurPasses = 2;
 
         /// <summary>
         /// The standard max width/height of 2D texture pages this OpenGl context wants to support

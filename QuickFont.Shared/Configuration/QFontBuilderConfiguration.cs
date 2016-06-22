@@ -5,6 +5,10 @@ using System.Linq;
 
 namespace QuickFont.Configuration
 {
+	/// <summary>
+	/// Specifies the quality of rendering for fonts
+	/// Only affects GDIFonts
+	/// </summary>
     public enum TextGenerationRenderHint
     {
         /// <summary>
@@ -29,6 +33,9 @@ namespace QuickFont.Configuration
         SystemDefault
     }
 
+	/// <summary>
+	/// Flags which represent a character set for a language
+	/// </summary>
     [Flags]
     public enum CharacterSet
     {
@@ -135,21 +142,21 @@ namespace QuickFont.Configuration
     /// </summary>
     public class QFontBuilderConfiguration : QFontConfiguration
     {
-        public const string BasicSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.:,;'\"(!?)+-*/=_{}[]@~#\\<>|^%$£&€°µ";
-        public const string FrenchQuotes = "«»‹›";
-        public const string SpanishQestEx = "¡¿";
-        public const string CyrillicSet = "АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяљњќћџЉЊЌЋЏ";
-        public const string ExtendedLatin = "ÀŠŽŸžÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ";
-        public const string GreekAlphabet = "ΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώ";
-        public const string TurkishI = "ıİŞ";
-        public const string HebrewAlphabet = "אבגדהוזחטיכךלמםנןסעפףצץקרשת";
-        public const string ArabicAlphabet = "ںکگپچژڈ¯؛ہءآأؤإئابةتثجحخدذرزسشصض×طظعغـفقكàلâمنهوçèéêëىيîï؟";
-        public const string ThaiKhmerAlphabet = "กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮฯะัาำิีึืฺุู฿เแโใไๅๆ็่้๊๋์ํ๎๏๐๑๒๓๔๕๖๗๘๙๚๛";
-        public const string Hiragana = "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖ゗゘゙゛゜ゝゞゟ";
-        public const string JapDigits = "㆐㆑㆒㆓㆔㆕㆖㆗㆘㆙㆚㆛㆜㆝㆞㆟";
-        public const string AsianQuotes = "「」";
-        public const string EssentialKanji = "⽇⽉";
-        public const string Katakana = "゠ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヷヸヹヺ・ーヽヾヿ";
+	    private const string BASIC_SET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.:,;'\"(!?)+-*/=_{}[]@~#\\<>|^%$£&€°µ";
+	    private const string FRENCH_QUOTES = "«»‹›";
+	    private const string SPANISH_QEST_EX = "¡¿";
+	    private const string CYRILLIC_SET = "АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяљњќћџЉЊЌЋЏ";
+	    private const string EXTENDED_LATIN = "ÀŠŽŸžÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ";
+	    private const string GREEK_ALPHABET = "ΈΉΊΌΎΏΐΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩΪΫάέήίΰαβγδεζηθικλμνξοπρςστυφχψωϊϋόύώ";
+	    private const string TURKISH_I = "ıİŞ";
+	    private const string HEBREW_ALPHABET = "אבגדהוזחטיכךלמםנןסעפףצץקרשת";
+	    private const string ARABIC_ALPHABET = "ںکگپچژڈ¯؛ہءآأؤإئابةتثجحخدذرزسشصض×طظعغـفقكàلâمنهوçèéêëىيîï؟";
+	    private const string THAI_KHMER_ALPHABET = "กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮฯะัาำิีึืฺุู฿เแโใไๅๆ็่้๊๋์ํ๎๏๐๑๒๓๔๕๖๗๘๙๚๛";
+	    private const string HIRAGANA = "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖ゗゘゙゛゜ゝゞゟ";
+	    private const string JAP_DIGITS = "㆐㆑㆒㆓㆔㆕㆖㆗㆘㆙㆚㆛㆜㆝㆞㆟";
+	    private const string ASIAN_QUOTES = "「」";
+	    private const string ESSENTIAL_KANJI = "⽇⽉";
+	    private const string KATAKANA = "゠ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヷヸヹヺ・ーヽヾヿ";
 
         /// <summary>
         /// Whether to use super sampling when building font texture pages
@@ -174,17 +181,20 @@ namespace QuickFont.Configuration
         /// <summary>
         /// Set of characters to support
         /// </summary>
-        public string charSet = BuildCharacterSet(FigureOutBestCharacterSet());
+        public string CharSet = BuildCharacterSet(FigureOutBestCharacterSet());
 
         private CharacterSet _characters = CharacterSet.BasicSet;
 
+		/// <summary>
+		/// The character set for this builder configuration
+		/// </summary>
         public CharacterSet Characters
         {
             get { return _characters; }
             set
             {
                 _characters = value;
-                charSet = BuildCharacterSet(_characters);
+                CharSet = BuildCharacterSet(_characters);
             }
         }
 
@@ -193,79 +203,89 @@ namespace QuickFont.Configuration
         /// </summary>
         public TextGenerationRenderHint TextGenerationRenderHint = TextGenerationRenderHint.SizeDependent;
 
+		/// <summary>
+		/// Creates a default configuration
+		/// </summary>
         public QFontBuilderConfiguration() { }
 
-        public QFontBuilderConfiguration(bool addDropShadow, bool TransformToOrthogProjection = false) 
-            : base(addDropShadow, TransformToOrthogProjection)
+		/// <summary>
+		/// Creates a new <see cref="QFontBuilderConfiguration"/>
+		/// </summary>
+		/// <param name="addDropShadow">True to add drop shadow to the font</param>
+		/// <param name="transformToOrthogProjection">OBSOLETE</param>
+        public QFontBuilderConfiguration(bool addDropShadow, bool transformToOrthogProjection = false) 
+            : base(addDropShadow, transformToOrthogProjection)
         {
         }
 
+		/// <summary>
+		/// Creates a new <see cref="QFontBuilderConfiguration"/>
+		/// </summary>
+		/// <param name="fontConfiguration">The existing font configuration to use as a base</param>
         public QFontBuilderConfiguration(QFontConfiguration fontConfiguration)
         {
-            this.ShadowConfig = fontConfiguration.ShadowConfig;
-            this.KerningConfig = fontConfiguration.KerningConfig;
-            this.TransformToCurrentOrthogProjection = fontConfiguration.TransformToCurrentOrthogProjection;
+            ShadowConfig = fontConfiguration.ShadowConfig;
+            KerningConfig = fontConfiguration.KerningConfig;
+            TransformToCurrentOrthogProjection = fontConfiguration.TransformToCurrentOrthogProjection;
         }
 
         private static string BuildCharacterSet(CharacterSet set)
         {
             var characterSetValues = Enum.GetValues(typeof(CharacterSet));
-            string result = "";
+            var result = "";
             foreach (CharacterSet value in characterSetValues)
             {
-                if (set.HasFlag(value))
-                {
-                    switch (value)
-                    {
-                        case CharacterSet.BasicSet:
-                            result += BasicSet;
-                            break;
-                        case CharacterSet.FrenchQuotes:
-                            result += FrenchQuotes;
-                            break;
-                        case CharacterSet.SpanishQuestEx:
-                            result += SpanishQestEx;
-                            break;
-                        case CharacterSet.CyrillicSet:
-                            result += CyrillicSet;
-                            break;
-                        case CharacterSet.ExtendedLatin:
-                            result += ExtendedLatin;
-                            break;
-                        case CharacterSet.GreekAlphabet:
-                            result += GreekAlphabet;
-                            break;
-                        case CharacterSet.TurkishI:
-                            result += TurkishI;
-                            break;
-                        case CharacterSet.HebrewAlphabet:
-                            result += HebrewAlphabet;
-                            break;
-                        case CharacterSet.ArabicAlphabet:
-                            result += ArabicAlphabet;
-                            break;
-                        case CharacterSet.ThaiKhmerAlphabet:
-                            result += ThaiKhmerAlphabet;
-                            break;
-                        case CharacterSet.Hiragana:
-                            result += Hiragana;
-                            break;
-                        case CharacterSet.JapDigits:
-                            result += JapDigits;
-                            break;
-                        case CharacterSet.AsianQuotes:
-                            result += AsianQuotes;
-                            break;
-                        case CharacterSet.EssentialKanji:
-                            result += EssentialKanji;
-                            break;
-                        case CharacterSet.Katakana:
-                            result += Katakana;
-                            break;
-                    }
-                }
+	            if (!set.HasFlag(value)) continue;
+	            switch (value)
+	            {
+		            case CharacterSet.BasicSet:
+			            result += BASIC_SET;
+			            break;
+		            case CharacterSet.FrenchQuotes:
+			            result += FRENCH_QUOTES;
+			            break;
+		            case CharacterSet.SpanishQuestEx:
+			            result += SPANISH_QEST_EX;
+			            break;
+		            case CharacterSet.CyrillicSet:
+			            result += CYRILLIC_SET;
+			            break;
+		            case CharacterSet.ExtendedLatin:
+			            result += EXTENDED_LATIN;
+			            break;
+		            case CharacterSet.GreekAlphabet:
+			            result += GREEK_ALPHABET;
+			            break;
+		            case CharacterSet.TurkishI:
+			            result += TURKISH_I;
+			            break;
+		            case CharacterSet.HebrewAlphabet:
+			            result += HEBREW_ALPHABET;
+			            break;
+		            case CharacterSet.ArabicAlphabet:
+			            result += ARABIC_ALPHABET;
+			            break;
+		            case CharacterSet.ThaiKhmerAlphabet:
+			            result += THAI_KHMER_ALPHABET;
+			            break;
+		            case CharacterSet.Hiragana:
+			            result += HIRAGANA;
+			            break;
+		            case CharacterSet.JapDigits:
+			            result += JAP_DIGITS;
+			            break;
+		            case CharacterSet.AsianQuotes:
+			            result += ASIAN_QUOTES;
+			            break;
+		            case CharacterSet.EssentialKanji:
+			            result += ESSENTIAL_KANJI;
+			            break;
+		            case CharacterSet.Katakana:
+			            result += KATAKANA;
+			            break;
+	            }
             }
-            var hset = new HashSet<char>();
+	        var hset = new HashSet<char>();
             foreach (var c in result)
             {
                 hset.Add(c);
@@ -283,10 +303,10 @@ namespace QuickFont.Configuration
         /// Kerning infos (which are n² size if n is number of characters).
         /// </summary>
         /// <returns></returns>
-        static CharacterSet FigureOutBestCharacterSet()
+        private static CharacterSet FigureOutBestCharacterSet()
         {
             // he : 1255, de/en=1252, arab =ANSICodePage = 1256, bg/ru=1251, ko=949, ja =932, cz=1250, thai =847
-            TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
+            var textInfo = CultureInfo.CurrentCulture.TextInfo;
             switch (textInfo.ANSICodePage)
             {
                 case 1251: //stands for cyrillic writing systems like bu, ru, uk

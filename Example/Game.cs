@@ -234,8 +234,8 @@ namespace Example
 	        {
 		        ShadowConfig =
 		        {
-			        blurRadius = 2,
-			        blurPasses = 1,
+			        BlurRadius = 2,
+			        BlurPasses = 1,
 			        Type = ShadowType.Blurred
 		        },
 		        TextGenerationRenderHint = TextGenerationRenderHint.ClearTypeGridFit,

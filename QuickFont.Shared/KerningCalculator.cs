@@ -77,7 +77,7 @@ namespace QuickFont
                     bool yetToFindFirst = true;
                     for (int i = xStart; i <= xEnd; i++)
                     {
-                        if (!QBitmap.EmptyAlphaPixel(page.bitmapData, i, j,config.alphaEmptyPixelTolerance))
+                        if (!QBitmap.EmptyAlphaPixel(page.bitmapData, i, j,config.AlphaEmptyPixelTolerance))
                         {
 
                             if (yetToFindFirst)
