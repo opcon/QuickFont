@@ -10,48 +10,66 @@ using System.IO;
 
 namespace QuickFont
 {
-	class FreeTypeFont : IFont
+	/// <summary>
+	/// An implementation of <see cref="IFont"/> that uses FreeType via
+	/// SharpFont to load the font file. This implementation supports reading
+	/// kerning information directly from the font file.
+	/// </summary>
+	public class FreeTypeFont : IFont
 	{
 		private Library _fontLibrary = new Library();
 		private const uint DPI = 96;
 
 		private Face _fontFace;
-		private float _fontSize;
 
 		private int _maxHorizontalBearyingY = 0;
 
-		public float Size { get { return _fontSize; } }
+		/// <summary>
+		/// The size of the font
+		/// </summary>
+		public float Size { get; private set; }
 
+		/// <summary>
+		/// Whether the font has kerning information available, or if it needs
+		/// to be calculated
+		/// </summary>
 		public bool HasKerningInformation { get { return true; } }
 
+		/// <summary>
+		/// Creates a new instace of FreeTypeFont
+		/// </summary>
+		/// <param name="fontPath">The path to the font file</param>
+		/// <param name="size">Size of the font</param>
+		/// <param name="style">Style of the font</param>
+		/// <param name="superSampleLevels">Super sample levels</param>
+		/// <param name="scale">Scale</param>
+		/// <exception cref="ArgumentException"></exception>
 		public FreeTypeFont(string fontPath, float size, FontStyle style, int superSampleLevels = 1, float scale = 1.0f)
 		{
 			// Check that the font exists
 			if (!File.Exists(fontPath)) throw new ArgumentException("The specified font path does not exist", "fontPath");
 
-			StyleFlags _fontStyle = StyleFlags.None;
+			StyleFlags fontStyle = StyleFlags.None;
 			switch (style)
 			{
 				case FontStyle.Bold:
-					_fontStyle = StyleFlags.Bold;
+					fontStyle = StyleFlags.Bold;
 					break;
 				case FontStyle.Italic:
-					_fontStyle = StyleFlags.Italic;
+					fontStyle = StyleFlags.Italic;
 					break;
 				case FontStyle.Regular:
-					_fontStyle = StyleFlags.None;
+					fontStyle = StyleFlags.None;
 					break;
-				case FontStyle.Underline:
-				case FontStyle.Strikeout:
 				default:
 					Debug.WriteLine("Invalid style flag chosen for FreeTypeFont: " + style);
 					break;
 			}
 
-			LoadFontFace(fontPath, size, _fontStyle, superSampleLevels, scale);
+			LoadFontFace(fontPath, size, fontStyle, superSampleLevels, scale);
 		}
 
-		private void LoadFontFace(string fontPath, float size, StyleFlags _fontStyle, int superSampleLevels, float scale)
+		private void LoadFontFace(string fontPath, float size, StyleFlags fontStyle, int superSampleLevels, float scale)
 		{
 			// Get total number of faces in a font file
 			var tempFace = _fontLibrary.NewFace(fontPath, -1);
@@ -67,7 +85,7 @@ namespace QuickFont
 				tempFace = _fontLibrary.NewFace(fontPath, i);
 
 				// If we've found the style, exit loop
-				if (tempFace.StyleFlags == _fontStyle)
+				if (tempFace.StyleFlags == fontStyle)
 					break;
 
 				// Dispose temp face and keep searching
@@ -78,7 +96,7 @@ namespace QuickFont
 			// Use default font face if correct style not found
 			if (tempFace == null)
 			{
-				Debug.WriteLine("Could not find correct face style in font: " + _fontStyle);
+				Debug.WriteLine("Could not find correct face style in font: " + fontStyle);
 				tempFace = _fontLibrary.NewFace(fontPath, 0);
 			}
 
@@ -86,16 +104,28 @@ namespace QuickFont
 			_fontFace = tempFace;
 
 			// Set the size
-			_fontSize = size * scale * superSampleLevels;
-			_fontFace.SetCharSize(0, _fontSize, 0, DPI);
+			Size = size * scale * superSampleLevels;
+			_fontFace.SetCharSize(0, Size, 0, DPI);
 		}
 
+		/// <summary>Returns a string that represents the current object.</summary>
+		/// <returns>A string that represents the current object.</returns>
+		/// <filterpriority>2</filterpriority>
 		public override string ToString()
 		{
 			return _fontFace.FamilyName ?? "";
 		}
-			
-		public Point DrawString(string s, Graphics graph, Brush color, int x, int y, float height)
+
+		/// <summary>
+		/// Draws the given string at the specified location
+		/// </summary>
+		/// <param name="s">The string to draw</param>
+		/// <param name="graph">The graphics surface to draw the string on to</param>
+		/// <param name="color">The color of the text</param>
+		/// <param name="x">The x position of the string</param>
+		/// <param name="y">The y position of the string</param>
+		/// <returns>Returns the offset of the glyph from the given x and y. Only non-zero with <see cref="FreeTypeFont"/></returns>
+		public Point DrawString(string s, Graphics graph, Brush color, int x, int y)
 		{
 			// Check we are only passed a single character
 			if (s.Length > 1)
@@ -125,6 +155,12 @@ namespace QuickFont
 			return Point.Empty;
 		}
 
+		/// <summary>
+		/// Gets the kerning between the given characters, if the font supports it
+		/// </summary>
+		/// <param name="c1">The first character of the character pair</param>
+		/// <param name="c2">The second character of the character pair</param>
+		/// <returns>The horizontal kerning offset of the character pair</returns>
 		public int GetKerning(char c1, char c2)
 		{
 			var c1Index = _fontFace.GetCharIndex(c1);
@@ -138,6 +174,12 @@ namespace QuickFont
 			_fontFace.LoadGlyph(_fontFace.GetCharIndex(c), LoadFlags.Default, LoadTarget.Normal);
 		}
 
+		/// <summary>
+		/// Measures the given string and returns the size
+		/// </summary>
+		/// <param name="s">The string to measure</param>
+		/// <param name="graph">The graphics surface to use for temporary purposes</param>
+		/// <returns>The size of the given string</returns>
 		public SizeF MeasureString(string s, Graphics graph)
 		{
 			// Check we are only passed a single character
@@ -159,11 +201,15 @@ namespace QuickFont
 			return new SizeF((float)(gMetrics.Width), (float)(gMetrics.Height));
 		}
 
-		private bool disposedValue = false; // To detect redundant calls
+		private bool _disposedValue; // To detect redundant calls
 
+		/// <summary>
+		/// Dispose resources 
+		/// </summary>
+		/// <param name="disposing"></param>
 		protected virtual void Dispose(bool disposing)
 		{
-			if (!disposedValue)
+			if (!_disposedValue)
 			{
 				if (disposing)
 				{
@@ -173,11 +219,13 @@ namespace QuickFont
 						_fontFace = null;
 					}
 				}
-				disposedValue = true;
+				_disposedValue = true;
 			}
 		}
 
 		// This code added to correctly implement the disposable pattern.
+		/// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
+		/// <filterpriority>2</filterpriority>
 		public void Dispose()
 		{
 			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
