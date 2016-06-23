@@ -10,8 +10,7 @@
     <projectUrl>https://github.com/opcon/QuickFont</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>* Fixed package not installing due to requiring an older version of SharpFont.Dependencies
-        * Added OpenGL ES 2.0 package</releaseNotes>
+    <releaseNotes>https://github.com/opcon/QuickFont/releases/tag/v4.3</releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>QuickFont OpenGL OpenTK</tags>
     <dependencies>
