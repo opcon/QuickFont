@@ -16,7 +16,7 @@ namespace QuickFont
     /// <see cref="QFontDrawing"/> manages a collection of <see cref="QFontDrawingPrimitive"/>'s
     /// and handles printing text to the screen
     /// </summary>
-    public class QFontDrawing
+    public class QFontDrawing : IDisposable
     {
         private const string SHADER_VERSION_STRING130 = "#version 130\n\n";
         private const string SHADER_VERSION_STRING140 = "#version 140\n\n";
@@ -398,7 +398,7 @@ namespace QuickFont
         }
 
         /// <summary>
-        /// Track whether <see cref="Dispose"/> has been called
+        /// Track whether <see cref="Dispose()"/> has been called
         /// </summary>
         private bool _disposed;
 
@@ -439,7 +439,11 @@ namespace QuickFont
                 if (disposing)
                 {
                     //QFontDrawingPrimitive.Font.FontData.Dispose();
-                    VertexArrayObject.Dispose();
+                    if (VertexArrayObject != null)
+                    {
+                        VertexArrayObject.Dispose();
+                        VertexArrayObject = null;
+                    }
                 }
 
                 // Note disposing has been done.

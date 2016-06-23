@@ -168,16 +168,6 @@ namespace QuickFont
 #endif
         }
 
-        /// <summary>
-        /// Disposes resources used by <see cref="QVertexArrayObject"/>
-        /// </summary>
-        public void Dispose()
-        {
-            GL.DeleteBuffers(1, ref _VBOID);
-#if !OPENGL_ES
-            GL.DeleteVertexArrays(1, ref _VAOID);
-#endif
-        }
 
         /// <summary>
         /// Disable the vertex attribute arrays
@@ -205,6 +195,46 @@ namespace QuickFont
                 stride, new IntPtr(3*sizeof (float)));
             GL.VertexAttribPointer(QFontSharedState.ShaderVariables.ColorCoordAttribLocation, 4, VertexAttribPointerType.Float,
                 false, stride, new IntPtr(5*sizeof (float)));
+        }
+
+        private bool _disposedValue; // To detect redundant calls
+
+        /// <summary>
+        /// Disposes resources used by <see cref="QVertexArrayObject"/>
+        /// </summary>
+        /// <param name="disposing">Whether to dispose managed resources as well as unmanaged</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    GL.DeleteBuffers(1, ref _VBOID);
+#if !OPENGL_ES
+                    GL.DeleteVertexArrays(1, ref _VAOID);
+#endif
+
+                    if (_vertices != null)
+                    {
+                        _vertices.Clear();
+                        _vertices = null;
+                    }
+                }
+
+                _vertexArray = null;
+
+                _disposedValue = true;
+            }
+        }
+
+        /// <summary>
+        /// Disposes resources used by <see cref="QVertexArrayObject"/>
+        /// </summary>
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
         }
     }
 
