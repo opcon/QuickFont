@@ -504,13 +504,13 @@ namespace QuickFont
 
 			foreach (var g in initialGlyphs)
 			{
-				graphics.DrawRectangle(pen, g.rect);
+				graphics.DrawRectangle(pen, g.Rect);
 			}
 
 			graphics.Flush();
 			graphics.Dispose();
 
-			debugBmp.Save(font.ToString() + "-DEBUG.png", ImageFormat.Png);
+			debugBmp.Save(_font + "-DEBUG.png", ImageFormat.Png);
 #endif
 
             var initialBitmapData = initialBmp.LockBits(new Rectangle(0, 0, initialBmp.Width, initialBmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
