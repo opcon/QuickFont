@@ -3,35 +3,45 @@ using System.Drawing;
 
 namespace QuickFont
 {
-    [DebuggerDisplay("{character} Pg:{page}")]
+    /// <summary>
+    /// A <see cref="QFontGlyph"/> that holds the glyph data
+    /// </summary>
+    [DebuggerDisplay("{Character} Pg:{Page}")]
     public class QFontGlyph
     {
         /// <summary>
         /// Which texture page the glyph is on
         /// </summary>
-        public int page; 
+        public int Page; 
         
         /// <summary>
         /// The rectangle defining the glyphs position on the page
         /// </summary>
-        public Rectangle rect;
+        public Rectangle Rect;
         
         /// <summary>
         /// How far the glyph would need to be vertically offset to be vertically in line with the tallest glyph in the set of all glyphs
         /// </summary>
-        public int yOffset;
+        public int YOffset;
 
         /// <summary>
         /// Which character this glyph represents
         /// </summary>
-        public char character;
+        public char Character;
 
+        /// <summary>
+        /// Create a new <see cref="QFontGlyph"/> object
+        /// </summary>
+        /// <param name="page">The texture page this glyph is on</param>
+        /// <param name="rect">The glyph rectangle</param>
+        /// <param name="yOffset">The glyph y offset</param>
+        /// <param name="character">The glyph character</param>
         public QFontGlyph(int page, Rectangle rect, int yOffset, char character)
         {
-            this.page = page;
-            this.rect = rect;
-            this.yOffset = yOffset;
-            this.character = character;
+            Page = page;
+            Rect = rect;
+            YOffset = yOffset;
+            Character = character;
         }
     }
 }

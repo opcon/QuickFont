@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using SharpFont;
 using System.Diagnostics;
-using SharpFont.TrueType;
 using System.IO;
 
 namespace QuickFont
@@ -47,7 +43,7 @@ namespace QuickFont
 		public FreeTypeFont(string fontPath, float size, FontStyle style, int superSampleLevels = 1, float scale = 1.0f)
 		{
 			// Check that the font exists
-			if (!File.Exists(fontPath)) throw new ArgumentException("The specified font path does not exist", "fontPath");
+			if (!File.Exists(fontPath)) throw new ArgumentException("The specified font path does not exist", nameof(fontPath));
 
 			StyleFlags fontStyle = StyleFlags.None;
 			switch (style)
@@ -129,13 +125,13 @@ namespace QuickFont
 		{
 			// Check we are only passed a single character
 			if (s.Length > 1)
-				throw new ArgumentOutOfRangeException("s", "Implementation currently only supports drawing individual characters");
+				throw new ArgumentOutOfRangeException(nameof(s), "Implementation currently only supports drawing individual characters");
 
 			// Check the brush is a solid colour brush
 			if (!(color is SolidBrush))
-				throw new ArgumentException("color", "Brush is required to be a SolidBrush (single, solid color)");
+				throw new ArgumentException("Brush is required to be a SolidBrush (single, solid color)", nameof(color));
 
-			var fontColor = (color as SolidBrush).Color;
+			var fontColor = ((SolidBrush) color).Color;
 
 			// Load the glyph into the face's glyph slot
 			LoadGlyph(s[0]);
@@ -184,7 +180,7 @@ namespace QuickFont
 		{
 			// Check we are only passed a single character
 			if (s.Length > 1)
-				throw new ArgumentOutOfRangeException("s", "Implementation currently only supports drawing individual characters");
+				throw new ArgumentOutOfRangeException(nameof(s), "Implementation currently only supports drawing individual characters");
 
 			// Load the glyph into the face's glyph slot
 			LoadGlyph(s[0]);
@@ -218,6 +214,11 @@ namespace QuickFont
 						_fontFace.Dispose();
 						_fontFace = null;
 					}
+				    if (_fontLibrary != null)
+				    {
+				        _fontLibrary.Dispose();
+				        _fontLibrary = null;
+				    }
 				}
 				_disposedValue = true;
 			}

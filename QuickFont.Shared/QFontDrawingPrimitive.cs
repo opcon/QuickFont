@@ -6,81 +6,125 @@ using OpenTK;
 
 namespace QuickFont
 {
+    /// <summary>
+    /// Handles the vertex data for rendering text
+    /// </summary>
     public class QFontDrawingPrimitive
     {
-        private Vector3 _printOffset;
-        private readonly QFont _font;
-        private readonly IList<QVertex> _currentVertexRepr = new List<QVertex>();
-        private readonly IList<QVertex> _shadowVertexRepr = new List<QVertex>();
 #if DEBUG   // Keep copy of string for debug purposes, only
         private string _DisplayText_dbg = "<processedtext>";
 #endif
 
+        /// <summary>
+        /// Creates a new instance of <see cref="QFontDrawingPrimitive"/> with
+        /// the given <see cref="QFont"/> and <see cref="QFontRenderOptions"/>
+        /// </summary>
+        /// <param name="font">The <see cref="QFont"/></param>
+        /// <param name="options">The <see cref="QFontRenderOptions"/></param>
         public QFontDrawingPrimitive(QFont font, QFontRenderOptions options)
         {
-            _font = font;
+            Font = font;
             Options = options;
         }
 
+        /// <summary>
+        /// Creates a new instance of <see cref="QFontDrawingPrimitive"/> with
+        /// the given <see cref="QFont"/> and the default <see cref="QFontRenderOptions"/>
+        /// </summary>
+        /// <param name="font"></param>
         public QFontDrawingPrimitive(QFont font)
         {
-            _font = font;
+            Font = font;
             Options = new QFontRenderOptions();
         }
 
-        public Vector3 PrintOffset
-        {
-            get { return _printOffset; }
-            set
-            {
-                _printOffset = value;
-    //if (Font.FontData.dropShadowFont != null)
-    //    Font.FontData.dropShadowFont.PrintOffset = value;
-            }
-        }
+        /// <summary>
+        /// An offset that is added to all positions
+        /// </summary>
+        public Vector3 PrintOffset { get; set; }
 
+        /// <summary>
+        /// The linespacing used by the <see cref="QFont"/>
+        /// </summary>
         public float LineSpacing
         {
-            get { return (float) Math.Ceiling(Font.FontData.maxGlyphHeight*this.Options.LineSpacing); }
+            get { return (float) Math.Ceiling(Font.FontData.MaxGlyphHeight*Options.LineSpacing); }
         }
 
+        /// <summary>
+        /// Whether monospacing is active in the <see cref="QFont"/>
+        /// </summary>
         public bool IsMonospacingActive
         {
-            get { return Font.FontData.IsMonospacingActive(this.Options); }
+            get { return Font.FontData.IsMonospacingActive(Options); }
         }
 
+        /// <summary>
+        /// The monospacing width
+        /// </summary>
         public float MonoSpaceWidth
         {
-            get { return Font.FontData.GetMonoSpaceWidth(this.Options); }
+            get { return Font.FontData.GetMonoSpaceWidth(Options); }
         }
 
-        public QFont Font
-        {
-            get { return _font; }
-        }
+        /// <summary>
+        /// The <see cref="QFont"/> used by this instance
+        /// </summary>
+        public QFont Font { get; }
 
+        /// <summary>
+        /// The <see cref="QFontRenderOptions"/> of this instance
+        /// </summary>
         public QFontRenderOptions Options { get; private set; }
 
+        /// <summary>
+        /// The size of the last text printed with this instance
+        /// </summary>
         public SizeF LastSize { get; private set; }
 
-        internal IList<QVertex> CurrentVertexRepr
-        {
-            get { return _currentVertexRepr; }
-        }
+        /// <summary>
+        /// The current vertex list
+        /// </summary>
+        internal IList<QVertex> CurrentVertexRepr { get; } = new List<QVertex>();
 
-        internal IList<QVertex> ShadowVertexRepr { get { return _shadowVertexRepr; } }
+        /// <summary>
+        /// The current shadow vertex list
+        /// </summary>
+        internal IList<QVertex> ShadowVertexRepr { get; } = new List<QVertex>();
 
+        /// <summary>
+        /// Render a character's drop shadow
+        /// </summary>
+        /// <param name="x">The x coordinate</param>
+        /// <param name="y">The y coordinate</param>
+        /// <param name="c">The character to render</param>
+        /// <param name="nonShadowGlyph">The non drop-shadowed glyph of the character</param>
+        /// <param name="shadowFont">The drop shadow font</param>
+        /// <param name="clippingRectangle">The clipping rectangle</param>
         private void RenderDropShadow(float x, float y, char c, QFontGlyph nonShadowGlyph, QFont shadowFont, ref Rectangle clippingRectangle)
         {
             //note can cast drop shadow offset to int, but then you can't move the shadow smoothly...
-            if (shadowFont != null && this.Options.DropShadowActive)
+            if (shadowFont != null && Options.DropShadowActive)
             {
-                float xOffset = (_font.FontData.meanGlyphWidth*this.Options.DropShadowOffset.X + nonShadowGlyph.rect.Width*0.5f);
-                float yOffset = (_font.FontData.meanGlyphWidth*this.Options.DropShadowOffset.Y + nonShadowGlyph.rect.Height*0.5f + nonShadowGlyph.yOffset);
-                this.RenderGlyph(x + xOffset, y + yOffset, c, shadowFont, this.ShadowVertexRepr, clippingRectangle);
+                float xOffset = (Font.FontData.MeanGlyphWidth*Options.DropShadowOffset.X + nonShadowGlyph.Rect.Width*0.5f);
+                float yOffset = (Font.FontData.MeanGlyphWidth*Options.DropShadowOffset.Y + nonShadowGlyph.Rect.Height*0.5f + nonShadowGlyph.YOffset);
+                RenderGlyph(x + xOffset, y + yOffset, c, shadowFont, ShadowVertexRepr, clippingRectangle);
             }
         }
         
+        /// <summary>
+        /// Scissor test a rectangle
+        /// </summary>
+        /// <param name="x">The x coordinate of the rectangle</param>
+        /// <param name="y">The y coordinate of the rectangle</param>
+        /// <param name="width">Th width of the rectangle</param>
+        /// <param name="height">The height of the rectangle</param>
+        /// <param name="u1">The u1 texture coordinate</param>
+        /// <param name="v1">The v1 texture coordinate</param>
+        /// <param name="u2">The u2 texture coordinate</param>
+        /// <param name="v2">The v2 texture coordinate</param>
+        /// <param name="clipRectangle">The clipping rectangle</param>
+        /// <returns>Whether the rectangle is completely clipped</returns>
         private bool ScissorsTest(ref float x, ref float y, ref float width, ref float height, ref float u1, ref float v1, ref float u2, ref float v2, Rectangle clipRectangle)
         {
             float cRectY = clipRectangle.Y;
@@ -96,7 +140,7 @@ namespace QuickFont
                     return true;
                 }
 
-                float dv = Math.Abs((float)delta / (float)oldHeight);
+                float dv = Math.Abs(delta / oldHeight);
                 v1 += dv * (v2 - v1);
             }
 
@@ -112,7 +156,7 @@ namespace QuickFont
                     return true;
                 }
 
-                float dv = Math.Abs((float) delta/(float) oldHeight);
+                float dv = Math.Abs(delta/oldHeight);
                 v2 -= dv*(v2 - v1);
             }
 
@@ -128,7 +172,7 @@ namespace QuickFont
                     return true;
                 }
 
-                float du = (float)delta / (float)oldWidth;
+                float du = delta / oldWidth;
 
                 u1 += du * (u2 - u1);
             }
@@ -145,7 +189,7 @@ namespace QuickFont
                     return true;
                 }
 
-                float du = (float)delta / (float)oldWidth;
+                float du = delta / oldWidth;
 
                 u2 -= du * (u2 - u1);
             }
@@ -155,9 +199,12 @@ namespace QuickFont
         /// <summary>
         /// Renders the glyph at the position given.
         /// </summary>
-        /// <param name="x">The x.</param>
-        /// <param name="y">The y.</param>
+        /// <param name="x">The x coordinate</param>
+        /// <param name="y">The y coordinate</param>
         /// <param name="c">The character to print.</param>
+        /// <param name="font">The font to print with</param>
+        /// <param name="store">The collection of <see cref="QVertex"/>'s to add the vertices too</param>
+        /// <param name="clippingRectangle">The clipping rectangle</param>
         internal void RenderGlyph(float x, float y, char c, QFont font, IList<QVertex> store, Rectangle clippingRectangle)
         {
             QFontGlyph glyph = font.FontData.CharSetMapping[c];
@@ -165,30 +212,31 @@ namespace QuickFont
             //note: it's not immediately obvious, but this combined with the paramteters to 
             //RenderGlyph for the shadow mean that we render the shadow centrally (despite it being a different size)
             //under the glyph
-            if (font.FontData.isDropShadow)
+            if (font.FontData.IsDropShadow)
             {
-                x -= (int) (glyph.rect.Width*0.5f);
-                y -= (int) (glyph.rect.Height*0.5f + glyph.yOffset);
+                x -= (int) (glyph.Rect.Width*0.5f);
+                y -= (int) (glyph.Rect.Height*0.5f + glyph.YOffset);
             }
             else
             {
-                RenderDropShadow(x, y, c, glyph, font.FontData.dropShadowFont, ref clippingRectangle);
+                RenderDropShadow(x, y, c, glyph, font.FontData.DropShadowFont, ref clippingRectangle);
             }
 
             y = -y;
 
-            TexturePage sheet = font.FontData.Pages[glyph.page];
+            TexturePage sheet = font.FontData.Pages[glyph.Page];
 
-            float tx1 = (float)(glyph.rect.X) / sheet.Width;
-            float ty1 = (float)(glyph.rect.Y) / sheet.Height;
-            float tx2 = (float)(glyph.rect.X + glyph.rect.Width) / sheet.Width;
-            float ty2 = (float)(glyph.rect.Y + glyph.rect.Height) / sheet.Height;
+            float tx1 = (float)(glyph.Rect.X) / sheet.Width;
+            float ty1 = (float)(glyph.Rect.Y) / sheet.Height;
+            float tx2 = (float)(glyph.Rect.X + glyph.Rect.Width) / sheet.Width;
+            float ty2 = (float)(glyph.Rect.Y + glyph.Rect.Height) / sheet.Height;
 
             float vx = x + PrintOffset.X;
-            float vy = y - glyph.yOffset + PrintOffset.Y;
-            float vwidth = glyph.rect.Width;
-            float vheight = glyph.rect.Height;
+            float vy = y - glyph.YOffset + PrintOffset.Y;
+            float vwidth = glyph.Rect.Width;
+            float vheight = glyph.Rect.Height;
 
+            // Don't draw anything if the glyph is completely clipped
             if (clippingRectangle != default(Rectangle) && ScissorsTest(ref vx, ref vy, ref vwidth, ref vheight, ref tx1, ref ty1, ref tx2, ref ty2, clippingRectangle)) return;
 
             var tv1 = new Vector2(tx1, ty1);
@@ -202,23 +250,28 @@ namespace QuickFont
             Vector3 v4 = new Vector3(vx + vwidth, vy, PrintOffset.Z);
 
             Color color;
-            if (font.FontData.isDropShadow)
-                color = this.Options.DropShadowColour;
+            if (font.FontData.IsDropShadow)
+                color = Options.DropShadowColour;
             else
-                color = this.Options.Colour;
+                color = Options.Colour;
 
             Vector4 colour = Helper.ToVector4(color);
 
-            store.Add(new QVertex() { Position = v1, TextureCoord = tv1, VertexColor = colour });
-            store.Add(new QVertex() { Position = v2, TextureCoord = tv2, VertexColor = colour });
-            store.Add(new QVertex() { Position = v3, TextureCoord = tv3, VertexColor = colour });
+            store.Add(new QVertex { Position = v1, TextureCoord = tv1, VertexColor = colour });
+            store.Add(new QVertex { Position = v2, TextureCoord = tv2, VertexColor = colour });
+            store.Add(new QVertex { Position = v3, TextureCoord = tv3, VertexColor = colour });
 
-            store.Add(new QVertex() { Position = v1, TextureCoord = tv1, VertexColor = colour });
-            store.Add(new QVertex() { Position = v3, TextureCoord = tv3, VertexColor = colour });
-            store.Add(new QVertex() { Position = v4, TextureCoord = tv4, VertexColor = colour });
+            store.Add(new QVertex { Position = v1, TextureCoord = tv1, VertexColor = colour });
+            store.Add(new QVertex { Position = v3, TextureCoord = tv3, VertexColor = colour });
+            store.Add(new QVertex { Position = v4, TextureCoord = tv4, VertexColor = colour });
         }
 
-
+        /// <summary>
+        /// Measures the length from the start of the text up to the next line
+        /// or the end of the string, whichever comes first
+        /// </summary>
+        /// <param name="text">The text to measure</param>
+        /// <returns>The length of the next line</returns>
         private float MeasureNextlineLength(string text)
         {
             float xOffset = 0;
@@ -242,40 +295,49 @@ namespace QuickFont
                     //space
                     if (c == ' ')
                     {
-                        xOffset += (float) Math.Ceiling(_font.FontData.meanGlyphWidth*this.Options.WordSpacing);
+                        xOffset += (float) Math.Ceiling(Font.FontData.MeanGlyphWidth*Options.WordSpacing);
                     }
                         //normal character
-                    else if (_font.FontData.CharSetMapping.ContainsKey(c))
+                    else if (Font.FontData.CharSetMapping.ContainsKey(c))
                     {
-                        QFontGlyph glyph = _font.FontData.CharSetMapping[c];
+                        QFontGlyph glyph = Font.FontData.CharSetMapping[c];
                         xOffset +=
                             (float)
-                            Math.Ceiling(glyph.rect.Width + _font.FontData.meanGlyphWidth * this.Options.CharacterSpacing + 
-                                _font.FontData.GetKerningPairCorrection(i, text, null));
+                            Math.Ceiling(glyph.Rect.Width + Font.FontData.MeanGlyphWidth * Options.CharacterSpacing + 
+                                Font.FontData.GetKerningPairCorrection(i, text, null));
                     }
                 }
             }
             return xOffset;
         }
 
+        /// <summary>
+        /// Transforms a given input position to the current viewport
+        /// </summary>
+        /// <param name="input">The untransformed position</param>
+        /// <returns>The transformed position</returns>
         private Vector2 TransformPositionToViewport(Vector2 input)
         {
-            Viewport? v2 = this.Options.TransformToViewport;
+            Viewport? v2 = Options.TransformToViewport;
             if (v2 == null)
             {
                 return input;
             }
             Viewport? v1 = ViewportHelper.CurrentViewport;
 
-            float X, Y;
-
             Debug.Assert(v1 != null, "v1 != null");
-            X = (input.X - v2.Value.X)*(v1.Value.Width/v2.Value.Width);
-            Y = (input.Y - v2.Value.Y)*(v1.Value.Height/v2.Value.Height);
+            var x = (input.X - v2.Value.X)*(v1.GetValueOrDefault().Width/v2.Value.Width);
+            var y = (input.Y - v2.Value.Y)*(v1.GetValueOrDefault().Height/v2.Value.Height);
 
-            return new Vector2(X, Y);
+            return new Vector2(x, y);
         }
 
+        /// <summary>
+        /// Transforms a given width to the current viewport
+        /// </summary>
+        /// <param name="input">The untransformed width</param>
+        /// <param name="options">The render options</param>
+        /// <returns>The transformed width</returns>
         private static float TransformWidthToViewport(float input, QFontRenderOptions options)
         {
             Viewport? v2 = options.TransformToViewport;
@@ -286,86 +348,164 @@ namespace QuickFont
             Viewport? v1 = ViewportHelper.CurrentViewport;
 
             Debug.Assert(v1 != null, "v1 != null");
-            return input*(v1.Value.Width/v2.Value.Width);
+            return input*(v1.GetValueOrDefault().Width/v2.Value.Width);
         }
 
+        /// <summary>
+        /// Transforms a given size to the current viewport
+        /// </summary>
+        /// <param name="input">The untransformed size</param>
+        /// <returns>The transformed size</returns>
         private SizeF TransformMeasureFromViewport(SizeF input)
         {
-            Viewport? v2 = this.Options.TransformToViewport;
+            Viewport? v2 = Options.TransformToViewport;
             if (v2 == null)
             {
                 return input;
             }
             Viewport? v1 = ViewportHelper.CurrentViewport;
 
-            float X, Y;
-
             Debug.Assert(v1 != null, "v1 != null");
-            X = input.Width*(v2.Value.Width/v1.Value.Width);
-            Y = input.Height*(v2.Value.Height/v1.Value.Height);
+            var x = input.Width*(v2.Value.Width/v1.GetValueOrDefault().Width);
+            var y = input.Height*(v2.Value.Height/v1.GetValueOrDefault().Height);
 
-            return new SizeF(X, Y);
+            return new SizeF(x, y);
         }
 
+        /// <summary>
+        /// Locks the position so that it lies exactly on a pixel
+        /// </summary>
+        /// <param name="input">The input position</param>
+        /// <returns>The position locked to the nearest pixel</returns>
         private Vector2 LockToPixel(Vector2 input)
         {
-            if (this.Options.LockToPixel)
+            if (Options.LockToPixel)
             {
-                float r = this.Options.LockToPixelRatio;
+                float r = Options.LockToPixelRatio;
                 return new Vector2((1 - r)*input.X + r*((int) Math.Round(input.X)),
                                    (1 - r)*input.Y + r*((int) Math.Round(input.Y)));
             }
             return input;
         }
 
+        /// <summary>
+        /// Transforms a vector to the current viewport
+        /// </summary>
+        /// <param name="input">The untransformed vector</param>
+        /// <returns>The transformed vector</returns>
         private Vector3 TransformToViewport(Vector3 input)
         {
             return new Vector3(LockToPixel(TransformPositionToViewport(input.Xy))) {Z = input.Z};
         }
 
+        /// <summary>
+        /// Prints the specified text with the given alignment and clipping rectangle
+        /// </summary>
+        /// <param name="text">The text to print</param>
+        /// <param name="position">The position of the text</param>
+        /// <param name="alignment">The text alignment</param>
+        /// <param name="clippingRectangle">The clipping rectangle to scissor test the text with</param>
+        /// <returns>The size of the printed text</returns>
         public SizeF Print(string text, Vector3 position, QFontAlignment alignment, Rectangle clippingRectangle = default(Rectangle))
         {
             PrintOffset = TransformToViewport(position);
             return PrintOrMeasure(text, alignment, false, clippingRectangle);
         }
 
+        /// <summary>
+        /// Prints the specified text with the given alignment, color and clipping rectangle
+        /// </summary>
+        /// <param name="text">The text to print</param>
+        /// <param name="position">The text position</param>
+        /// <param name="alignment">The text alignment</param>
+        /// <param name="color">The text color</param>
+        /// <param name="clippingRectangle">The clipping rectangle to scissor test the text with</param>
+        /// <returns>The size of the printed text</returns>
         public SizeF Print(string text, Vector3 position, QFontAlignment alignment, Color color, Rectangle clippingRectangle = default(Rectangle))
         {
-            this.Options.Colour = color;
+            Options.Colour = color;
             PrintOffset = TransformToViewport(position);
             return PrintOrMeasure(text, alignment, false, clippingRectangle);
         }
 
+        /// <summary>
+        /// Prints the specified text with the given alignment, maximum size and clipping rectangle
+        /// </summary>
+        /// <param name="text">The text to print</param>
+        /// <param name="position">The text position</param>
+        /// <param name="maxSize">The maxmimum size of the printed text</param>
+        /// <param name="alignment">The text alignment</param>
+        /// <param name="clippingRectangle">The clipping rectangle to scissor test the text with</param>
+        /// <returns>The size of the printed text</returns>
         public SizeF Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Rectangle clippingRectangle = default(Rectangle))
         {
-            ProcessedText processedText = ProcessText(_font, Options, text, maxSize, alignment);
+            ProcessedText processedText = ProcessText(Font, Options, text, maxSize, alignment);
             return Print(processedText, TransformToViewport(position), clippingRectangle);
         }
 
+        /// <summary>
+        /// Prints the specified text with the given alignment, maximum size, colour and clipping rectangle
+        /// </summary>
+        /// <param name="text">The text to print</param>
+        /// <param name="position">The text position</param>
+        /// <param name="maxSize">The maxmimum size of the printed text</param>
+        /// <param name="alignment">The text alignment</param>
+        /// <param name="colour">The text colour</param>
+        /// <param name="clippingRectangle">The clipping rectangle to scissor test the text with</param>
+        /// <returns>The size of the printed text</returns>
         public SizeF Print(string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Color colour, Rectangle clippingRectangle = default(Rectangle))
         {
-            ProcessedText processedText = ProcessText(_font, Options, text, maxSize, alignment);
+            ProcessedText processedText = ProcessText(Font, Options, text, maxSize, alignment);
             return Print(processedText, TransformToViewport(position), colour, clippingRectangle);
         }
 
+        /// <summary>
+        /// Prints the specified processed text with the given clipping rectangle
+        /// </summary>
+        /// <param name="processedText">The processed text to print</param>
+        /// <param name="position">The text position</param>
+        /// <param name="clippingRectangle">The clipping rectangle to scissor test the text with</param>
+        /// <returns>The size of the printed text</returns>
         public SizeF Print(ProcessedText processedText, Vector3 position, Rectangle clippingRectangle = default(Rectangle))
         {
             PrintOffset = TransformToViewport(position);
             return PrintOrMeasure(processedText, false, clippingRectangle);
         }
 
+        /// <summary>
+        /// Prints the specified processed text with the given color and clipping rectangle
+        /// </summary>
+        /// <param name="processedText">The processed text to print</param>
+        /// <param name="position">The text position</param>
+        /// <param name="colour">The text colour</param>
+        /// <param name="clippingRectangle">The clipping rectangle to scissor test the text with</param>
+        /// <returns>The size of the printed text</returns>
         public SizeF Print(ProcessedText processedText, Vector3 position, Color colour, Rectangle clippingRectangle = default(Rectangle))
         {
-            this.Options.Colour = colour;
+            Options.Colour = colour;
             PrintOffset = TransformToViewport(position);
             return PrintOrMeasure(processedText, false, clippingRectangle);
         }
 
+        /// <summary>
+        /// Measures the specified text with the given alignment
+        /// </summary>
+        /// <param name="text">The specified text</param>
+        /// <param name="alignment">The text alignment</param>
+        /// <returns>The size of the text</returns>
         public SizeF Measure(string text, QFontAlignment alignment = QFontAlignment.Left)
         {
             return TransformMeasureFromViewport(PrintOrMeasure(text, alignment, true));
         }
 
+        /// <summary>
+        /// Measures the specified text with the given alignment and a maximum width
+        /// (no maximum height)
+        /// </summary>
+        /// <param name="text">The specified text</param>
+        /// <param name="maxWidth">The maximum width of the text</param>
+        /// <param name="alignment">The text alignment</param>
+        /// <returns>The size of the text</returns>
         public SizeF Measure(string text, float maxWidth, QFontAlignment alignment)
         {
             return Measure(text, new SizeF(maxWidth, -1), alignment);
@@ -374,26 +514,34 @@ namespace QuickFont
         /// <summary>
         ///     Measures the actual width and height of the block of text.
         /// </summary>
-        /// <param name="text"></param>
-        /// <param name="bounds"></param>
-        /// <param name="alignment"></param>
-        /// <returns></returns>
+        /// <param name="text">The text to measure</param>
+        /// <param name="maxSize">The maximum size of the text</param>
+        /// <param name="alignment">The text alignment</param>
+        /// <returns>The size of the text</returns>
         public SizeF Measure(string text, SizeF maxSize, QFontAlignment alignment)
         {
-            ProcessedText processedText = ProcessText(_font, Options, text, maxSize, alignment);
+            ProcessedText processedText = ProcessText(Font, Options, text, maxSize, alignment);
             return Measure(processedText);
         }
 
         /// <summary>
         ///     Measures the actual width and height of the block of text
         /// </summary>
-        /// <param name="processedText"></param>
-        /// <returns></returns>
+        /// <param name="processedText">The processed text to measure</param>
+        /// <returns>The size of the text</returns>
         public SizeF Measure(ProcessedText processedText)
         {
             return TransformMeasureFromViewport(PrintOrMeasure(processedText, true));
         }
 
+        /// <summary>
+        /// Print or measure the specified text
+        /// </summary>
+        /// <param name="text">The text to print or measure</param>
+        /// <param name="alignment">The text alignment</param>
+        /// <param name="measureOnly">Whether to only measure the text</param>
+        /// <param name="clippingRectangle">The clipping rectangle to scissor test the text with</param>
+        /// <returns>The size of the text</returns>
         private SizeF PrintOrMeasure(string text, QFontAlignment alignment, bool measureOnly, Rectangle clippingRectangle = default(Rectangle))
         {
             float maxWidth = 0f;
@@ -420,8 +568,6 @@ namespace QuickFont
                 //newline
                 if (c == '\r' || c == '\n')
                 {
-                    //maxCharHeight = maxCharHeight - LineSpacing;
-                    //if (maxCharHeight < 0) maxCharHeight = 0;
                     yOffset += LineSpacing;
                     maxCharHeight = 0;
                     xOffset = 0f;
@@ -436,10 +582,10 @@ namespace QuickFont
                     minXPos = Math.Min(xOffset, minXPos);
 
                     //normal character
-                    if (c != ' ' && _font.FontData.CharSetMapping.ContainsKey(c))
+                    if (c != ' ' && Font.FontData.CharSetMapping.ContainsKey(c))
                     {
                         if (!measureOnly)
-                            RenderGlyph(xOffset, yOffset, c, _font, CurrentVertexRepr, clippingRectangle);
+                            RenderGlyph(xOffset, yOffset, c, Font, CurrentVertexRepr, clippingRectangle);
                     }
 
                     if (IsMonospacingActive)
@@ -447,15 +593,15 @@ namespace QuickFont
                     else
                     {
                         if (c == ' ')
-                            xOffset += (float)Math.Ceiling(_font.FontData.meanGlyphWidth * this.Options.WordSpacing);
+                            xOffset += (float)Math.Ceiling(Font.FontData.MeanGlyphWidth * Options.WordSpacing);
                             //normal character
-                        else if (_font.FontData.CharSetMapping.ContainsKey(c))
+                        else if (Font.FontData.CharSetMapping.ContainsKey(c))
                         {
-                            QFontGlyph glyph = _font.FontData.CharSetMapping[c];
+                            QFontGlyph glyph = Font.FontData.CharSetMapping[c];
                             xOffset +=
                                 (float)
-                                Math.Ceiling(glyph.rect.Width + _font.FontData.meanGlyphWidth * this.Options.CharacterSpacing + _font.FontData.GetKerningPairCorrection(i, text, null));
-                            maxCharHeight = Math.Max(maxCharHeight, glyph.rect.Height + glyph.yOffset);
+                                Math.Ceiling(glyph.Rect.Width + Font.FontData.MeanGlyphWidth * Options.CharacterSpacing + Font.FontData.GetKerningPairCorrection(i, text, null));
+                            maxCharHeight = Math.Max(maxCharHeight, glyph.Rect.Height + glyph.YOffset);
                         }
                     }
 
@@ -463,15 +609,20 @@ namespace QuickFont
                 }
             }
 
-            if (minXPos != float.MaxValue)
+            if (Math.Abs(minXPos - float.MaxValue) > float.Epsilon)
                 maxWidth = maxXpos - minXPos;
 
-            maxCharHeight = maxCharHeight - LineSpacing;
-            if (maxCharHeight < 0) maxCharHeight = 0;
             LastSize = new SizeF(maxWidth, yOffset + LineSpacing);
             return LastSize;
         }
 
+        /// <summary>
+        /// Print or measure the specified processed text
+        /// </summary>
+        /// <param name="processedText">The processed text</param>
+        /// <param name="measureOnly">Whether to only measure the text</param>
+        /// <param name="clippingRectangle">The clipping rectangle to scissor test the text with</param>
+        /// <returns>The size of the text</returns>
         private SizeF PrintOrMeasure(ProcessedText processedText, bool measureOnly, Rectangle clippingRectangle = default(Rectangle))
         {
             // init values we'll return
@@ -484,19 +635,12 @@ namespace QuickFont
             float xOffset = xPos;
             float yOffset = yPos;
 
-            //make sure fontdata font's options are synced with the actual options
-            ////if (_font.FontData.dropShadowFont != null && _font.FontData.dropShadowFont.Options != this.Options)
-            ////{
-            ////    _font.FontData.dropShadowFont.Options = this.Options;
-            ////}
-
-            float maxWidth = processedText.maxSize.Width;
-            QFontAlignment alignment = processedText.alignment;
-
+            float maxWidth = processedText.MaxSize.Width;
+            QFontAlignment alignment = processedText.Alignment;
 
             //TODO - use these instead of translate when rendering by position (at some point)
 
-            TextNodeList nodeList = processedText.textNodeList;
+            TextNodeList nodeList = processedText.TextNodeList;
             for (TextNode node = nodeList.Head; node != null; node = node.Next)
                 node.LengthTweak = 0f; //reset tweaks
 
@@ -521,7 +665,7 @@ namespace QuickFont
                 }
                 else
                 {
-                    if (this.Options.WordWrap && SkipTrailingSpace(node, length, maxWidth) && atLeastOneNodeCosumedOnLine)
+                    if (Options.WordWrap && SkipTrailingSpace(node, length, maxWidth) && atLeastOneNodeCosumedOnLine)
                     {
                         newLine = true;
                     }
@@ -536,7 +680,7 @@ namespace QuickFont
                         maxCharHeight = Math.Max(maxCharHeight, node.Height);
                         maxMeasuredWidth = Math.Max(length, maxMeasuredWidth);
                     }
-                    else if (this.Options.WordWrap)
+                    else if (Options.WordWrap)
                     {
                         newLine = true;
                         if (node.Previous != null)
@@ -548,11 +692,9 @@ namespace QuickFont
 
                 if (newLine)
                 {
-                    if (processedText.maxSize.Height > 0 &&
-                        yOffset + LineSpacing - yPos >= processedText.maxSize.Height)
+                    if (processedText.MaxSize.Height > 0 &&
+                        yOffset + LineSpacing - yPos >= processedText.MaxSize.Height)
                         break;
-                    //maxCharHeight = maxCharHeight - LineSpacing;
-                    //if (maxCharHeight < 0) maxCharHeight = 0;
                     yOffset += LineSpacing;
                     xOffset = xPos;
                     length = 0f;
@@ -574,6 +716,13 @@ namespace QuickFont
             return LastSize;
         }
 
+        /// <summary>
+        /// Renders a word (text node)
+        /// </summary>
+        /// <param name="x">The x coordinate of the word</param>
+        /// <param name="y">The y coordinate of the word</param>
+        /// <param name="node">The word to render</param>
+        /// <param name="clippingRectangle">The clipping rectangle to scissor test the word with</param>
         private void RenderWord(float x, float y, TextNode node, ref Rectangle clippingRectangle)
         {
             if (node.Type != TextNodeType.Word)
@@ -597,18 +746,18 @@ namespace QuickFont
             for (int i = 0; i < node.Text.Length; i++)
             {
                 char c = node.Text[i];
-                if (_font.FontData.CharSetMapping.ContainsKey(c))
+                if (Font.FontData.CharSetMapping.ContainsKey(c))
                 {
-                    QFontGlyph glyph = _font.FontData.CharSetMapping[c];
+                    QFontGlyph glyph = Font.FontData.CharSetMapping[c];
 
-                    RenderGlyph(x, y, c, _font, CurrentVertexRepr, clippingRectangle);
+                    RenderGlyph(x, y, c, Font, CurrentVertexRepr, clippingRectangle);
 
                     if (IsMonospacingActive)
                         x += MonoSpaceWidth;
                     else
                         x +=
                             (int)
-                            Math.Ceiling(glyph.rect.Width + _font.FontData.meanGlyphWidth * this.Options.CharacterSpacing + _font.FontData.GetKerningPairCorrection(i, node.Text, node));
+                            Math.Ceiling(glyph.Rect.Width + Font.FontData.MeanGlyphWidth * Options.CharacterSpacing + Font.FontData.GetKerningPairCorrection(i, node.Text, node));
 
                     x += pixelsPerGap;
                     if (leftOverPixels > 0)
@@ -629,10 +778,9 @@ namespace QuickFont
         ///     Computes the length of the next line, and whether the line is valid for
         ///     justification.
         /// </summary>
-        /// <param name="node"></param>
-        /// <param name="maxLength"></param>
-        /// <param name="justifable"></param>
-        /// <returns></returns>
+        /// <param name="node">The starting text node</param>
+        /// <param name="maxLength">The maximum length of the line</param>
+        /// <returns>The length of the line</returns>
         private float TextNodeLineLength(TextNode node, float maxLength)
         {
             if (node == null)
@@ -661,6 +809,11 @@ namespace QuickFont
             return length;
         }
 
+        /// <summary>
+        /// Checks whether a textnode has been crumbled
+        /// </summary>
+        /// <param name="node">The starting node</param>
+        /// <returns>Whether the textnode has been crumbled</returns>
         private bool CrumbledWord(TextNode node)
         {
             return (node.Type == TextNodeType.Word && node.Next != null && node.Next.Type == TextNodeType.Word);
@@ -670,6 +823,8 @@ namespace QuickFont
         ///     Computes the length of the next line, and whether the line is valid for
         ///     justification.
         /// </summary>
+        /// <param name="node">The starting text node</param>
+        /// <param name="targetLength">The target line length</param>
         private void JustifyLine(TextNode node, float targetLength)
         {
             bool justifiable = false;
@@ -755,9 +910,9 @@ namespace QuickFont
             {
                 //last part of this condition is to ensure that the full contraction is possible (it is all or nothing with contractions, since it looks really bad if we don't manage the full)
                 bool contract = contractPossible &&
-                                (extraLength + length - targetLength)*this.Options.JustifyContractionPenalty <
+                                (extraLength + length - targetLength)*Options.JustifyContractionPenalty <
                                 (targetLength - length) &&
-                                ((targetLength - (length + extraLength + 1))/targetLength > -this.Options.JustifyCapContract);
+                                ((targetLength - (length + extraLength + 1))/targetLength > -Options.JustifyCapContract);
 
                 if ((!contract && length < targetLength) || (contract && length + extraLength > targetLength))
                     //calculate padding pixels per word and char
@@ -778,13 +933,13 @@ namespace QuickFont
 
                     if (contract)
                     {
-                        if (totalPixels/targetLength < -this.Options.JustifyCapContract)
-                            totalPixels = (int) (-this.Options.JustifyCapContract*targetLength);
+                        if (totalPixels/targetLength < -Options.JustifyCapContract)
+                            totalPixels = (int) (-Options.JustifyCapContract*targetLength);
                     }
                     else
                     {
-                        if (totalPixels/targetLength > this.Options.JustifyCapExpand)
-                            totalPixels = (int) (this.Options.JustifyCapExpand*targetLength);
+                        if (totalPixels/targetLength > Options.JustifyCapExpand)
+                            totalPixels = (int) (Options.JustifyCapExpand*targetLength);
                     }
 
                     //work out how to spread pixles between character gaps and word spaces
@@ -800,9 +955,9 @@ namespace QuickFont
                     {
                         if (contract)
                             charPixels =
-                                (int) (totalPixels*this.Options.JustifyCharacterWeightForContract*charGaps/spaceGaps);
+                                (int) (totalPixels*Options.JustifyCharacterWeightForContract*charGaps/spaceGaps);
                         else
-                            charPixels = (int) (totalPixels*this.Options.JustifyCharacterWeightForExpand*charGaps/spaceGaps);
+                            charPixels = (int) (totalPixels*Options.JustifyCharacterWeightForExpand*charGaps/spaceGaps);
 
 
                         if ((!contract && charPixels > totalPixels) ||
@@ -887,10 +1042,10 @@ namespace QuickFont
         ///     We only check one space - the assumption is that if there is more than one,
         ///     it is a deliberate attempt to insert spaces.
         /// </summary>
-        /// <param name="node"></param>
-        /// <param name="lengthSoFar"></param>
-        /// <param name="boundWidth"></param>
-        /// <returns></returns>
+        /// <param name="node">The starting text node</param>
+        /// <param name="lengthSoFar">The length of the line so far</param>
+        /// <param name="boundWidth">The maximum width</param>
+        /// <returns>Whether we can skip the trailing space</returns>
         private bool SkipTrailingSpace(TextNode node, float lengthSoFar, float boundWidth)
         {
             if (node.Type == TextNodeType.Space && node.Next != null && node.Next.Type == TextNodeType.Word &&
@@ -905,9 +1060,12 @@ namespace QuickFont
         /// <summary>
         ///     Creates node list object associated with the text.
         /// </summary>
-        /// <param name="text"></param>
-        /// <param name="bounds"></param>
-        /// <returns></returns>
+        /// <param name="options">The font render options</param>
+        /// <param name="text">The text to process</param>
+        /// <param name="font">The <see cref="QFont"/> to process the text with</param>
+        /// <param name="maxSize">The maximum size of the processed text</param>
+        /// <param name="alignment">The text alignment</param>
+        /// <returns>The processed text</returns>
         public static ProcessedText ProcessText(QFont font, QFontRenderOptions options, string text, SizeF maxSize, QFontAlignment alignment)
         {
             //TODO: bring justify and alignment calculations in here
@@ -930,9 +1088,9 @@ namespace QuickFont
 
 
             var processedText = new ProcessedText();
-            processedText.textNodeList = nodeList;
-            processedText.maxSize = maxSize;
-            processedText.alignment = alignment;
+            processedText.TextNodeList = nodeList;
+            processedText.MaxSize = maxSize;
+            processedText.Alignment = alignment;
 
 
             return processedText;

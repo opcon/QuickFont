@@ -10,7 +10,7 @@ namespace QuickFont
 	/// load fonts (aka System.Drawing). This method does not work for loading
 	/// custom fonts on Mono, and hence FreeType is required for those
 	/// </summary>
-	public class GDIFont : IFont, IDisposable
+	public sealed class GDIFont : IFont
 	{
 		private Font _font;
 		private FontFamily _fontFamily;
