@@ -3,9 +3,56 @@ using OpenTK;
 
 namespace QuickFont
 {
-    public enum QFontAlignment { Left=0, Right, Centre, Justify }
-    public enum QFontMonospacing { Natural = 0, Yes, No }
+    /// <summary>
+    /// Text Alignment
+    /// </summary>
+    public enum QFontAlignment
+    {
+        /// <summary>
+        /// Left-aligned text
+        /// </summary>
+        Left=0,
 
+        /// <summary>
+        /// Right-aligned text
+        /// </summary>
+        Right,
+
+        /// <summary>
+        /// Centred text
+        /// </summary>
+        Centre,
+
+        /// <summary>
+        /// Justified text
+        /// </summary>
+        Justify
+    }
+
+    /// <summary>
+    /// Monospace handling
+    /// </summary>
+    public enum QFontMonospacing
+    {
+        /// <summary>
+        /// Monospace only if the font is monospaced
+        /// </summary>
+        Natural = 0,
+
+        /// <summary>
+        /// Force monospacing
+        /// </summary>
+        Yes,
+
+        /// <summary>
+        /// Don't monospace
+        /// </summary>
+        No
+    }
+
+    /// <summary>
+    /// Contains options used for font rendering
+    /// </summary>
     public class QFontRenderOptions
     {
         /// <summary>
@@ -33,7 +80,7 @@ namespace QuickFont
         /// the QFont to have been loaded with a drop shadow to
         /// take effect.
         /// </summary>
-        public bool DropShadowActive = false;
+        public bool DropShadowActive;
 
         /// <summary>
         /// Offset of the shadow from the font glyphs in units of average glyph width
@@ -45,6 +92,9 @@ namespace QuickFont
         /// </summary>
         public Color DropShadowColour = Color.FromArgb(128, Color.Black);
 
+        /// <summary>
+        /// Set the opacity of the drop shadow
+        /// </summary>
         public float DropShadowOpacity
         {
             set
@@ -113,7 +163,7 @@ namespace QuickFont
         /// 
         /// 
         /// </summary>
-        public Viewport? TransformToViewport = null;
+        public Viewport? TransformToViewport;
 
         /// <summary>
         /// Locks the position to a particular pixel, allowing the text to be rendered pixel-perfectly.
@@ -141,8 +191,6 @@ namespace QuickFont
         /// </summary>
         public bool WordWrap = true;
 
-        #region Justify Options
-
         /// <summary>
         /// When a line of text is justified, space may be inserted between
         /// characters, and between words. 
@@ -158,19 +206,14 @@ namespace QuickFont
         /// </summary>
         public float JustifyCharacterWeightForExpand
         {
-            get { return justifyCharWeightForExpand; }
+            get { return _justifyCharWeightForExpand; }
             set { 
 
-                justifyCharWeightForExpand = MathHelper.Clamp(value, 0.0f, 1.0f);
-
-                //if (justifyCharWeightForExpand < 0f)
-                //    justifyCharWeightForExpand = 0f;
-                //else if (justifyCharWeightForExpand > 1.0f)
-                //    justifyCharWeightForExpand = 1.0f;
+                _justifyCharWeightForExpand = MathHelper.Clamp(value, 0.0f, 1.0f);
             }
         }
 
-        private float justifyCharWeightForExpand = 0.5f;
+        private float _justifyCharWeightForExpand = 0.5f;
 
         /// <summary>
         /// When a line of text is justified, space may be removed between
@@ -187,20 +230,14 @@ namespace QuickFont
         /// </summary>
         public float JustifyCharacterWeightForContract
         {
-            get { return justifyCharWeightForContract; }
+            get { return _justifyCharWeightForContract; }
             set
             {
-
-                justifyCharWeightForContract = value;
-
-                if (justifyCharWeightForContract < 0f)
-                    justifyCharWeightForContract = 0f;
-                else if (justifyCharWeightForContract > 1.0f)
-                    justifyCharWeightForContract = 1.0f;
+                _justifyCharWeightForContract = MathHelper.Clamp(value, 0.0f, 1.0f);
             }
         }
 
-        private float justifyCharWeightForContract = 0.2f;
+        private float _justifyCharWeightForContract = 0.2f;
 
         /// <summary>
         /// Total justification cap as a fraction of the boundary width.
@@ -223,36 +260,40 @@ namespace QuickFont
         /// </summary>
         public float JustifyContractionPenalty = 2;
 
+        /// <summary>
+        /// The clipping rectangle to use for rendering
+        /// </summary>
         public Rectangle ClippingRectangle = default(Rectangle);
 
-        #endregion
-
+        /// <summary>
+        /// Creates a clone of the render options
+        /// </summary>
+        /// <returns>The clone of the render options</returns>
         public QFontRenderOptions CreateClone()
         {
-            var clone = new QFontRenderOptions();
-
-            clone.Colour = Colour;
-            clone.CharacterSpacing = CharacterSpacing;
-            clone.WordSpacing = WordSpacing;
-            clone.LineSpacing = LineSpacing;
-            clone.DropShadowActive = DropShadowActive;
-            clone.DropShadowOffset = DropShadowOffset;
-            clone.DropShadowColour = DropShadowColour;
-            clone.Monospacing = Monospacing;
-            clone.TransformToViewport = TransformToViewport;
-            clone.LockToPixel = LockToPixel;
-            clone.LockToPixelRatio = LockToPixelRatio;
-            clone.UseDefaultBlendFunction = UseDefaultBlendFunction;
-            clone.JustifyCharacterWeightForExpand = JustifyCharacterWeightForExpand;
-            clone.justifyCharWeightForExpand = justifyCharWeightForExpand; 
-            clone.JustifyCharacterWeightForContract = JustifyCharacterWeightForContract;
-            clone.justifyCharWeightForContract = justifyCharWeightForContract;
-            clone.JustifyCapExpand = JustifyCapExpand;
-            clone.JustifyCapContract = JustifyCapContract;
-            clone.JustifyContractionPenalty = JustifyContractionPenalty;
-            clone.ClippingRectangle = ClippingRectangle;
-
-            return clone;
+            return new QFontRenderOptions
+            {
+                Colour = Colour,
+                CharacterSpacing = CharacterSpacing,
+                WordSpacing = WordSpacing,
+                LineSpacing = LineSpacing,
+                DropShadowActive = DropShadowActive,
+                DropShadowOffset = DropShadowOffset,
+                DropShadowColour = DropShadowColour,
+                Monospacing = Monospacing,
+                TransformToViewport = TransformToViewport,
+                LockToPixel = LockToPixel,
+                LockToPixelRatio = LockToPixelRatio,
+                UseDefaultBlendFunction = UseDefaultBlendFunction,
+                JustifyCharacterWeightForExpand = JustifyCharacterWeightForExpand,
+                _justifyCharWeightForExpand = _justifyCharWeightForExpand,
+                JustifyCharacterWeightForContract = JustifyCharacterWeightForContract,
+                _justifyCharWeightForContract = _justifyCharWeightForContract,
+                JustifyCapExpand = JustifyCapExpand,
+                JustifyCapContract = JustifyCapContract,
+                JustifyContractionPenalty = JustifyContractionPenalty,
+                ClippingRectangle = ClippingRectangle
+            };
         }
     }
 }

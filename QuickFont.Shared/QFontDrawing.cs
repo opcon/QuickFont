@@ -13,47 +13,70 @@ using OpenTK.Graphics.OpenGL4;
 namespace QuickFont
 {
     /// <summary>
-    /// This class represents a 'Drawing' on screen made off of Font renderings. eg. GlFontDrawingPrimitive
+    /// <see cref="QFontDrawing"/> manages a collection of <see cref="QFontDrawingPrimitive"/>'s
+    /// and handles printing text to the screen
     /// </summary>
-    public class QFontDrawing
+    public class QFontDrawing : IDisposable
     {
-        //private QFontRenderOptions options = new QFontRenderOptions();
-        private const string shaderVersionString130 = "#version 130\n\n";
-        private const string shaderVersionString140 = "#version 140\n\n";
-        private const string shaderVersionString150 = "#version 150\n\n";
+        private const string SHADER_VERSION_STRING130 = "#version 130\n\n";
+        private const string SHADER_VERSION_STRING140 = "#version 140\n\n";
+        private const string SHADER_VERSION_STRING150 = "#version 150\n\n";
 
-        private static SharedState _QFontSharedState;
+        private static QFontSharedState _sharedState;
 
-        public QVertexArrayObject _vertexArrayObject;
-        private SharedState _instanceSharedState;
+        /// <summary>
+        /// The <see cref="QVertexArrayObject"/> used by this <see cref="QFontDrawing"/>
+        /// </summary>
+        public QVertexArrayObject VertexArrayObject;
+
+        private QFontSharedState _instanceSharedState;
         private readonly List<QFontDrawingPrimitive> _glFontDrawingPrimitives;
         private readonly bool _useDefaultBlendFunction;
 
         private Matrix4 _projectionMatrix;
 
-        public QFontDrawing(bool useDefaultBlendFunction = true)
+        /// <summary>
+        /// Creates a new instance of <see cref="QFontDrawing"/>
+        /// </summary>
+        /// <param name="useDefaultBlendFunction">Whether to use the default blend function</param>
+        /// <param name="state">The QFontSharedState of this object. If null, will use the static state</param>
+        public QFontDrawing(bool useDefaultBlendFunction = true, QFontSharedState state = null)
         {
             _useDefaultBlendFunction = useDefaultBlendFunction;
             _glFontDrawingPrimitives =new List<QFontDrawingPrimitive>();
-            InitialiseState();
+            InitialiseState(state);
         }
 
-        public static SharedState QFontSharedState
+        /// <summary>
+        /// The static shared state for all <see cref="QFontDrawing"/> objects
+        /// </summary>
+        public static QFontSharedState SharedState
         {
-            get { return _QFontSharedState; }
+            get { return _sharedState; }
         }
 
-        public SharedState InstanceSharedState
+        /// <summary>
+        /// Returns the instance shared state if it exists, otherwise
+        /// returns the static shared state
+        /// </summary>
+        public QFontSharedState InstanceSharedState
         {
-            get { return _instanceSharedState ?? QFontSharedState; }
+            get { return _instanceSharedState ?? SharedState; }
         }
 
+        /// <summary>
+        /// The projection matrix used for text rendering
+        /// </summary>
         public Matrix4 ProjectionMatrix
         {
             get { return _projectionMatrix; }
             set { _projectionMatrix = value; }
         }
 
+        /// <summary>
+        /// A list of <see cref="QFontDrawingPrimitive"/>'s that will be drawn
+        /// when the <see cref="Draw"/> method is called
+        /// </summary>
         public List<QFontDrawingPrimitive> DrawingPrimitives
         {
             get { return _glFontDrawingPrimitives; }
@@ -63,7 +86,7 @@ namespace QuickFont
         /// Load shader string from resource
         /// </summary>
         /// <param name="path">filename of Shader</param>
-        /// <returns></returns>
+        /// <returns>The loaded shader</returns>
         private static string LoadShaderFromResource(string path)
         {
             var assembly = Assembly.GetExecutingAssembly();
@@ -84,10 +107,11 @@ namespace QuickFont
         }
 
         /// <summary>
-        ///     Initializes the static shared render state
+        ///     Initializes the static shared render state using builtin shaders
         /// </summary>
         private static void InitialiseStaticState()
         {
+            // Enable 2D textures
             GL.Enable(EnableCap.Texture2D);
 
             //Create vertex and fragment shaders
@@ -100,7 +124,7 @@ namespace QuickFont
 
             // We try to compile the shaders with ever increasing version numbers (up to 1.50)
             // This fixes a bug on MaxOSX where the Core profile only supports shaders >= 1.50 (or sometimes 1.40)
-            var versions = new string[] { shaderVersionString130, shaderVersionString140, shaderVersionString150 };
+            var versions = new[] { SHADER_VERSION_STRING130, SHADER_VERSION_STRING140, SHADER_VERSION_STRING150 };
 
             // Holds the compilation status of the shaders
             int vertCompileStatus = 0;
@@ -108,10 +132,6 @@ namespace QuickFont
 
             foreach (var version in versions)
             {
-                // These assignments are not needed
-                vertCompileStatus = 0;
-                fragCompileStatus = 0;
-
 #if OPENGL_ES
                 GL.ShaderSource(vert, LoadShaderFromResource("simple_es.vs"));
                 GL.ShaderSource(frag, LoadShaderFromResource("simple_es.fs"));
@@ -144,9 +164,6 @@ namespace QuickFont
                 throw new Exception(String.Format("Shaders were not compiled correctly. Info logs are\nVert:\n{0}\nFrag:\n{1}", vertInfo, fragInfo));
             }
 
-            // I don't think we need to loop through versions for the linking step, as any compilation errors should be picked up
-            // in the previous loop? TODO: Verify this assumption
-
             int prog;
             int progLinkStatus;
 
@@ -178,9 +195,9 @@ namespace QuickFont
 
             //Now we have all the information, time to create the immutable shared state object
             var shaderVariables = new ShaderVariables(prog, mvpLoc, tcLoc, posLoc, samplerLoc, colLoc);
-            var sharedState = new SharedState(TextureUnit.Texture0, shaderVariables);
+            var sharedState = new QFontSharedState(TextureUnit.Texture0, shaderVariables);
 
-            _QFontSharedState = sharedState;
+            _sharedState = sharedState;
         }
 
         /// <summary>
@@ -190,31 +207,11 @@ namespace QuickFont
         ///     If state is null, this method will instead initialise the static state, which is returned when no
         ///     instance state is set
         /// </param>
-        private void InitialiseState()
+        private void InitialiseState(QFontSharedState state)
         {
-            if (QFontSharedState == null) InitialiseStaticState();
+            if (state != null) _instanceSharedState = state;
+            else if (SharedState == null) InitialiseStaticState();
         }
-
-        /// <summary>
-        ///     When TransformToOrthogProjection is enabled, we need to get the current orthogonal transformation,
-        ///     the font scale, and ensure that the projection is actually orthogonal
-        /// </summary>
-        /// <param name="fontScale"></param>
-        /// <param name="viewportTransform"></param>
-        [Obsolete]
-        private Viewport OrthogonalTransform(out float fontScale)
-        {
-            if (!ViewportHelper.IsOrthographicProjection(ref _projectionMatrix))
-                throw new ArgumentOutOfRangeException(
-                    "Current projection matrix was not Orthogonal. Please ensure that you have set an orthogonal projection before attempting to create a font with the TransformToOrthogProjection flag set to true.",
-                    "projectionMatrix");
-
-            //var viewportTransform = new Viewport(left, top, right - left, bottom - top);
-            Viewport viewportTransform = ViewportHelper.GetViewportFromOrthographicProjection(ref _projectionMatrix);
-            fontScale = Math.Abs(ViewportHelper.CurrentViewport.Value.Height/viewportTransform.Height);
-            return viewportTransform;
-        }
-
 
         /// <summary>
         /// Helper method to reduce lines of code related to simple font drawing.
@@ -234,22 +231,22 @@ namespace QuickFont
             GL.ActiveTexture(InstanceSharedState.DefaultTextureUnit);
 
             int start = 0;
-            _vertexArrayObject.Bind();
+            VertexArrayObject.Bind();
             foreach (var primitive in _glFontDrawingPrimitives)
             {
                 var dpt = PrimitiveType.Triangles;
-                GL.ActiveTexture(QFontSharedState.DefaultTextureUnit);
+                GL.ActiveTexture(SharedState.DefaultTextureUnit);
 
                 // Use DrawArrays - first draw drop shadows, then draw actual font primitive
                 if (primitive.ShadowVertexRepr.Count > 0)
                 {
                     //int index = primitive.Font.FontData.CalculateMaxHeight();
-                    GL.BindTexture(TextureTarget.Texture2D, primitive.Font.FontData.dropShadowFont.FontData.Pages[0].GLTexID);
+                    GL.BindTexture(TextureTarget.Texture2D, primitive.Font.FontData.DropShadowFont.FontData.Pages[0].TextureID);
                     GL.DrawArrays(dpt, start, primitive.ShadowVertexRepr.Count);
                     start += primitive.ShadowVertexRepr.Count;
                 }
 
-                GL.BindTexture(TextureTarget.Texture2D, primitive.Font.FontData.Pages[0].GLTexID);
+                GL.BindTexture(TextureTarget.Texture2D, primitive.Font.FontData.Pages[0].TextureID);
                 GL.DrawArrays(dpt, start, primitive.CurrentVertexRepr.Count);
                 start += primitive.CurrentVertexRepr.Count;
             }
@@ -260,10 +257,13 @@ namespace QuickFont
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 
+        /// <summary>
+        /// Bind the 0'th shader and disable the attributes used
+        /// </summary>
         public void DisableShader()
         {
             GL.UseProgram(0);
-            _vertexArrayObject.DisableAttributes();
+            VertexArrayObject.DisableAttributes();
         }
 
         /// <summary>
@@ -283,21 +283,29 @@ namespace QuickFont
         /// </summary>
         public void RefreshBuffers()
         {
-            if (_vertexArrayObject == null)
+            if (VertexArrayObject == null)
             {
-                _vertexArrayObject = new QVertexArrayObject(QFontSharedState);
+                VertexArrayObject = new QVertexArrayObject(SharedState);
             }
 
-            _vertexArrayObject.Reset();
+            VertexArrayObject.Reset();
 
             foreach (var primitive in _glFontDrawingPrimitives)
             {
-                _vertexArrayObject.AddVertexes(primitive.ShadowVertexRepr);
-                _vertexArrayObject.AddVertexes(primitive.CurrentVertexRepr);
+                VertexArrayObject.AddVertexes(primitive.ShadowVertexRepr);
+                VertexArrayObject.AddVertexes(primitive.CurrentVertexRepr);
             }
-            _vertexArrayObject.Load();
+            VertexArrayObject.Load();
         }
 
+        /// <summary>
+        /// Prints the specified text with the given render options
+        /// </summary>
+        /// <param name="font">The <see cref="QFont"/> to print the text with</param>
+        /// <param name="text">The text to print</param>
+        /// <param name="position">The position of the text</param>
+        /// <param name="opt">The text render options</param>
+        /// <returns>The size of the printed text</returns>
         public SizeF Print(QFont font, ProcessedText text, Vector3 position, QFontRenderOptions opt)
         {
             var dp = new QFontDrawingPrimitive(font, opt);
@@ -305,16 +313,30 @@ namespace QuickFont
             return dp.Print(text, position, opt.ClippingRectangle);
         }
 
-        public SizeF Print(QFont font, ProcessedText processedText, Vector3 position, Color? colour = null, Rectangle clippingRectangle = default(Rectangle))
+        /// <summary>
+        /// Prints the specified text
+        /// </summary>
+        /// <param name="font">The <see cref="QFont"/> to print the text with</param>
+        /// <param name="processedText">The processed text to print</param>
+        /// <param name="position">The position of the text</param>
+        /// <param name="colour">The colour of the text</param>
+        /// <returns>The size of the printed text</returns>
+        public SizeF Print(QFont font, ProcessedText processedText, Vector3 position, Color? colour = null)
         {
             var dp = new QFontDrawingPrimitive(font);
             DrawingPrimitives.Add(dp);
-            if (colour.HasValue)
-                return dp.Print(processedText, position, colour.Value);
-            else
-                return dp.Print(processedText, position);
+            return colour.HasValue ? dp.Print(processedText, position, colour.Value) : dp.Print(processedText, position);
         }
 
+        /// <summary>
+        /// Prints the specified text with the given alignment and render options
+        /// </summary>
+        /// <param name="font">The <see cref="QFont"/> to print the text with</param>
+        /// <param name="text">The text to print</param>
+        /// <param name="position">The position of the text</param>
+        /// <param name="alignment">The alignment of the text</param>
+        /// <param name="opt">The render options</param>
+        /// <returns>The size of the printed text</returns>
         public SizeF Print(QFont font, string text, Vector3 position, QFontAlignment alignment, QFontRenderOptions opt)
         {
             var dp = new QFontDrawingPrimitive(font, opt);
@@ -322,6 +344,16 @@ namespace QuickFont
             return dp.Print(text, position, alignment, opt.ClippingRectangle);
         }
 
+        /// <summary>
+        /// Prints the specified text with the given alignment, color and clipping rectangle
+        /// </summary>
+        /// <param name="font">The <see cref="QFont"/> to print the text with</param>
+        /// <param name="text">The text to print</param>
+        /// <param name="position">The position of the text</param>
+        /// <param name="alignment">The alignment of the text</param>
+        /// <param name="color">The colour of the text</param>
+        /// <param name="clippingRectangle">The clipping rectangle to scissor test the text with</param>
+        /// <returns>The size of the printed text</returns>
         public SizeF Print(QFont font, string text, Vector3 position, QFontAlignment alignment, Color? color = null, Rectangle clippingRectangle = default(Rectangle))
         {
             var dp = new QFontDrawingPrimitive(font);
@@ -331,6 +363,16 @@ namespace QuickFont
             return dp.Print(text, position, alignment, clippingRectangle);
         }
 
+        /// <summary>
+        /// Prints the specified text with the given maximum size, alignment and clipping rectangle
+        /// </summary>
+        /// <param name="font">The <see cref="QFont"/> to print the text with</param>
+        /// <param name="text">The text to print</param>
+        /// <param name="position">The position of the text</param>
+        /// <param name="maxSize">The maximum bounding size of the text</param>
+        /// <param name="alignment">The text alignment</param>
+        /// <param name="clippingRectangle">The clipping rectangle to scissor test the text with</param>
+        /// <returns>The size of the printed text</returns>
         public SizeF Print(QFont font, string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, Rectangle clippingRectangle = default(Rectangle))
         {
             var dp = new QFontDrawingPrimitive(font);
@@ -338,6 +380,16 @@ namespace QuickFont
             return dp.Print(text, position, maxSize, alignment, clippingRectangle);
         }
 
+        /// <summary>
+        /// Prints the specified text with the given maximum size, alignment and render options
+        /// </summary>
+        /// <param name="font">The <see cref="QFont"/> to print the text with</param>
+        /// <param name="text">The text to print</param>
+        /// <param name="position">The position of the text</param>
+        /// <param name="maxSize">The maximum bounding size of the text</param>
+        /// <param name="alignment">The text alignment</param>
+        /// <param name="opt">The render options</param>
+        /// <returns>The size of the printed text</returns>
         public SizeF Print(QFont font, string text, Vector3 position, SizeF maxSize, QFontAlignment alignment, QFontRenderOptions opt )
         {
             var dp = new QFontDrawingPrimitive(font, opt);
@@ -345,10 +397,10 @@ namespace QuickFont
             return dp.Print(text, position, maxSize, alignment, opt.ClippingRectangle);
         }
 
-#region IDisposable impl
-
-        // Track whether Dispose has been called.
-        private bool disposed;
+        /// <summary>
+        /// Track whether <see cref="Dispose()"/> has been called
+        /// </summary>
+        private bool _disposed;
 
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
@@ -372,30 +424,49 @@ namespace QuickFont
         // If disposing equals false, the method has been called by the
         // runtime from inside the finalizer and you should not reference
         // other objects. Only unmanaged resources can be disposed.
+
+        /// <summary>
+        /// Handles disposing objects
+        /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
             // Check to see if Dispose has already been called.
-            if (!disposed)
+            if (!_disposed)
             {
                 // If disposing equals true, dispose all managed
                 // and unmanaged resources.
                 if (disposing)
                 {
                     //QFontDrawingPrimitive.Font.FontData.Dispose();
-                    _vertexArrayObject.Dispose();
+                    if (VertexArrayObject != null)
+                    {
+                        VertexArrayObject.Dispose();
+                        VertexArrayObject = null;
+                    }
                 }
 
                 // Note disposing has been done.
-                disposed = true;
+                _disposed = true;
             }
         }
-
-#endregion
     }
 
 
+    /// <summary>
+    /// Holds the shader state
+    /// </summary>
     public class ShaderVariables
     {
+        /// <summary>
+        /// Create a new instance of <see cref="ShaderVariables"/>
+        /// </summary>
+        /// <param name="shaderProgram">The shader program</param>
+        /// <param name="mvpUniformLocation">The model-view-projection matrix uniform location</param>
+        /// <param name="textureCoordAttribLocation">The texture coordinate attribute location</param>
+        /// <param name="positionCoordAttribLocation">The position coordinate attribute location</param>
+        /// <param name="samplerLocation">The texture sample location</param>
+        /// <param name="colorCoordAttribLocation">The color coordinate attribute location</param>
         public ShaderVariables(int shaderProgram, int mvpUniformLocation, int textureCoordAttribLocation, int positionCoordAttribLocation, int samplerLocation, int colorCoordAttribLocation)
         {
             ColorCoordAttribLocation = colorCoordAttribLocation;
@@ -406,24 +477,63 @@ namespace QuickFont
             ShaderProgram = shaderProgram;
         }
 
-        public int ShaderProgram { get; private set; }
-        public int MVPUniformLocation { get; private set; }
+        /// <summary>
+        /// The shader program name
+        /// </summary>
+        public int ShaderProgram { get; }
+
+        /// <summary>
+        /// The Model-View-Projection matrix uniform location
+        /// </summary>
+        public int MVPUniformLocation { get; }
+
+        /// <summary>
+        /// The texture coordinate attribute location
+        /// </summary>
         public int TextureCoordAttribLocation { get; private set; }
+
+        /// <summary>
+        /// The position coordinate attribute location
+        /// </summary>
         public int PositionCoordAttribLocation { get; private set; }
-        public int SamplerLocation { get; private set; }
+
+        /// <summary>
+        /// The texture sample location
+        /// </summary>
+        public int SamplerLocation { get; }
+
+        /// <summary>
+        /// The color coordinate attribute location
+        /// </summary>
         public int ColorCoordAttribLocation { get; private set; }
     }
 
-    public class SharedState
+    /// <summary>
+    /// The shared state of the <see cref="QFontDrawing"/> object.
+    /// This can be shared between different <see cref="QFontDrawing"/> objects
+    /// </summary>
+    public class QFontSharedState
     {
-        public SharedState(TextureUnit defaultTextureUnit, ShaderVariables shaderVariables)
+        /// <summary>
+        /// Creates a new instance of <see cref="QFontSharedState"/>
+        /// </summary>
+        /// <param name="defaultTextureUnit">The default texture unit</param>
+        /// <param name="shaderVariables">The shader variables</param>
+        public QFontSharedState(TextureUnit defaultTextureUnit, ShaderVariables shaderVariables)
         {
             DefaultTextureUnit = defaultTextureUnit;
             ShaderVariables = shaderVariables;
         }
 
-        public TextureUnit DefaultTextureUnit { get; private set; }
-        public ShaderVariables ShaderVariables { get; private set; }
+        /// <summary>
+        /// The default texture unit of this shared state
+        /// </summary>
+        public TextureUnit DefaultTextureUnit { get; }
+
+        /// <summary>
+        /// The shader variables of this shared state
+        /// </summary>
+        public ShaderVariables ShaderVariables { get; }
     }
 
 }

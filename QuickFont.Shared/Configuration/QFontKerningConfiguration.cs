@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace QuickFont.Configuration
 {
+    /// <summary>
+    /// Kerning Rules
+    /// </summary>
     public enum CharacterKerningRule
     {
         /// <summary>
@@ -22,19 +25,24 @@ namespace QuickFont.Configuration
         NotMoreThanHalf
     }
 
+    /// <summary>
+    /// Font kerning configuration
+    /// Only used with GDIFont, FreeTypeFont uses it's own kerning directly from
+    /// the font file
+    /// </summary>
     public class QFontKerningConfiguration
     {
         /// <summary>
         /// Kerning rules for particular characters
         /// </summary>
-        private Dictionary<char, CharacterKerningRule> CharacterKerningRules = new Dictionary<char, CharacterKerningRule>();
+        private readonly Dictionary<char, CharacterKerningRule> _characterKerningRules = new Dictionary<char, CharacterKerningRule>();
 
         /// <summary>
         /// When measuring the bounds of glyphs, and performing kerning calculations, 
         /// this is the minimum alpha level that is necessray for a pixel to be considered
         /// non-empty. This should be set to a value on the range [0,255]
         /// </summary>
-        public byte alphaEmptyPixelTolerance = 0;
+        public byte AlphaEmptyPixelTolerance = 0;
 
 
         /// <summary>
@@ -46,7 +54,7 @@ namespace QuickFont.Configuration
         {
             foreach (var c in chars)
             {
-                CharacterKerningRules[c] = rule;
+                _characterKerningRules[c] = rule;
             }
         }
 
@@ -57,14 +65,19 @@ namespace QuickFont.Configuration
         /// <param name="rule"></param>
         public void SetCharacterKerningRule(char c, CharacterKerningRule rule)
         {
-            CharacterKerningRules[c] = rule;
+            _characterKerningRules[c] = rule;
         }
 
+		/// <summary>
+		/// Returns the kerning rule corresponding to the character.
+		/// </summary>
+		/// <param name="c">The character to return the kerning rule for</param>
+		/// <returns>The kerning rule corresponding to the given character</returns>
         public CharacterKerningRule GetCharacterKerningRule(char c)
         {
-            if (CharacterKerningRules.ContainsKey(c))
+            if (_characterKerningRules.ContainsKey(c))
             {
-                return CharacterKerningRules[c];
+                return _characterKerningRules[c];
             }
             return CharacterKerningRule.Normal;
         }
@@ -97,6 +110,9 @@ namespace QuickFont.Configuration
             return CharacterKerningRule.Normal;
         }
 
+		/// <summary>
+		/// Default kerning constructor
+		/// </summary>
         public QFontKerningConfiguration()
         {
             BatchSetCharacterKerningRule("_^", CharacterKerningRule.Zero);
