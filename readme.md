@@ -25,7 +25,18 @@ public Game()
 
 This will select an OpenGL version >= 3.2 (usually 4.1).
 
-## Version 4.2
+## Version 4.3
+* Kerning information is now loaded from FreeType if `FreeTypeFont` is used
+* Improved built in kerning method to account for pixels on glyph boundary
+* Fixes to example project
+* Improved overall code quality
+    * Renamed variables to a consistent naming scheme
+    * Added XML documentation to all public facing classes, methods, fields, properties, etc.
+    * Added lots of XML documentation to internal/private classes, methods, fields, properties etc
+* Fixed `QFontDrawing` not implementing `IDisposable`
+* Improved disposing in `QVertexArrayObject`
+
+### Version 4.2
 * Switched to using a shared package to build QuickFont
 * Added an OpenGL ES 2.0 nuget package
 
