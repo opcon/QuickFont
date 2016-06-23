@@ -1,2 +1,10 @@
+version: 4.3.{build}-appveyor
+image: Visual Studio 2015
+configuration:
+- Debug
+- Release
 before_build:
-  nuget restore
+- cmd: nuget restore
+build:
+  parallel: true
+  verbosity: minimal
