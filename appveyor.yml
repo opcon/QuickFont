@@ -8,3 +8,5 @@ before_build:
 build:
   parallel: true
   verbosity: minimal
+artifacts:
+  - path: '**\*.nupkg'
