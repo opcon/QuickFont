@@ -6,7 +6,9 @@ configuration:
 before_build:
 - cmd: nuget restore
 build:
+  publish_nuget: true
+  publish_nuget_symbols: true
   parallel: true
   verbosity: minimal
 artifacts:
-  - path: '**\*.nupkg'
+  - path: '**\*QuickFont*.nupkg'
