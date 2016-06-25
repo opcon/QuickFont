@@ -29,7 +29,7 @@ namespace QuickFont
 		/// Whether the font has kerning information available, or if it needs
 		/// to be calculated
 		/// </summary>
-		public bool HasKerningInformation { get { return true; } }
+		public bool HasKerningInformation { get { return _fontFace.HasKerning; } }
 
 		/// <summary>
 		/// Creates a new instace of FreeTypeFont
