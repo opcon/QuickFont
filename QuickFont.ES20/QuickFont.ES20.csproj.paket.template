@@ -1,8 +1,8 @@
 type project
 id 
-    QuickFont.Desktop
+    QuickFont.ES20
 title 
-    QuickFont.Desktop
+    QuickFont.ES20
 licenseUrl 
     https://github.com/opcon/QuickFont/blob/master/License.txt
 projectUrl 
@@ -10,7 +10,7 @@ projectUrl
 releaseNotes 
     https://github.com/opcon/QuickFont/releases/tag/v4.3
 tags 
-    QuickFont OpenGL OpenTK
+    QuickFont OpenGL ES OpenTK
 copyright 
     Copyright 2016
 dependencies
