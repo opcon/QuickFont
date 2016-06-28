@@ -4,9 +4,7 @@
   <Import Project="..\packages\SharpFont.Dependencies\build\SharpFont.Dependencies.props" Condition="Exists('..\packages\SharpFont.Dependencies\build\SharpFont.Dependencies.props')" Label="Paket" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{84E44D1B-460F-46AF-A0AA-31735088DE3F}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -28,6 +26,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <WarningLevel>4</WarningLevel>
+    <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>bin\Release\</OutputPath>
@@ -37,6 +37,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -68,15 +69,14 @@
     <Content Include="OpenTK.dll.config">
       <Paket>True</Paket>
     </Content>
-    <Content Include="..\packages\SharpFont.Dependencies.2.6\bin\msvc12\x64\freetype6.dll">
-      <Link>freetype6.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="woodenFont.qfont">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="OpenTK.dll.config" />
     <None Include="paket.references" />
+    <None Include="..\packages\SharpFont.Dependencies\bin\msvc10\x64\freetype6.dll">
+      <Link>freetype6.dll</Link>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="woodenFont.png">
@@ -85,7 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\QuickFont.Desktop\QuickFont.Desktop.csproj">
-      <Project>{bbece6fc-ef63-40f8-a734-a500d1dfc1af}</Project>
+      <Project>{BBECE6FC-EF63-40F8-A734-A500D1DFC1AF}</Project>
       <Name>QuickFont.Desktop</Name>
     </ProjectReference>
   </ItemGroup>
