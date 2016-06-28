@@ -4,7 +4,7 @@ os:
 language: csharp
 solution: QuickFont.sln
 before_script:
-  - mono .paket/paketbootstrapper.exe
+  - mono .paket/paket.bootstrapper.exe
   - mono .paket/paket.exe restore
 notifications:
   email:

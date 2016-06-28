@@ -4,7 +4,7 @@ configuration:
 - Debug
 - Release
 before_build:
-  - cmd: .paket/paketbootstrapper.exe
+  - cmd: .paket/paket.bootstrapper.exe
   - cmd: .paket/paket.exe restore
 build:
   parallel: true
