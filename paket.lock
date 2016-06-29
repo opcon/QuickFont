@@ -1,0 +1,6 @@
+NUGET
+  remote: https://www.nuget.org/api/v2
+    OpenTK.Next (1.2.2336.6514-pre)
+    SharpFont (3.1)
+      SharpFont.Dependencies
+    SharpFont.Dependencies (2.6)

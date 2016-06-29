@@ -6,6 +6,8 @@
 *.user
 *.userosscache
 *.sln.docstates
+*.userprefs
+*.iml
 
 # Build results
 [Dd]ebug/
@@ -184,3 +186,9 @@ FakesAssemblies/
 
 # Project Rider
 .idea/
+
+# paket
+paket.exe
+
+# vscode
+.vscode/
