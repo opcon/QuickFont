@@ -66,6 +66,10 @@
     <None Include="Fonts\times.ttf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Content Include="..\packages\SharpFont.Dependencies\bin\msvc10\x64\freetype6.dll">
+      <Link>freetype6.dll</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="OpenTK.dll.config">
       <Paket>True</Paket>
     </Content>
@@ -74,9 +78,6 @@
     </Content>
     <None Include="OpenTK.dll.config" />
     <None Include="paket.references" />
-    <None Include="..\packages\SharpFont.Dependencies\bin\msvc10\x64\freetype6.dll">
-      <Link>freetype6.dll</Link>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="woodenFont.png">
