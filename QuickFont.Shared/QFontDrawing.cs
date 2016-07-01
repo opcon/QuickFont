@@ -43,7 +43,7 @@ namespace QuickFont
         public QFontDrawing(bool useDefaultBlendFunction = true, QFontSharedState state = null)
         {
             _useDefaultBlendFunction = useDefaultBlendFunction;
-            _glFontDrawingPrimitives =new List<QFontDrawingPrimitive>();
+            _glFontDrawingPrimitives = new List<QFontDrawingPrimitive>();
             InitialiseState(state);
         }
 
