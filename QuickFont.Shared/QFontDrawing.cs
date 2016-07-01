@@ -187,14 +187,25 @@ namespace QuickFont
             GL.DeleteShader(frag);
 
             //Retrieve shader attribute and uniform locations
-            int mvpLoc = GL.GetUniformLocation(prog, "proj_matrix");
+            int projLoc = GL.GetUniformLocation(prog, "proj_matrix");
+            int mvLoc = GL.GetUniformLocation(prog, "modelview_matrix");
             int samplerLoc = GL.GetUniformLocation(prog, "tex_object");
             int posLoc = GL.GetAttribLocation(prog, "in_position");
             int tcLoc = GL.GetAttribLocation(prog, "in_tc");
             int colLoc = GL.GetAttribLocation(prog, "in_colour");
 
-            //Now we have all the information, time to create the immutable shared state object
-            var shaderVariables = new ShaderVariables(prog, mvpLoc, tcLoc, posLoc, samplerLoc, colLoc);
+            //Now we have all the information, time to create the shared state object
+            var shaderVariables = new ShaderLocations
+            {
+                ShaderProgram = prog,
+                ProjectionMatrixUniformLocation = projLoc,
+                ModelViewMatrixUniformLocation = mvLoc,
+                TextureCoordAttribLocation = tcLoc,
+                PositionCoordAttribLocation = posLoc,
+                SamplerLocation = samplerLoc,
+                ColorCoordAttribLocation = colLoc,
+
+            };
             var sharedState = new QFontSharedState(TextureUnit.Texture0, shaderVariables);
 
             _sharedState = sharedState;
@@ -224,7 +235,7 @@ namespace QuickFont
                 GL.Enable(EnableCap.Blend);
                 GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             }
-            GL.UniformMatrix4(InstanceSharedState.ShaderVariables.MVPUniformLocation, false, ref _projectionMatrix);
+            GL.UniformMatrix4(InstanceSharedState.ShaderVariables.ProjectionMatrixUniformLocation, false, ref _projectionMatrix);
 
             GL.Uniform1(InstanceSharedState.ShaderVariables.SamplerLocation, 0);
             GL.ActiveTexture(InstanceSharedState.DefaultTextureUnit);
@@ -233,6 +244,7 @@ namespace QuickFont
             VertexArrayObject.Bind();
             foreach (var primitive in _glFontDrawingPrimitives)
             {
+                GL.UniformMatrix4(InstanceSharedState.ShaderVariables.ModelViewMatrixUniformLocation, false, ref primitive.ModelViewMatrix);
                 var dpt = PrimitiveType.Triangles;
                 GL.ActiveTexture(SharedState.DefaultTextureUnit);
 
@@ -455,56 +467,42 @@ namespace QuickFont
     /// <summary>
     /// Holds the shader state
     /// </summary>
-    public class ShaderVariables
+    public class ShaderLocations
     {
-        /// <summary>
-        /// Create a new instance of <see cref="ShaderVariables"/>
-        /// </summary>
-        /// <param name="shaderProgram">The shader program</param>
-        /// <param name="mvpUniformLocation">The model-view-projection matrix uniform location</param>
-        /// <param name="textureCoordAttribLocation">The texture coordinate attribute location</param>
-        /// <param name="positionCoordAttribLocation">The position coordinate attribute location</param>
-        /// <param name="samplerLocation">The texture sample location</param>
-        /// <param name="colorCoordAttribLocation">The color coordinate attribute location</param>
-        public ShaderVariables(int shaderProgram, int mvpUniformLocation, int textureCoordAttribLocation, int positionCoordAttribLocation, int samplerLocation, int colorCoordAttribLocation)
-        {
-            ColorCoordAttribLocation = colorCoordAttribLocation;
-            SamplerLocation = samplerLocation;
-            PositionCoordAttribLocation = positionCoordAttribLocation;
-            TextureCoordAttribLocation = textureCoordAttribLocation;
-            MVPUniformLocation = mvpUniformLocation;
-            ShaderProgram = shaderProgram;
-        }
-
         /// <summary>
         /// The shader program name
         /// </summary>
-        public int ShaderProgram { get; }
+        public int ShaderProgram { get; set; }
 
         /// <summary>
-        /// The Model-View-Projection matrix uniform location
+        /// The Projection matrix uniform location
         /// </summary>
-        public int MVPUniformLocation { get; }
+        public int ProjectionMatrixUniformLocation { get; set; }
+
+        /// <summary>
+        /// The Model-View matrix uniform location
+        /// </summary>
+        public int ModelViewMatrixUniformLocation { get; set; }
 
         /// <summary>
         /// The texture coordinate attribute location
         /// </summary>
-        public int TextureCoordAttribLocation { get; private set; }
+        public int TextureCoordAttribLocation { get; set; }
 
         /// <summary>
         /// The position coordinate attribute location
         /// </summary>
-        public int PositionCoordAttribLocation { get; private set; }
+        public int PositionCoordAttribLocation { get; set; }
 
         /// <summary>
         /// The texture sample location
         /// </summary>
-        public int SamplerLocation { get; }
+        public int SamplerLocation { get; set; }
 
         /// <summary>
         /// The color coordinate attribute location
         /// </summary>
-        public int ColorCoordAttribLocation { get; private set; }
+        public int ColorCoordAttribLocation { get; set; }
     }
 
     /// <summary>
@@ -518,7 +516,7 @@ namespace QuickFont
         /// </summary>
         /// <param name="defaultTextureUnit">The default texture unit</param>
         /// <param name="shaderVariables">The shader variables</param>
-        public QFontSharedState(TextureUnit defaultTextureUnit, ShaderVariables shaderVariables)
+        public QFontSharedState(TextureUnit defaultTextureUnit, ShaderLocations shaderVariables)
         {
             DefaultTextureUnit = defaultTextureUnit;
             ShaderVariables = shaderVariables;
@@ -532,7 +530,7 @@ namespace QuickFont
         /// <summary>
         /// The shader variables of this shared state
         /// </summary>
-        public ShaderVariables ShaderVariables { get; }
+        public ShaderLocations ShaderVariables { get; }
     }
 
 }

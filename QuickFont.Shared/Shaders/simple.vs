@@ -1,5 +1,6 @@
 
 uniform mat4 proj_matrix;
+uniform mat4 modelview_matrix;
 
 in vec3 in_position;
 in vec2 in_tc;
@@ -12,5 +13,5 @@ void main(void)
 {
 	tc = in_tc;
 	colour = in_colour;
-	gl_Position = proj_matrix * vec4(in_position, 1.); 
+	gl_Position = proj_matrix * modelview_matrix * vec4(in_position, 1.); 
 }
