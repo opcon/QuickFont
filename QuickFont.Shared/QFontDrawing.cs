@@ -214,8 +214,7 @@ namespace QuickFont
         }
 
         /// <summary>
-        /// Helper method to reduce lines of code related to simple font drawing.
-        /// Calls Begin(), then LoadVBOs(), then DrawVBOs(), then End()
+        /// Draws the text stored in this drawing
         /// </summary>
         public void Draw()
         {
