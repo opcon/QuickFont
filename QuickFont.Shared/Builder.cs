@@ -496,7 +496,7 @@ namespace QuickFont
             var maxSize = GetMaxGlyphSize(sizes);
             var initialBmp = CreateInitialBitmap(_font, maxSize, margin, out initialGlyphs,_config.TextGenerationRenderHint);
 
-#if DEBUG
+#if DEBUG 
 			// print bitmap with bounds to debug it
 			var debugBmp = initialBmp.Clone() as Bitmap;
 			var graphics = Graphics.FromImage(debugBmp);
