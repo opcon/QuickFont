@@ -25,7 +25,19 @@ public Game()
 
 This will select an OpenGL version >= 3.2 (usually 4.1).
 
-## Version 4.3
+# Changelog
+
+## Latest Release - Version 4.4
+* Updated to OpenTK 2.0 and SharpFont 4.0.1
+* Added fallback to builtin kerning if font file does not have any
+* Switch to using paket for dependency management rather than nuget
+* Added OSX and Linux continuous integration through travis-ci
+* Added a custom view-model-matrix to QFontDrawingPrimitive which allows for some fun effects - see Example
+* Improved inbuilt documentation
+
+## Previous Releases:
+
+#### Version 4.3
 * Kerning information is now loaded from FreeType if `FreeTypeFont` is used
 * Improved built in kerning method to account for pixels on glyph boundary
 * Fixes to example project
@@ -36,15 +48,15 @@ This will select an OpenGL version >= 3.2 (usually 4.1).
 * Fixed `QFontDrawing` not implementing `IDisposable`
 * Improved disposing in `QVertexArrayObject`
 
-### Version 4.2
+#### Version 4.2
 * Switched to using a shared package to build QuickFont
 * Added an OpenGL ES 2.0 nuget package
 
-### Version 4.1
+#### Version 4.1
 * Updated font loading mechanism to use [SharpFont](https://github.com/Robmaister/SharpFont) for loading fonts by path, and use the regular GDIFont mechanism for loading installed (system) fonts
 * Updated example project to show some different installed system fonts
 
-### Version 4.0
+#### Version 4.0
 * Now uses SharpFont for loading the font files, so custom (non-installed) fonts are now supported on Linux and OSX
 * Added Nuget package
 * Added support for OpenGL ES (requires conditional compilation) thanks to [vescon](https://github.com/vescon/QuickFont)
@@ -54,19 +66,19 @@ This will select an OpenGL version >= 3.2 (usually 4.1).
 * Example is working again
 * Updated to latest OpenTK nuget package (OpenTK.Next)
 
-###Todo
+### Todo
 - [ ] Maybe extract all Print methods in a static class to leave QFontDrawingPrimitive more basic.
 - [ ] Right to Left text flow support (arabic, hebrew)
 - [ ] Unicode zero spacing eg. combining character support
 - [ ] On-the-fly character addition (If a character can not be found, add it, regenerate the font)
 
-##Screenshot
+## Screenshot
 
 ![](http://i.imgur.com/M0iq083.png)
 
 ![](https://i.imgur.com/lf0mKCl.png)
 
-##Example
+## Example
 
 In some OnLoad() method create your QFont and your QFontDrawing
 ```C#
