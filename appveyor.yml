@@ -4,7 +4,12 @@ configuration:
 - Debug
 - Release
 before_build:
-- cmd: nuget restore
+  - cmd: .paket\paket.bootstrapper.exe
+  - cmd: .paket\paket.exe restore
 build:
   parallel: true
   verbosity: minimal
+after_build:
+  - cmd: .paket\paket.exe pack output artifacts symbols buildconfig %CONFIGURATION% -v
+artifacts:
+  - path: '**\*QuickFont*.nupkg'

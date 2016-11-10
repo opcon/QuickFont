@@ -662,9 +662,13 @@ namespace Example
 
             if (_currentDemoPage != _lastPage)
             {
-                Vector3 pos = new Vector3(Width - 10 - 16 * (float)(1 + Math.Sin(_cnt * 4)), 
+                var dim = _controlsText.Measure("Press [Right] ->");
+                Vector3 pos = new Vector3(Width - dim.Width/2 - 16 * (float)(1 + Math.Sin(_cnt * 4)), 
                     _controlsText.Measure("P").Height + 10f, 0f);
-                _controlsDrawing.Print(_controlsText, "Press [Right] ->", pos, QFontAlignment.Right, _controlsTextOpts);
+                var dp = new QFontDrawingPrimitive(_controlsText, _controlsTextOpts);
+                dp.ModelViewMatrix = Matrix4.CreateTranslation(0, dim.Height / 2, 0) * Matrix4.CreateRotationZ((float)MathHelper.DegreesToRadians(Math.Sin(_cnt * 4) * 15)) * Matrix4.CreateTranslation(pos); 
+                _controlsDrawing.DrawingPrimitives.Add(dp);
+                dp.Print("Press [Right] ->", Vector3.Zero, QFontAlignment.Centre);
             }
 
             if (_currentDemoPage != 0)

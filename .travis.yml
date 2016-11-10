@@ -1,5 +1,11 @@
+os:
+  - linux
+  - osx
 language: csharp
 solution: QuickFont.sln
+before_script:
+  - mono .paket/paket.bootstrapper.exe
+  - mono .paket/paket.exe restore
 notifications:
   email:
     on_success: change

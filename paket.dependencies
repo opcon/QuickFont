@@ -1,0 +1,10 @@
+source https://www.nuget.org/api/v2
+
+nuget OpenTK
+nuget SharpFont >= 3.1.0
+nuget SharpFont.Dependencies >= 2.6
+
+group Deploy
+source https://www.nuget.org/api/v2
+
+nuget Brutal.Dev.StrongNameSigner

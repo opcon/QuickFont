@@ -9,6 +9,7 @@ namespace QuickFont
     /// <summary>
     /// Handles the vertex data for rendering text
     /// </summary>
+    [DebuggerDisplay("Text = {_DisplayTest_dbg}")]
     public class QFontDrawingPrimitive
     {
 #if DEBUG   // Keep copy of string for debug purposes, only
@@ -37,6 +38,12 @@ namespace QuickFont
             Font = font;
             Options = new QFontRenderOptions();
         }
+
+        /// <summary>
+        /// The model-view matrix for this <see cref="QFontDrawingPrimitive"/>.
+        /// Default value is the identity matrix
+        /// </summary>
+        public Matrix4 ModelViewMatrix = Matrix4.Identity;
 
         /// <summary>
         /// An offset that is added to all positions

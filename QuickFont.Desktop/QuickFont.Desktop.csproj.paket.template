@@ -1,0 +1,17 @@
+type project
+id 
+    QuickFont.Desktop
+title 
+    QuickFont.Desktop
+licenseUrl 
+    https://github.com/opcon/QuickFont/blob/master/License.txt
+projectUrl 
+    https://github.com/opcon/QuickFont
+releaseNotes 
+    https://github.com/opcon/QuickFont/releases/tag/v4.3
+tags 
+    QuickFont OpenGL OpenTK
+copyright 
+    Copyright 2016
+dependencies
+    OpenTK.Next >= 1.1.1616.8959
