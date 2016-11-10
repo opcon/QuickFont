@@ -1,11 +1,11 @@
 NUGET
   remote: https://www.nuget.org/api/v2
-    OpenTK.Next (1.2.2336.6514-pre)
-    SharpFont (3.1)
+    OpenTK (2.0)
+    SharpFont (4.0.1)
       SharpFont.Dependencies
     SharpFont.Dependencies (2.6)
 
 GROUP Deploy
 NUGET
   remote: https://www.nuget.org/api/v2
-    Brutal.Dev.StrongNameSigner (1.8)
+    Brutal.Dev.StrongNameSigner (2.1)

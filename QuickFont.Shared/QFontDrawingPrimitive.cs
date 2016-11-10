@@ -9,6 +9,7 @@ namespace QuickFont
     /// <summary>
     /// Handles the vertex data for rendering text
     /// </summary>
+    [DebuggerDisplay("Text = {_DisplayTest_dbg}")]
     public class QFontDrawingPrimitive
     {
 #if DEBUG   // Keep copy of string for debug purposes, only
