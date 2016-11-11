@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Linq;
 using OpenTK;
 #if OPENGL_ES
 using OpenTK.Graphics.ES20;
@@ -90,12 +91,12 @@ namespace QuickFont
         private static string LoadShaderFromResource(string path)
         {
             var assembly = Assembly.GetExecutingAssembly();
+            path = assembly.GetManifestResourceNames().Where(f => f.EndsWith(path)).First();
 
             var resourceStream =
-                assembly.GetManifestResourceStream(
-                    string.Format("QuickFont.Shaders.{0}", path));
+                assembly.GetManifestResourceStream(path);
             if (resourceStream == null)
-                throw new AccessViolationException("Error accessing resources!");
+                throw new AccessViolationException("Error loading shader resource");
 
             string result;
             using (var sr = new StreamReader(resourceStream))
