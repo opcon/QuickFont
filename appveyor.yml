@@ -1,14 +1,13 @@
-version: 4.3.{build}-appveyor
+version: 4.4.{build}-appveyor
 image: Visual Studio 2015
 configuration:
 - Debug
 - Release
-before_build:
-  - cmd: .paket\paket.bootstrapper.exe
-  - cmd: .paket\paket.exe restore
 build:
   parallel: true
   verbosity: minimal
+build_script:
+  - cmd: .\build.cmd mode=%CONFIGURATION%
 after_build:
   - cmd: .paket\paket.exe pack output artifacts symbols buildconfig %CONFIGURATION% -v
 artifacts:

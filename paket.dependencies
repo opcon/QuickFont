@@ -4,6 +4,11 @@ nuget OpenTK
 nuget SharpFont >= 4.0
 nuget SharpFont.Dependencies >= 2.6
 
+group Build
+source https://www.nuget.org/api/v2/
+
+nuget FAKE
+
 group Deploy
 source https://www.nuget.org/api/v2
 
