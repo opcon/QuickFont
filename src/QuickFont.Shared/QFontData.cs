@@ -9,6 +9,8 @@ namespace QuickFont
     /// </summary>
     class QFontData
     {
+        public float Baseline { get; set; }
+
         /// <summary>
         /// Mapping from a pair of characters to a pixel offset
         /// </summary>
@@ -42,7 +44,20 @@ namespace QuickFont
         /// <summary>
         /// Null if no dropShadowFont is available
         /// </summary>
-        public QFont DropShadowFont;
+        public QFont DropShadowFont
+        {
+            get
+            {
+                return _dropShadowFont;
+            }
+            set
+            {
+                _dropShadowFont = value;
+                _dropShadowFont.FontData.Baseline = this.Baseline;
+            }
+        }
+
+        private QFont _dropShadowFont;
 
         /// <summary>
         /// true if this font is dropShadowFont

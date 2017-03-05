@@ -239,7 +239,7 @@ namespace QuickFont
             float ty2 = (float)(glyph.Rect.Y + glyph.Rect.Height) / sheet.Height;
 
             float vx = x + PrintOffset.X;
-            float vy = y - glyph.YOffset + PrintOffset.Y;
+            float vy = y - glyph.YOffset + PrintOffset.Y + font.FontData.Baseline;
             float vwidth = glyph.Rect.Width;
             float vheight = glyph.Rect.Height;
 

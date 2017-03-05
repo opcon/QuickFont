@@ -20,6 +20,8 @@ namespace QuickFont
 
 		private int _maxHorizontalBearyingY = 0;
 
+        public int Baseline { get { return _maxHorizontalBearyingY; } }
+
 		/// <summary>
 		/// The size of the font
 		/// </summary>

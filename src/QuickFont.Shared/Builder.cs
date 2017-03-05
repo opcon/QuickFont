@@ -507,6 +507,13 @@ namespace QuickFont
 				graphics.DrawRectangle(pen, g.Rect);
 			}
 
+            if (_font is FreeTypeFont)
+            {
+                var baseliney = (_font as FreeTypeFont).Baseline + margin;
+
+                graphics.DrawLine(pen, 0, baseliney, debugBmp.Width, baseliney);
+            }
+
 			graphics.Flush();
 			graphics.Dispose();
 
@@ -564,7 +571,13 @@ namespace QuickFont
             fontData.KerningPairs = KerningCalculator.CalculateKerning(_charSet.ToCharArray(), glyphs, bitmapPages,_config.KerningConfig, _font);
             fontData.NaturallyMonospaced = IsMonospaced(sizes);
 
-			// Save the font texture files if required
+            // Set baseline if we have it
+            if (_font is FreeTypeFont)
+                fontData.Baseline = (_font as FreeTypeFont).Baseline;
+            else
+                fontData.Baseline = 0;
+
+            // Save the font texture files if required
             if (saveName != null)
             {
                 if (bitmapPages.Count == 1)
@@ -596,7 +609,7 @@ namespace QuickFont
             var intercept = FirstIntercept(fontData.CharSetMapping);
             if (intercept != null)
                 throw new Exception("Failed to create glyph set. Glyphs '" + intercept[0] + "' and '" + intercept[1] + "' were overlapping. This is could be due to an error in the font, or a bug in Graphics.MeasureString().");
-            
+
             return fontData;
         }
 
