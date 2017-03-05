@@ -1,7 +1,7 @@
 @echo off
 cls
 
-.paket\paket.bootstrapper.exe
+.paket\paket.bootstrapper.exe --max-file-age=720
 if errorlevel 1 (
   exit /b %errorlevel%
 )
