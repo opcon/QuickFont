@@ -65,6 +65,37 @@ namespace QuickFont
 			LoadFontFace(fontPath, size, fontStyle, superSampleLevels, scale);
 		}
 
+		/// <summary>
+		/// Creates a new instace of FreeTypeFont
+		/// </summary>
+		/// <param name="fontData">Contents of the font file</param>
+		/// <param name="size">Size of the font</param>
+		/// <param name="style">Style of the font</param>
+		/// <param name="superSampleLevels">Super sample levels</param>
+		/// <param name="scale">Scale</param>
+		/// <exception cref="ArgumentException"></exception>
+		public FreeTypeFont(byte[] fontData, float size, FontStyle style, int superSampleLevels = 1, float scale = 1.0f)
+		{
+			StyleFlags fontStyle = StyleFlags.None;
+			switch (style)
+			{
+				case FontStyle.Bold:
+					fontStyle = StyleFlags.Bold;
+					break;
+				case FontStyle.Italic:
+					fontStyle = StyleFlags.Italic;
+					break;
+				case FontStyle.Regular:
+					fontStyle = StyleFlags.None;
+					break;
+				default:
+					Debug.WriteLine("Invalid style flag chosen for FreeTypeFont: " + style);
+					break;
+			}
+
+			LoadFontFace(fontData, size, fontStyle, superSampleLevels, scale);
+		}
+
 		private void LoadFontFace(string fontPath, float size, StyleFlags fontStyle, int superSampleLevels, float scale)
 		{
 			// Get total number of faces in a font file
@@ -104,6 +135,45 @@ namespace QuickFont
 			_fontFace.SetCharSize(0, Size, 0, DPI);
 		}
 
+		private void LoadFontFace(byte[] fontData, float size, StyleFlags fontStyle, int superSampleLevels, float scale)
+		{
+			// Get total number of faces in a font file
+			var tempFace = _fontLibrary.NewMemoryFace(fontData, -1);
+			int numberOfFaces = tempFace.FaceCount;
+
+			// Dispose of the temporary face
+			tempFace.Dispose();
+			tempFace = null;
+
+			// Loop through to find the style we want
+			for (int i = 0; i < numberOfFaces; i++)
+			{
+				tempFace = _fontLibrary.NewMemoryFace(fontData, i);
+
+				// If we've found the style, exit loop
+				if (tempFace.StyleFlags == fontStyle)
+					break;
+
+				// Dispose temp face and keep searching
+				tempFace.Dispose();
+				tempFace = null;
+			}
+
+			// Use default font face if correct style not found
+			if (tempFace == null)
+			{
+				Debug.WriteLine("Could not find correct face style in font: " + fontStyle);
+				tempFace = _fontLibrary.NewMemoryFace(fontData, 0);
+			}
+
+			// Set the face for this instance
+			_fontFace = tempFace;
+
+			// Set the size
+			Size = size * scale * superSampleLevels;
+			_fontFace.SetCharSize(0, Size, 0, DPI);
+		}
+
 		/// <summary>Returns a string that represents the current object.</summary>
 		/// <returns>A string that represents the current object.</returns>
 		/// <filterpriority>2</filterpriority>
@@ -131,7 +201,7 @@ namespace QuickFont
 			if (!(color is SolidBrush))
 				throw new ArgumentException("Brush is required to be a SolidBrush (single, solid color)", nameof(color));
 
-			var fontColor = ((SolidBrush) color).Color;
+			var fontColor = ((SolidBrush)color).Color;
 
 			// Load the glyph into the face's glyph slot
 			LoadGlyph(s[0]);
@@ -145,7 +215,7 @@ namespace QuickFont
 				var bitmap = _fontFace.Glyph.Bitmap.ToGdipBitmap(fontColor);
 				int baseline = y + _maxHorizontalBearyingY;
 				graph.DrawImageUnscaled(bitmap, x, (baseline - _fontFace.Glyph.Metrics.HorizontalBearingY.Ceiling()));
-				return new Point(0, baseline - _fontFace.Glyph.Metrics.HorizontalBearingY.Ceiling() - 2*y);
+				return new Point(0, baseline - _fontFace.Glyph.Metrics.HorizontalBearingY.Ceiling() - 2 * y);
 			}
 
 			return Point.Empty;
@@ -214,11 +284,11 @@ namespace QuickFont
 						_fontFace.Dispose();
 						_fontFace = null;
 					}
-				    if (_fontLibrary != null)
-				    {
-				        _fontLibrary.Dispose();
-				        _fontLibrary = null;
-				    }
+					if (_fontLibrary != null)
+					{
+						_fontLibrary.Dispose();
+						_fontLibrary = null;
+					}
 				}
 				_disposedValue = true;
 			}

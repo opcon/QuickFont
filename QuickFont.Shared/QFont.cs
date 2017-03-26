@@ -68,6 +68,25 @@ namespace QuickFont
         }
 
         /// <summary>
+        /// Initialise QFont from memory
+        /// </summary>
+        /// <param name="fontData">Contents of the font file</param>
+        /// <param name="size">The size</param>
+        /// <param name="config">The configuration</param>
+        /// <param name="style">The style</param>
+        public QFont(byte[] fontData, float size, QFontBuilderConfiguration config,
+            FontStyle style = FontStyle.Regular)
+        {
+            float fontScale = 1f;
+
+            using (IFont font = new FreeTypeFont(fontData, size, style, config?.SuperSampleLevels ?? 1, fontScale))
+            {
+                FontName = font.ToString();
+                InitialiseQFont(font, config);
+            }
+        }
+
+        /// <summary>
         ///     Initialise QFont from a .qfont file
         /// </summary>
         /// <param name="qfontPath">The .qfont file to load</param>
