@@ -192,3 +192,12 @@ paket.exe
 
 # vscode
 .vscode/
+
+# FAKE
+.fake/
+
+# Build artifacts
+bin/
+
+# Packages
+packages/

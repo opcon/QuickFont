@@ -2,10 +2,10 @@ os:
   - linux
   - osx
 language: csharp
-solution: QuickFont.sln
-before_script:
-  - mono .paket/paket.bootstrapper.exe
-  - mono .paket/paket.exe restore
+env:
+  - CONFIGURATION=Release
+  - CONFIGURATION=Debug
+script: ./build.sh mode=$CONFIGURATION
 notifications:
   email:
     on_success: change
