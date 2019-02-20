@@ -234,7 +234,7 @@ namespace QuickFont
             if (_useDefaultBlendFunction)
             {
                 GL.Enable(EnableCap.Blend);
-                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
             }
             GL.UniformMatrix4(InstanceSharedState.ShaderVariables.ProjectionMatrixUniformLocation, false, ref _projectionMatrix);
 
