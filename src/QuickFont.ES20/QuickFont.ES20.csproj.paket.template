@@ -1,0 +1,15 @@
+type project
+id 
+    QuickFont.ES20
+title 
+    QuickFont.ES20
+licenseUrl 
+    https://github.com/opcon/QuickFont/blob/master/License.txt
+projectUrl 
+    https://github.com/opcon/QuickFont
+tags 
+    QuickFont OpenGL ES OpenTK
+copyright 
+    Copyright 2019
+dependencies
+    OpenTK >= 3.0

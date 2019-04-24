@@ -1,6 +1,7 @@
 The following is a non-exhaustive list of people who have contributed to QuickFont:
 
 James Lohr - Creator of the original library (http://www.opentk.com/project/QuickFont)
+Szymon (szymski) Jankowski - Added support for loading fontfaces from memory
 John (swax) Marshall - Added vertex buffer support
 Patrick (opcon) Yates - Current maintainer
 Robertofon - Refactored monolithic QFont class

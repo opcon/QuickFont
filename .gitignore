@@ -72,6 +72,9 @@ ipch/
 *.sdf
 *.cachefile
 
+# Visual Studio
+*.vs
+
 # Visual Studio profiler
 *.psess
 *.vsp
@@ -192,3 +195,12 @@ paket.exe
 
 # vscode
 .vscode/
+
+# FAKE
+.fake/
+
+# Build artifacts
+bin/
+
+# Packages
+packages/
