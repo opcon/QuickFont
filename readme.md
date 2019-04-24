@@ -27,15 +27,22 @@ This will select an OpenGL version >= 3.2 (usually 4.1).
 
 # Changelog
 
-## Latest Release - Version 4.4
+## Latest Release - Version 4.5
+
+* Update to OpenTK 3.1
+* Add FAKE build script
+* Support loading FreeType fonts from memory
+
+## Previous Releases:
+
+#### Version 4.4
+
 * Updated to OpenTK 2.0 and SharpFont 4.0.1
 * Added fallback to builtin kerning if font file does not have any
 * Switch to using paket for dependency management rather than nuget
 * Added OSX and Linux continuous integration through travis-ci
 * Added a custom view-model-matrix to QFontDrawingPrimitive which allows for some fun effects - see Example
 * Improved inbuilt documentation
-
-## Previous Releases:
 
 #### Version 4.3
 * Kerning information is now loaded from FreeType if `FreeTypeFont` is used
