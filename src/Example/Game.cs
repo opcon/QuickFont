@@ -310,7 +310,7 @@ namespace Example
         {
             base.OnUpdateFrame(e);
 
-            if (Keyboard[Key.Escape])
+            if (Keyboard.GetState()[Key.Escape])
                 Exit();
 
             _cnt += e.Time;
