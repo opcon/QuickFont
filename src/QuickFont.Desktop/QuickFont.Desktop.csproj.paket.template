@@ -10,6 +10,6 @@ projectUrl
 tags 
     QuickFont OpenGL OpenTK
 copyright 
-    Copyright 2016
+    Copyright 2019
 dependencies
-    OpenTK >= 2.0
+    OpenTK >= 3.0
