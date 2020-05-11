@@ -97,7 +97,7 @@ _drawing = new QFontDrawing();
 Call some print methods or create Drawing primitives by themselves.
 Add them to the drawing.
 ```C#
-_drawing.DrawingPimitiveses.Clear();
+_drawing.DrawingPrimitives.Clear();
 _drawing.Print(_myFont, "text1", pos, FontAlignment.Left);
 
 // draw with options
