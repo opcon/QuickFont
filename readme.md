@@ -97,7 +97,7 @@ _drawing = new QFontDrawing();
 Call some print methods or create Drawing primitives by themselves.
 Add them to the drawing.
 ```C#
-_drawing.DrawingPimitiveses.Clear();
+_drawing.DrawingPrimitives.Clear();
 _drawing.Print(_myFont, "text1", pos, FontAlignment.Left);
 
 // draw with options
@@ -108,9 +108,9 @@ var textOpts = new QFontRenderOptions()
 	};
 SizeF size = _drawing.Print(_myFont, "text2", pos2, FontAlignment.Left, textOpts);
 
-var dp = new QFontDrawingPimitive(_myFont2);
+var dp = new QFontDrawingPrimitive(_myFont2);
 size = dp.Print(text, new Vector3(bounds.X, Height - yOffset, 0), new SizeF(maxWidth, float.MaxValue), alignment);
-drawing.DrawingPimitiveses.Add(dp);
+drawing.DrawingPrimitives.Add(dp);
 
 // after all changes do update buffer data and extend it's size if needed.
 _drawing.RefreshBuffers();
